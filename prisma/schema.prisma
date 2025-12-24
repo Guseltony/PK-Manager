@@ -11,3 +11,38 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  username    String?
+  notes       Note[]
+  tag         Tag[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Note {
+  id          String      @id @default(uuid())
+  title       String
+  content     String
+  isArchived  Boolean     @default(false)
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  tags        Tag[]       @relation("NoteTags")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @default(now())
+}
+
+model Tag {
+  id          String       @id @default(uuid())
+  name        String
+  color       String
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  notes       Note[]      @relation("NoteTags")
+  createdAt   DateTime    @default(now())
+
+  @@unique([name, userId])
+}
