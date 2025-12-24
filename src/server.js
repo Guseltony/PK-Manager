@@ -1,7 +1,7 @@
 import express from "express";
 import "dotenv/config";
 import { connectDB, disconnectDB } from "./config/db.js";
-import { textRoutes } from "./routes/test.js";
+import { authRoute } from "./routes/authRoutes.js";
 
 // conncet to the database
 connectDB();
@@ -17,9 +17,9 @@ app.use(express.urlencoded({ extended: true }));
 
 // api endpoints
 
-// testing api
+app.use("/auth", authRoute);
 
-app.use("/", textRoutes);
+
 
 // port and listening
 
