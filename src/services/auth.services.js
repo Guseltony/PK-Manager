@@ -2,6 +2,7 @@
 
 import { prisma } from "../libs/prisma.js";
 import bcrypt from "bcryptjs";
+import { generateToken } from "../utils/generateToken.js";
 
 const registerUser = async ({ email, password, username }) => {
   console.log("running user registration");
@@ -31,17 +32,44 @@ const registerUser = async ({ email, password, username }) => {
       password: hashedPassword,
       username: username,
     },
-    // omit: { password: true },
+    omit: { password: true },
     // or
-    select: {
-      id: true,
-      email: true,
-      username: true,
-      createdAt: true,
-    },
+    // select: {
+    //   id: true,
+    //   email: true,
+    //   username: true,
+    //   createdAt: true,
+    // },
   });
 
   return user;
 };
 
-export { registerUser };
+const loginUser = async ({ email, password }) => {
+  // check if the user is in the database
+
+  const user = await prisma.user.findUnique({
+    where: { email: email },
+  });
+
+  if (!user) {
+    throw new Error("Invalid email or password");
+  }
+
+  // check password
+
+  const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordMatch) {
+    throw new Error("Invalid email or password");
+  }
+
+  // remove password before returning user
+  // const { password: _password, ...userWithoutPassword } = user;
+  // return userWithoutPassword;
+
+  // or
+  return user;
+};
+
+export { registerUser, loginUser };
