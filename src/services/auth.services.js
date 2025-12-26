@@ -2,7 +2,6 @@
 
 import { prisma } from "../libs/prisma.js";
 import bcrypt from "bcryptjs";
-import { generateToken } from "../utils/generateToken.js";
 
 const registerUser = async ({ email, password, username }) => {
   console.log("running user registration");

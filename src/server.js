@@ -2,6 +2,7 @@ import express from "express";
 import "dotenv/config";
 import { connectDB, disconnectDB } from "./config/db.js";
 import { authRoute } from "./routes/authRoutes.js";
+import { env } from "./validators/env.schema.js";
 
 // conncet to the database
 connectDB();
@@ -19,12 +20,10 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/auth", authRoute);
 
-
-
 // port and listening
 
-app.listen(process.env.PORT || 5555, () => {
-  console.log(`server connected on port ${process.env.PORT}`);
+app.listen(env.PORT || 5555, () => {
+  console.log(`server connected on port ${env.PORT}`);
 });
 
 // ERROR HANDLING
