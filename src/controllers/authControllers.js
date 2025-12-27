@@ -15,7 +15,8 @@ export const register = async (req, res) => {
       res.status(200).json({
         message: "User successfully register",
         data: {
-          user: user,
+          ...user,
+          role: "user",
         },
         token,
       });
@@ -41,6 +42,7 @@ export const login = async (req, res) => {
         id: user.id,
         username: user.username,
         email: user.email,
+        role: "user",
       },
       token,
     });
@@ -50,3 +52,20 @@ export const login = async (req, res) => {
     });
   }
 };
+
+export const logout = async (req, res) => {
+  res.cookie("jwt", "", {
+    httpOnly: true,
+    expires: new Date(0),
+  });
+
+  // or res.clearCookie("token");
+
+  res.status(200).json({
+    status: "success",
+    message: "Logged out successfully",
+  });
+};
+
+
+// DON'T FORGET TO REMOVE THE TOKEN FROM RES AND THE VARIABLE

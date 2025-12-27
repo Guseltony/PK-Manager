@@ -45,6 +45,9 @@ const registerUser = async ({ email, password, username }) => {
 };
 
 const loginUser = async ({ email, password }) => {
+  if (!email || !password) {
+    throw new Error("All fields are required");
+  }
   // check if the user is in the database
 
   const user = await prisma.user.findUnique({

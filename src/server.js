@@ -3,6 +3,8 @@ import "dotenv/config";
 import { connectDB, disconnectDB } from "./config/db.js";
 import { authRoute } from "./routes/authRoutes.js";
 import { env } from "./validators/env.schema.js";
+import noteRoutes from "./routes/notesRoutes.js";
+import { authMiddleware } from "./middlewares/authMiddleware.js";
 
 // conncet to the database
 connectDB();
@@ -19,6 +21,7 @@ app.use(express.urlencoded({ extended: true }));
 // api endpoints
 
 app.use("/auth", authRoute);
+app.use("/note", authMiddleware, noteRoutes);
 
 // port and listening
 
