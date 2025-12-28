@@ -5,19 +5,46 @@ const tagCreation = async ({ name: title, color }, user_id) => {
     throw new Error("Please provide a valid title for the tag");
   }
 
+  const Existedtag = await prisma.tag.findUnique({
+    where: {
+      name_userId: {
+        name: title.toLowerCase(),
+        userId: user_id,
+      },
+    },
+  });
+
+  if (Existedtag) {
+    throw new Error("Tag already created.");
+  }
+
   if (!user_id) {
     throw new Error("Unauthorize, please Log in");
   }
 
   const tag = await prisma.tag.create({
     data: {
-      name: title,
+      name: title.toLowerCase(),
       color: color,
       user: {
         connect: { id: user_id },
       },
     },
   });
+
+  // const tag = await prisma.tag.upsert({
+  //   where: {
+  //     name_userId: {
+  //       name: "work",
+  //       userId,
+  //     },
+  //   },
+  //   update: {},
+  //   create: {
+  //     name: "work",
+  //     userId,
+  //   },
+  // });
 
   return tag;
 };
@@ -50,4 +77,34 @@ const tagUpdate = async ({ name: title, color }, tag_id, user_id) => {
   return updateTag;
 };
 
-export { tagCreation, tagUpdate };
+const getAllTag = async (user_id) => {
+  const allTag = await prisma.tag.findMany({
+    where: {
+      userId: user_id,
+    },
+  });
+
+  return allTag;
+};
+
+const tagDeletion = async (tag_id, user_id) => {
+  // verify the ownership
+  const tag = await prisma.tag.findUnique({
+    where: { id: tag_id },
+  });
+
+  if (!tag) {
+    throw new Error("Tag and User not found");
+  }
+
+  const deleteTag = await prisma.tag.delete({
+    where: {
+      id: tag_id,
+      userId: user_id,
+    },
+  });
+
+  return deleteTag;
+};
+
+export { tagCreation, tagUpdate, tagDeletion, getAllTag };
