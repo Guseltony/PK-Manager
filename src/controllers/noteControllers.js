@@ -1,7 +1,9 @@
 import {
+  deleteUserNote,
   getNote,
   getUserNotes,
   noteCreation,
+  updateUserNote,
 } from "../services/note.service.js";
 
 export const createNote = async (req, res) => {
@@ -50,6 +52,37 @@ export const allUserNote = async (req, res) => {
         data,
       });
     }
+  } catch (error) {
+    res.status(401).json({
+      error: error.message,
+    });
+  }
+};
+
+export const updateNote = async (req, res) => {
+  try {
+    const data = await updateUserNote(req.body, req.params.id, req.user.id);
+
+    if (data) {
+      res.status(200).json({
+        message: "Note updated successfully",
+        data,
+      });
+    }
+  } catch (error) {
+    res.status(401).json({
+      error: error.message,
+    });
+  }
+};
+
+export const deleteNote = async (req, res) => {
+  try {
+    await deleteUserNote(req.params.id, req.user.id);
+
+    res.status(200).json({
+      message: "deleted successfully",
+    });
   } catch (error) {
     res.status(401).json({
       error: error.message,

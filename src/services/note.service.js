@@ -12,6 +12,7 @@ const noteCreation = async ({ title, content }, user_id) => {
     data: {
       title,
       content,
+      // connecting relations schema
       user: {
         connect: { id: user_id },
       },
@@ -32,12 +33,12 @@ const getUserNotes = async (user_id) => {
 };
 
 const getNote = async (note_id, user_id) => {
-  console.log("getting notes");
   const note = await prisma.note.findUnique({
-    where: { id: note_id },
+    where: {
+      id: note_id,
+      userId: user_id,
+    },
   });
-
-  console.log(user_id);
 
   if (!note) {
     throw new Error("Note not found or does not exist");
@@ -46,4 +47,42 @@ const getNote = async (note_id, user_id) => {
   return note;
 };
 
-export { noteCreation, getNote, getUserNotes };
+const updateUserNote = async ({ title, content }, note_id, user_id) => {
+  const noteObj = {};
+
+  if (title !== undefined && title !== "") noteObj.title = title;
+  if (content !== undefined && content !== "") noteObj.content = content;
+
+  const updateNote = await prisma.note.update({
+    where: {
+      id: note_id,
+      userId: user_id,
+    },
+    data: {
+      ...noteObj,
+    },
+  });
+
+  if (!updateNote) {
+    throw new Error("Note not found or does not exist");
+  }
+
+  return updateNote;
+};
+
+const deleteUserNote = async (note_id, user_id) => {
+  const note = await prisma.note.delete({
+    where: {
+      id: note_id,
+      userId: user_id,
+    },
+  });
+
+  if (!note) {
+    throw new Error("Note not found or does not exist");
+  }
+
+  return note;
+};
+
+export { noteCreation, getNote, getUserNotes, updateUserNote, deleteUserNote };
