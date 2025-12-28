@@ -44,7 +44,7 @@ model Note {
 model Tag {
   id          String       @id @default(uuid())
   name        String
-  color       String
+  color       String?
   userId      String
   user        User        @relation(fields: [userId], references: [id])
   notes       Note[]      @relation("NoteTags")
