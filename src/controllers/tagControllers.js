@@ -1,5 +1,6 @@
 import { readonly } from "zod";
 import {
+  addTagToNote,
   getAllTag,
   tagCreation,
   tagDeletion,
@@ -64,6 +65,23 @@ export const deleteTag = async (req, res) => {
     if (data) {
       res.status(200).json({
         message: "deleted successfully",
+      });
+    }
+  } catch (error) {
+    res.status(401).json({
+      error: error.message,
+    });
+  }
+};
+
+export const tagToNote = async (req, res) => {
+  try {
+    const data = await addTagToNote(req.body, req.params.id, req.user.id);
+
+    if (data) {
+      res.status(200).json({
+        message: "Note-Tag linked successfully",
+        data,
       });
     }
   } catch (error) {

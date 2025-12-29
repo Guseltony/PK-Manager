@@ -107,4 +107,50 @@ const tagDeletion = async (tag_id, user_id) => {
   return deleteTag;
 };
 
-export { tagCreation, tagUpdate, tagDeletion, getAllTag };
+const addTagToNote = async ({ tagName }, note_id, user_id) => {
+  if (!tagName) {
+    return res.status(400).json({ message: "Tag name is required" });
+  }
+
+  const note = await prisma.note.findUnique({
+    where: { id: note_id },
+  });
+
+  if (!note) {
+    throw new Error("Note and User not found");
+  }
+
+  // find the Tag
+
+  const tag = await prisma.note.findUnique({
+    where: {
+      name_userId: {
+        name: tagName,
+        userId: user_id,
+      },
+    },
+    include: { tags: true },
+  });
+
+  if (!tag) {
+    throw new Error("Tag not found");
+  }
+
+  const updatedNote = await prisma.note.update({
+    where: { id: note_id, userId: user_id },
+    data: {
+      tags: {
+        connect: {
+          name_userId: {
+            name: tagName,
+            userId: user_id,
+          },
+        },
+      },
+    },
+  });
+
+  return updatedNote;
+};
+
+export { tagCreation, tagUpdate, tagDeletion, getAllTag, addTagToNote };

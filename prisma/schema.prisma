@@ -35,8 +35,8 @@ model Note {
   content     String
   isArchived  Boolean     @default(false)
   userId      String
-  user        User        @relation(fields: [userId], references: [id])
-  tags        Tag[]       @relation("NoteTags")
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags        NoteTag[]
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @default(now())
 }
@@ -46,9 +46,19 @@ model Tag {
   name        String
   color       String?
   userId      String
-  user        User        @relation(fields: [userId], references: [id])
-  notes       Note[]      @relation("NoteTags")
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes       NoteTag[]
   createdAt   DateTime    @default(now())
 
   @@unique([name, userId])
+}
+
+model NoteTag {
+  id        String  @id @default(uuid())
+  noteId    String
+  tagId     String
+  note      Note    @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, tagId])
 }

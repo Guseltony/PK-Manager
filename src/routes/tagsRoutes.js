@@ -14,6 +14,7 @@ import {
   allTag,
   createTag,
   deleteTag,
+  tagToNote,
   updateTag,
 } from "../controllers/tagControllers.js";
 
@@ -23,6 +24,7 @@ tagRoutes.post("/create", createTag);
 tagRoutes.put("/update/:id", updateTag);
 tagRoutes.get("/all", allTag);
 tagRoutes.delete("/delete/:id", deleteTag);
+tagRoutes.post("/note/:id/tag", tagToNote);
 
 
 export default tagRoutes
