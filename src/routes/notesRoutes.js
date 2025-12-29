@@ -16,9 +16,9 @@ import {
 
 const noteRoutes = express.Router();
 
-noteRoutes.post("/createNote", createNote);
-noteRoutes.get("/getNotes", allUserNote);
-noteRoutes.get("/getNote/:id", getSingleNote);
+noteRoutes.post("/create", createNote);
+noteRoutes.get("/get", allUserNote);
+noteRoutes.get("/get/:id", getSingleNote);
 noteRoutes.put("/update/:id", updateNote);
 noteRoutes.delete("/delete/:id", deleteNote);
 

@@ -122,14 +122,14 @@ const addTagToNote = async ({ tagName }, note_id, user_id) => {
 
   // find the Tag
 
-  const tag = await prisma.note.findUnique({
+  const tag = await prisma.tag.findUnique({
     where: {
       name_userId: {
         name: tagName,
         userId: user_id,
       },
     },
-    include: { tags: true },
+    // include: { tags: true },
   });
 
   if (!tag) {

@@ -22,7 +22,7 @@ const tagRoutes = express.Router();
 
 tagRoutes.post("/create", createTag);
 tagRoutes.put("/update/:id", updateTag);
-tagRoutes.get("/all", allTag);
+tagRoutes.get("/get", allTag);
 tagRoutes.delete("/delete/:id", deleteTag);
 tagRoutes.post("/note/:id/tag", tagToNote);
 

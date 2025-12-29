@@ -29,6 +29,12 @@ export const authMiddleware = async (req, res, next) => {
 
     const decoded = jwt.verify(token, env.JWT_SECRET);
 
+    if (!decoded.id) {
+      return res.status(401).json({
+        error: "Invalid Token",
+      });
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: decoded.id },
       omit: { password: true },

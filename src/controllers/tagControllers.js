@@ -48,6 +48,7 @@ export const allTag = async (req, res) => {
     if (data) {
       res.status(200).json({
         message: "success, all user tag collected",
+        quantity: data.length,
         data,
       });
     }
