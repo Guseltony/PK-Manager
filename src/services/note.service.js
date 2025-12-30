@@ -1,9 +1,16 @@
 import { prisma } from "../libs/prisma.js";
+import { tagCreation, tagDeletion } from "./tag.services.js";
 
-const noteCreation = async ({ title, content }, user_id) => {
+const noteCreation = async ({ title, content, name, color }, user_id) => {
   if (!title || !content) {
     throw new Error("title and content of the note is required");
   }
+
+  // create Tag
+
+  const tag = await tagCreation({ name, color }, user_id);
+
+  console.log(tag);
 
   // console.log(id);
   console.log(user_id);
@@ -16,9 +23,25 @@ const noteCreation = async ({ title, content }, user_id) => {
       user: {
         connect: { id: user_id },
       },
+      tags: {
+        connect: {
+          name_userId: {
+            name: tag.name,
+            userId: tag.userId,
+          },
+        },
+      },
       // or  userId: user_id,
     },
   });
+
+  // if (!note) {
+  //   await tagDeletion(tag.id, tag.userId);
+
+  //   res.status(200).json({
+  //     error: "tag create deleted because note wasn't created",
+  //   });
+  // }
 
   return note;
 };
@@ -26,7 +49,17 @@ const noteCreation = async ({ title, content }, user_id) => {
 const getUserNotes = async (user_id) => {
   const userNotes = await prisma.note.findMany({
     where: { userId: user_id },
-    include: { tags: true },
+    include: {
+      tags: true,
+    },
+    // include: {
+    //   tags: {
+    //     select: {
+    //       name: true,
+    //       color: true,
+    //     },
+    //   },
+    // },
   });
 
   return userNotes;
@@ -37,6 +70,15 @@ const getNote = async (note_id, user_id) => {
     where: {
       id: note_id,
       userId: user_id,
+    },
+    include: {
+      tags: true,
+      // tags: {
+      //   select: {
+      //     name: true,
+      //     color: true,
+      //   },
+      // },
     },
   });
 

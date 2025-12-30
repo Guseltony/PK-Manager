@@ -30,6 +30,11 @@ const tagCreation = async ({ name: title, color }, user_id) => {
         connect: { id: user_id },
       },
     },
+    //   select: {
+    //     id: true,
+    //     name: true,
+    //     color: true,
+    //   },
   });
 
   // const tag = await prisma.tag.upsert({
@@ -82,7 +87,16 @@ const getAllTag = async (user_id) => {
     where: {
       userId: user_id,
     },
+    // select: {
+    //   id: true,
+    //   name: true,
+    //   color: true,
+    // },
   });
+
+  if (!allTag) {
+    throw new Error("User not authorized");
+  }
 
   return allTag;
 };
