@@ -13,6 +13,8 @@ import {
   deleteNote,
   updateNote,
   deleteAllNotes,
+  tagRemoveFromNote,
+  getNotesWithTagName,
 } from "../controllers/noteControllers.js";
 
 const noteRoutes = express.Router();
@@ -23,6 +25,8 @@ noteRoutes.get("/get/:id", getSingleNote);
 noteRoutes.put("/update/:id", updateNote);
 noteRoutes.delete("/delete/:id", deleteNote);
 noteRoutes.delete("/all/delete", deleteAllNotes);
+noteRoutes.post("/removetag/:id/tag", tagRemoveFromNote);
+noteRoutes.get("/notetag", getNotesWithTagName);
 
 
 export default noteRoutes;

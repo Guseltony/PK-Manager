@@ -4,6 +4,8 @@ import {
   getNote,
   getUserNotes,
   noteCreation,
+  removeTagFromNote,
+  tagNote,
   updateUserNote,
 } from "../services/note.service.js";
 
@@ -98,6 +100,40 @@ export const deleteAllNotes = async (req, res) => {
     if (data) {
       res.status(200).json({
         message: "successfully deleted",
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      error: error.messgae,
+    });
+  }
+};
+
+export const tagRemoveFromNote = async (req, res) => {
+  try {
+    const data = await removeTagFromNote(req.body, req.params.id, req.user.id);
+
+    if (data) {
+      res.status(200).json({
+        message: "Tag remove from note successfully",
+        data,
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      error: error.messgae,
+    });
+  }
+};
+
+export const getNotesWithTagName = async (req, res) => {
+  try {
+    const data = await tagNote(req.body.name, req.user.id);
+
+    if (data) {
+      res.status(200).json({
+        message: `Successfully filter oute note with tag name ${req.body.name}`,
+        data,
       });
     }
   } catch (error) {

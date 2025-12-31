@@ -1,3 +1,4 @@
+import { updateNote } from "../controllers/noteControllers.js";
 import { prisma } from "../libs/prisma.js";
 import { tagCreation, tagDeletion } from "./tag.services.js";
 
@@ -171,6 +172,75 @@ const deleteAllUserNotes = async (user_id) => {
   return note;
 };
 
+const removeTagFromNote = async ({ name }, note_id, user_id) => {
+  // get the Tag
+
+  const tag = await prisma.tag.findUnique({
+    where: {
+      name_userId: {
+        name: name,
+        userId: user_id,
+      },
+    },
+  });
+
+  if (!tag) {
+    throw new Error("Tag not found");
+  }
+
+  // find the note
+  const note = await prisma.note.findUnique({
+    where: {
+      id: note_id,
+      userId: user_id,
+    },
+  });
+
+  if (!note) {
+    throw new Error("Note not found");
+  }
+
+  // update the note
+
+  const updatedNote = await prisma.note.update({
+    where: {
+      id: note_id,
+      userId: user_id,
+    },
+    data: {
+      tags: {
+        disconnect: {
+          name_userId: {
+            name: name,
+            userId: user_id,
+          },
+        },
+      },
+    },
+    include: { tags: true },
+  });
+
+  return updatedNote;
+};
+
+const tagNote = async (name, user_id) => {
+  const note = await prisma.note.findMany({
+    where: {
+      userId: user_id,
+      tags: {
+        some: {
+          name: name,
+        },
+      },
+    },
+    include: {
+      tags: true,
+    },
+  });
+
+  return note;
+};
+
 export {
   noteCreation,
   getNote,
@@ -178,4 +248,6 @@ export {
   updateUserNote,
   deleteUserNote,
   deleteAllUserNotes,
+  removeTagFromNote,
+  tagNote,
 };
