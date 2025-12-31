@@ -12,6 +12,7 @@
 import express from "express";
 import {
   allTag,
+  aTag,
   createTag,
   deleteAllTags,
   deleteTag,
@@ -24,6 +25,7 @@ const tagRoutes = express.Router();
 tagRoutes.post("/create", createTag);
 tagRoutes.put("/update/:id", updateTag);
 tagRoutes.get("/get", allTag);
+tagRoutes.get("/get/:id", aTag);
 tagRoutes.delete("/delete/:id", deleteTag);
 tagRoutes.post("/note/:id/tag", tagToNote);
 tagRoutes.delete("/all/delete", deleteAllTags);

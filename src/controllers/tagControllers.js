@@ -3,6 +3,7 @@ import {
   addTagToNote,
   allTagDeletion,
   getAllTag,
+  getTag,
   tagCreation,
   tagDeletion,
   tagUpdate,
@@ -50,6 +51,23 @@ export const allTag = async (req, res) => {
       res.status(200).json({
         message: "success, all user tag collected",
         quantity: data.length,
+        data,
+      });
+    }
+  } catch (error) {
+    res.status(401).json({
+      error: error.message,
+    });
+  }
+};
+
+export const aTag = async (req, res) => {
+  try {
+    const data = await getTag(req.params.id, req.user.id);
+
+    if (data) {
+      res.status(200).json({
+        message: "success, tag fetched!",
         data,
       });
     }

@@ -101,6 +101,22 @@ const getAllTag = async (user_id) => {
   return allTag;
 };
 
+const getTag = async (tag_id, user_id) => {
+  // check if the tag exists
+  const tagExist = await prisma.tag.findUnique({
+    where: {
+      id: tag_id,
+      userId: user_id,
+    },
+  });
+
+  if (!tagExist) {
+    throw new Error("Tag not found");
+  }
+
+  return tagExist;
+};
+
 const tagDeletion = async (tag_id, user_id) => {
   // verify the ownership
   const tag = await prisma.tag.findUnique({
@@ -196,4 +212,5 @@ export {
   getAllTag,
   addTagToNote,
   allTagDeletion,
+  getTag,
 };
