@@ -1,4 +1,5 @@
 import {
+  deleteAllUserNotes,
   deleteUserNote,
   getNote,
   getUserNotes,
@@ -86,6 +87,22 @@ export const deleteNote = async (req, res) => {
   } catch (error) {
     res.status(401).json({
       error: error.message,
+    });
+  }
+};
+
+export const deleteAllNotes = async (req, res) => {
+  try {
+    const data = await deleteAllUserNotes(req.user.id);
+
+    if (data) {
+      res.status(200).json({
+        message: "successfully deleted",
+      });
+    }
+  } catch (error) {
+    res.status(400).json({
+      error: error.messgae,
     });
   }
 };

@@ -121,8 +121,21 @@ const tagDeletion = async (tag_id, user_id) => {
   return deleteTag;
 };
 
-const addTagToNote = async ({ tagName }, note_id, user_id) => {
-  if (!tagName) {
+const allTagDeletion = async (user_id) => {
+  const deleteTags = await prisma.tag.deleteMany({
+    where: {
+      userId: user_id,
+    },
+  });
+
+  return deleteTags;
+};
+
+const addTagToNote = async ({ tagNameArray }, note_id, user_id) => {
+  // if (!tagName) {
+  //   return res.status(400).json({ message: "Tag name is required" });
+  // }
+  if (!tagNameArray) {
     return res.status(400).json({ message: "Tag name is required" });
   }
 
@@ -136,14 +149,23 @@ const addTagToNote = async ({ tagName }, note_id, user_id) => {
 
   // find the Tag
 
-  const tag = await prisma.tag.findUnique({
+  // const tag = await prisma.tag.findMany({
+  //   where: {
+  //     OR: tagNameArray.map((name) => ({
+  //       name: name,
+  //       userId: user_id,
+  //     })),
+  //   },
+  //   // include: { tags: true },
+  // });
+
+  const tag = await prisma.tag.findMany({
     where: {
-      name_userId: {
-        name: tagName,
-        userId: user_id,
+      userId: user_id,
+      name: {
+        in: tagNameArray,
       },
     },
-    // include: { tags: true },
   });
 
   if (!tag) {
@@ -154,12 +176,12 @@ const addTagToNote = async ({ tagName }, note_id, user_id) => {
     where: { id: note_id, userId: user_id },
     data: {
       tags: {
-        connect: {
+        connect: tagNameArray.map((name) => ({
           name_userId: {
-            name: tagName,
+            name: name,
             userId: user_id,
           },
-        },
+        })),
       },
     },
   });
@@ -167,4 +189,11 @@ const addTagToNote = async ({ tagName }, note_id, user_id) => {
   return updatedNote;
 };
 
-export { tagCreation, tagUpdate, tagDeletion, getAllTag, addTagToNote };
+export {
+  tagCreation,
+  tagUpdate,
+  tagDeletion,
+  getAllTag,
+  addTagToNote,
+  allTagDeletion,
+};

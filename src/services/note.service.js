@@ -1,16 +1,40 @@
 import { prisma } from "../libs/prisma.js";
 import { tagCreation, tagDeletion } from "./tag.services.js";
 
-const noteCreation = async ({ title, content, name, color }, user_id) => {
+const noteCreation = async ({ title, content, tagsArray }, user_id) => {
   if (!title || !content) {
     throw new Error("title and content of the note is required");
   }
 
   // create Tag
 
-  const tag = await tagCreation({ name, color }, user_id);
+  // let tag;
 
-  console.log(tag);
+  // if (name) {
+  //   tag = await tagCreation({ name, color }, user_id);
+  // }
+
+  // create a note with multiple
+
+  // const tagsArray = [
+  //   { name: "productivity", color: "red" },
+  //   { name: "coding", color: "blue" },
+  //   { name: "workout", color: "yellow" },
+  // ];
+
+  let tagsObj;
+
+  if (tagsArray) {
+    tagsObj = await Promise.all(
+      tagsArray.map((t) =>
+        tagCreation({ name: t.name, color: t.color }, user_id)
+      )
+    );
+  }
+
+  console.log("res:", tagsObj);
+
+  // console.log(tagsObj);
 
   // console.log(id);
   console.log(user_id);
@@ -24,16 +48,24 @@ const noteCreation = async ({ title, content, name, color }, user_id) => {
         connect: { id: user_id },
       },
       tags: {
-        connect: {
+        connect: tagsObj?.map((tag) => ({
           name_userId: {
             name: tag.name,
             userId: tag.userId,
           },
-        },
+        })),
+        // connect: {
+        //   name_userId: {
+        //     name: tag.name,
+        //     userId: tag.userId,
+        //   },
+        // },
       },
       // or  userId: user_id,
     },
   });
+
+  console.log(note);
 
   // if (!note) {
   //   await tagDeletion(tag.id, tag.userId);
@@ -127,4 +159,23 @@ const deleteUserNote = async (note_id, user_id) => {
   return note;
 };
 
-export { noteCreation, getNote, getUserNotes, updateUserNote, deleteUserNote };
+// delete multiple user notes
+
+const deleteAllUserNotes = async (user_id) => {
+  const note = await prisma.note.deleteMany({
+    where: {
+      userId: user_id,
+    },
+  });
+
+  return note;
+};
+
+export {
+  noteCreation,
+  getNote,
+  getUserNotes,
+  updateUserNote,
+  deleteUserNote,
+  deleteAllUserNotes,
+};

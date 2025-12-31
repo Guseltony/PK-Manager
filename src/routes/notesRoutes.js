@@ -12,6 +12,7 @@ import {
   getSingleNote,
   deleteNote,
   updateNote,
+  deleteAllNotes,
 } from "../controllers/noteControllers.js";
 
 const noteRoutes = express.Router();
@@ -21,6 +22,7 @@ noteRoutes.get("/get", allUserNote);
 noteRoutes.get("/get/:id", getSingleNote);
 noteRoutes.put("/update/:id", updateNote);
 noteRoutes.delete("/delete/:id", deleteNote);
+noteRoutes.delete("/all/delete", deleteAllNotes);
 
 
 export default noteRoutes;
