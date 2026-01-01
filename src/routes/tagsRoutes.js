@@ -25,7 +25,7 @@ import { idParamSchema } from "../validators/idParams.schema.js";
 
 const tagRoutes = express.Router();
 
-tagRoutes.post("/create", validateRequest(createTagSchema), createTag);
+tagRoutes.post("/create", validateRequest(createTagSchema, "body"), createTag);
 
 tagRoutes.put(
   "/update/:id",

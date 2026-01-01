@@ -11,8 +11,15 @@ import { deleteAllUser } from "../services/admin.services.js";
 
 const authRoute = express.Router();
 
-authRoute.post("/register", validateRequest(registerUserSchema), register);
-authRoute.post("/login", validateRequest(loginSchema), login);
+authRoute
+  .post("/register", validateRequest(registerUserSchema, "body"),
+    register);
+
+authRoute
+  .post("/login",
+    validateRequest(loginSchema, "body"),
+    login);
+    
 authRoute.post("/logout", logout);
 
 authRoute.get("/", deleteAllUser);

@@ -25,7 +25,7 @@ import { idParamSchema } from "../validators/idParams.schema.js";
 
 const noteRoutes = express.Router();
 
-noteRoutes.post("/create", validateRequest(createNoteSchema), createNote);
+noteRoutes.post("/create", validateRequest(createNoteSchema, "body"), createNote);
 
 noteRoutes.get("/get", allUserNote);
 

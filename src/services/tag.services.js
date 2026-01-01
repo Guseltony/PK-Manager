@@ -1,4 +1,9 @@
+import { application } from "express";
 import { prisma } from "../libs/prisma.js";
+import {
+  allTagResponseSchema,
+  tagResponseSchema,
+} from "../validators/tag.schema.js";
 
 const tagCreation = async ({ name: title, color }, user_id) => {
   if (!title) {
@@ -98,7 +103,16 @@ const getAllTag = async (user_id) => {
     throw new Error("User not authorized");
   }
 
-  return allTag;
+  const allTagArray = allTag.map((tag) => ({
+    ...tag,
+    createdAt: tag.createdAt.toISOString(),
+  }));
+
+  const validateAllTag = allTagResponseSchema.parse(allTagArray);
+
+  console.log("validate successfully");
+
+  return validateAllTag;
 };
 
 const getTag = async (tag_id, user_id) => {
@@ -114,7 +128,14 @@ const getTag = async (tag_id, user_id) => {
     throw new Error("Tag not found");
   }
 
-  return tagExist;
+  const validateTag = tagResponseSchema.parse({
+    ...tagExist,
+    createdAt: tagExist.createdAt.toISOString(),
+  });
+
+  console.log("validate successfully");
+
+  return validateTag;
 };
 
 const tagDeletion = async (tag_id, user_id) => {

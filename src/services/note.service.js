@@ -1,4 +1,8 @@
 import { prisma } from "../libs/prisma.js";
+import {
+  allNoteResponseSchema,
+  noteResponseSchema,
+} from "../validators/note.schema.js";
 import { tagCreation } from "./tag.services.js";
 
 const noteCreation = async ({ title, content, tagsArray }, user_id) => {
@@ -94,7 +98,9 @@ const getUserNotes = async (user_id) => {
     // },
   });
 
-  return userNotes;
+  const validateNotes = allNoteResponseSchema.parse(userNotes);
+
+  return validateNotes;
 };
 
 const getNote = async (note_id, user_id) => {
@@ -118,7 +124,9 @@ const getNote = async (note_id, user_id) => {
     throw new Error("Note not found or does not exist");
   }
 
-  return note;
+  const validateNote = noteResponseSchema.parse(note);
+
+  return validateNote;
 };
 
 const updateUserNote = async (

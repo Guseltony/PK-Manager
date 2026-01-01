@@ -25,3 +25,42 @@ export const updateNoteSchema = z.object({
     )
     .optional(),
 });
+
+export const noteResponseSchema = z.object({
+  id: z.uuid(),
+  title: z.string(),
+  content: z.string(),
+  isArchived: z.boolean(),
+  userId: z.uuid(),
+  createdAt: z.preprocess((arg) => {
+    if (arg instanceof Date) return arg.toISOString();
+    return arg;
+  }, z.iso.datetime()),
+  updatedAt: z.preprocess((arg) => {
+    if (arg instanceof Date) return arg.toISOString();
+    return arg;
+  }, z.iso.datetime()),
+  tags: z.array(
+    z.object({
+      id: z.uuid(),
+      name: z.string(),
+      color: z.string().nullable().optional(),
+      userId: z.uuid(),
+      createdAt: z.preprocess((arg) => {
+        if (arg instanceof Date) return arg.toISOString();
+        return arg;
+      }, z.string().datetime()),
+      // createdAt: z.iso.datetime(),
+    })
+  ),
+  // createdAt: z.preprocess((arg) => {
+  //   if (arg instanceof Date) return arg.toISOString();
+  //   return arg;
+  // }, z.string().datetime()),
+  // updatedAt: z.preprocess((arg) => {
+  //   if (arg instanceof Date) return arg.toISOString();
+  //   return arg;
+  // }, z.string().datetime()),
+});
+
+export const allNoteResponseSchema = z.array(noteResponseSchema);
