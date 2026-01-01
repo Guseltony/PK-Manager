@@ -19,15 +19,37 @@ import {
   tagToNote,
   updateTag,
 } from "../controllers/tagControllers.js";
+import { validateRequest } from "../middlewares/zodValidation.js";
+import { createTagSchema, updateTagSchema } from "../validators/tag.schema.js";
+import { idParamSchema } from "../validators/idParams.schema.js";
 
 const tagRoutes = express.Router();
 
-tagRoutes.post("/create", createTag);
-tagRoutes.put("/update/:id", updateTag);
+tagRoutes.post("/create", validateRequest(createTagSchema), createTag);
+
+tagRoutes.put(
+  "/update/:id",
+  validateRequest(idParamSchema, "params"),
+  validateRequest(updateTagSchema, "body"),
+  updateTag
+);
+
 tagRoutes.get("/get", allTag);
-tagRoutes.get("/get/:id", aTag);
-tagRoutes.delete("/delete/:id", deleteTag);
-tagRoutes.post("/note/:id/tag", tagToNote);
+
+tagRoutes.get("/get/:id", validateRequest(idParamSchema, "params"), aTag);
+
+tagRoutes.delete(
+  "/delete/:id",
+  validateRequest(idParamSchema, "params"),
+  deleteTag
+);
+
+tagRoutes.post(
+  "/note/:id/tag",
+  validateRequest(idParamSchema, "params"),
+  tagToNote
+);
+
 tagRoutes.delete("/all/delete", deleteAllTags);
 
 
