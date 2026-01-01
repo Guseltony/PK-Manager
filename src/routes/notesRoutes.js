@@ -16,10 +16,12 @@ import {
   tagRemoveFromNote,
   getNotesWithTagName,
 } from "../controllers/noteControllers.js";
+import { validateRequest } from "../middlewares/zodValidation.js";
+import { createNoteSchema } from "../validators/note.schema.js";
 
 const noteRoutes = express.Router();
 
-noteRoutes.post("/create", createNote);
+noteRoutes.post("/create", validateRequest(createNoteSchema), createNote);
 noteRoutes.get("/get", allUserNote);
 noteRoutes.get("/get/:id", getSingleNote);
 noteRoutes.put("/update/:id", updateNote);

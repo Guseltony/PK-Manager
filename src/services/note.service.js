@@ -1,6 +1,5 @@
-import { updateNote } from "../controllers/noteControllers.js";
 import { prisma } from "../libs/prisma.js";
-import { tagCreation, tagDeletion } from "./tag.services.js";
+import { tagCreation } from "./tag.services.js";
 
 const noteCreation = async ({ title, content, tagsArray }, user_id) => {
   if (!title || !content) {
@@ -122,7 +121,11 @@ const getNote = async (note_id, user_id) => {
   return note;
 };
 
-const updateUserNote = async ({ title, content }, note_id, user_id) => {
+const updateUserNote = async (
+  { title, content, tagsArray },
+  note_id,
+  user_id
+) => {
   const noteObj = {};
 
   if (title !== undefined && title !== "") noteObj.title = title;
