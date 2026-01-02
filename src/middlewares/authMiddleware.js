@@ -15,8 +15,8 @@ export const authMiddleware = async (req, res, next) => {
 
     // if the token is in the cookies
 
-    if (!token && req.cookie?.jwt) {
-      token = req.cookie.jwt;
+    if (!token && req.cookies?.jwt) {
+      token = req.cookies.jwt;
     }
 
     if (!token) {
@@ -42,7 +42,7 @@ export const authMiddleware = async (req, res, next) => {
 
     console.log(user);
 
-    if (!token) {
+    if (!user) {
       return res.status(401).json({
         error: "Unauthorized: User not found",
       });
