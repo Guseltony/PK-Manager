@@ -3,7 +3,6 @@ import {
   allNoteResponseSchema,
   noteResponseSchema,
 } from "../validators/note.schema.js";
-import { tagCreation } from "./tag.services.js";
 
 const noteCreation = async ({ title, content, tagsArray }, user_id) => {
   if (!title || !content) {
@@ -149,11 +148,7 @@ const getNote = async (note_id, user_id) => {
   return validateNote;
 };
 
-const updateUserNote = async (
-  { title, content, tagsArray },
-  note_id,
-  user_id
-) => {
+const updateUserNote = async ({ title, content }, note_id, user_id) => {
   const noteObj = {};
 
   if (title !== undefined && title !== "") noteObj.title = title;
