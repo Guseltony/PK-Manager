@@ -3,7 +3,7 @@ import { FaBars, FaRegUser, FaSearch } from "react-icons/fa";
 
 const Header = () => {
   return (
-    <div className="w-full flex items-center justify-between border-2 border-green-800 pl-96 pr-10 py-2">
+    <div className="w-full flex items-center justify-between px-10 py-4 bg-[#131720]">
       {/* input */}
       <div className="w-96">
         <input
@@ -16,9 +16,9 @@ const Header = () => {
       <div className="w-72 flex items-center justify-between">
         {/* icons */}
         <div className="flex items-center justify-center gap-4">
-          <FaSearch size={30} />
-          <IoMdSettings size={30} />
-          <FaBars size={30} />
+          <FaSearch size={25} />
+          <IoMdSettings size={25} />
+          <FaBars size={25} />
         </div>
 
         {/* user profile */}
