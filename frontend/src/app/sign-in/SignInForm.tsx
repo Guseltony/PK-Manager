@@ -1,23 +1,17 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
-
-type RegisterForm = {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  agree: boolean;
-};
+import { useState } from "react";
+import { RegisterFormData, registerSchema } from "./schema";
 
 export default function RegisterPage() {
   const router = useRouter();
 
-  const [form, setForm] = useState<RegisterForm>({
+  const [form, setForm] = useState<RegisterFormData>({
     firstName: "",
     lastName: "",
     email: "",
+    userName: "",
     password: "",
     agree: false,
   });
@@ -33,15 +27,17 @@ export default function RegisterPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.agree) {
-      alert("You must agree to the Terms & Conditions");
+    const result = registerSchema.safeParse(form);
+
+    if (!result.success) {
+      console.log(result);
+
       return;
     }
 
-    // Here you can call your backend API
-    console.log(form);
+    // ✅ Form is valid here
+    console.log("Validated data:", result.data);
 
-    // Redirect after successful signup
     router.push("/dashboard");
   };
 
@@ -49,49 +45,66 @@ export default function RegisterPage() {
     <div className="flex items-center justify-center min-h-screen bg-bg">
       <form
         onSubmit={handleSubmit}
-        className="py-20 px-16 flex flex-col gap-6 w-150 bg-content rounded-md"
+        className="py-20 px-16 flex flex-col gap-8 w-150 bg-amber-900/40 rounded-md"
       >
         <h1 className="text-2xl font-bold text-text">Create an account</h1>
 
-        <div className="flex gap-4">
+        <div className="flex items-center justify-between w-full gap-4">
           <input
+            type="text"
             name="firstName"
+            placeholder="First Name"
+            required
             value={form.firstName}
             onChange={handleChange}
-            placeholder="First Name"
-            className="flex-1 bg-transparent border-2 border-primary rounded-md px-3 py-2 text-text outline-none"
+            className="bg-transparent rounded-md px-2 py-3 border-2 border-[#2225f5] outline-0 text-text flex-1"
           />
           <input
+            type="text"
             name="lastName"
+            placeholder="Last Name"
+            required
             value={form.lastName}
             onChange={handleChange}
-            placeholder="Last Name"
-            className="flex-1 bg-transparent border-2 border-primary rounded-md px-3 py-2 text-text outline-none"
+            className="bg-transparent rounded-md px-2 py-3 border-2 border-[#2225f5] outline-0 text-text flex-1"
           />
         </div>
 
         <input
+          type="text"
+          name="userName"
+          placeholder="username"
+          required
+          value={form.userName}
+          onChange={handleChange}
+          className="bg-transparent rounded-md px-2 py-3 border-2 border-[#2225f5] outline-0 text-text"
+        />
+
+        <input
           type="email"
+          placeholder="Email"
+          required
           name="email"
           value={form.email}
           onChange={handleChange}
-          placeholder="Email"
-          className="bg-transparent border-2 border-primary rounded-md px-3 py-2 text-text outline-none"
+          className="bg-transparent rounded-md px-2 py-3 border-2 border-[#2225f5] outline-0 text-text"
         />
 
         <input
           type="password"
+          placeholder="Enter your password"
+          required
           name="password"
           value={form.password}
           onChange={handleChange}
-          placeholder="Enter your password"
-          className="bg-transparent border-2 border-primary rounded-md px-3 py-2 text-text outline-none"
+          className="w-full bg-transparent rounded-md px-2 py-3 border-2 border-[#2225f5] outline-0 text-text"
         />
 
         <label className="flex items-center gap-2 text-text">
           <input
             type="checkbox"
             name="agree"
+            required
             checked={form.agree}
             onChange={handleChange}
           />
@@ -100,7 +113,7 @@ export default function RegisterPage() {
 
         <button
           type="submit"
-          className="w-full rounded-2xl bg-primary px-4 py-3 font-bold text-text"
+          className="w-full rounded-2xl bg-blue-800 px-10 py-4 text-xs font-extrabold text-text"
         >
           Create Account
         </button>
