@@ -1,7 +1,11 @@
 // register user
 
+import bcrypt from "bcryptjs";
 import { loginUser, registerUser } from "../services/auth.services.js";
-import { generateToken } from "../utils/generateToken.js";
+import {
+  generateAccessToken,
+  generateRefreshToken,
+} from "../services/auth/token.service.js";
 
 export const register = async (req, res) => {
   try {
@@ -9,7 +13,7 @@ export const register = async (req, res) => {
 
     // create user token
 
-    const token = generateToken(user.id, res);
+    // const token = generateToken(user.id, res);
 
     if (user) {
       res.status(200).json({
@@ -30,11 +34,32 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const user = await loginUser(req.body);
+    // create user seesion
+    const salt = await bcrypt.genSalt(10);
+    const refreshToken = await generateRefreshToken();
+    const hashRefreshToken = await bcrypt.hash(refreshToken, salt);
 
-    // generate token
+    const user = await loginUser(req.body, hashRefreshToken);
 
-    const token = generateToken(user.id, res);
+    if (!user) {
+      throw new Error("User not found, please sign up");
+    }
+
+    const accessToken = await generateAccessToken(user.id);
+
+    res.cookie("refresh", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    res.cookie("access", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000,
+    });
 
     res.status(200).json({
       message: "log in successfully",
@@ -43,8 +68,9 @@ export const login = async (req, res) => {
         username: user.username,
         email: user.email,
         role: "user",
+        session: user.session,
       },
-      token,
+      accessToken,
     });
   } catch (error) {
     res.status(401).json({
@@ -54,18 +80,26 @@ export const login = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
-  res.cookies("jwt", "", {
-    httpOnly: true,
-    expires: new Date(0),
+  const refreshToken = req.cookies.refresh;
+
+  await db.session.updateMany({
+    where: {
+      refreshTokenHash: hash(refreshToken),
+    },
+    data: {
+      revoked: true,
+    },
   });
 
-  // or res.clearCookie("token");
+  res.clearCookie("access");
+  res.clearCookie("refresh");
 
   res.status(200).json({
     status: "success",
     message: "Logged out successfully",
   });
 };
+
 
 
 // DON'T FORGET TO REMOVE THE TOKEN FROM RES AND THE VARIABLE

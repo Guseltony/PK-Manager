@@ -2,6 +2,7 @@
 
 import { prisma } from "../libs/prisma.js";
 import bcrypt from "bcryptjs";
+import { createSession } from "./auth/session.service.js";
 
 const registerUser = async ({ email, password, username, name }) => {
   console.log("running user registration");
@@ -45,7 +46,7 @@ const registerUser = async ({ email, password, username, name }) => {
   return user;
 };
 
-const loginUser = async ({ email, password }) => {
+const loginUser = async ({ email, password }, hashRefreshToken) => {
   if (!email || !password) {
     throw new Error("All fields are required");
   }
@@ -53,11 +54,14 @@ const loginUser = async ({ email, password }) => {
 
   const user = await prisma.user.findUnique({
     where: { email: email },
+    include: { session: true },
   });
 
   if (!user) {
     throw new Error("Invalid email or password");
   }
+
+  await createSession(hashRefreshToken, user.id);
 
   // check password
 

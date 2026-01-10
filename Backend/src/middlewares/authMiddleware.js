@@ -15,8 +15,8 @@ export const authMiddleware = async (req, res, next) => {
 
     // if the token is in the cookies
 
-    if (!token && req.cookies?.jwt) {
-      token = req.cookies.jwt;
+    if (!token && req.cookies?.access) {
+      token = req.cookies.access;
     }
 
     if (!token) {
