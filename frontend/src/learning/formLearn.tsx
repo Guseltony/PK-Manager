@@ -121,3 +121,27 @@ export default function RegisterPage() {
     </div>
   );
 }
+
+
+// const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+//   e.preventDefault();
+//   const formData = new FormData(e.currentTarget);
+
+//   const result = await registerAction(formData);
+
+//   if (!result.success) {
+//     setErrors(
+//       result.errors
+//         ? Object.values(result.errors)
+//             .flat()
+//             .map((err) => err?.join(", "))
+//             .join(" | ")
+//         : result.message || "Unknown error"
+//     );
+//     return;
+//   }
+
+//   setSuccess(true);
+//   setErrors(null);
+//   e.currentTarget.reset();
+// };

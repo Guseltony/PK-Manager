@@ -3,10 +3,10 @@
 import { prisma } from "../libs/prisma.js";
 import bcrypt from "bcryptjs";
 
-const registerUser = async ({ email, password, username }) => {
+const registerUser = async ({ email, password, username, name }) => {
   console.log("running user registration");
-  if (!email || !password || !username) {
-    throw new Error("Email, password and username are required");
+  if (!email || !password || !username || !name) {
+    throw new Error("name, email, password and username are required");
   }
 
   // check if the email already exist
@@ -27,6 +27,7 @@ const registerUser = async ({ email, password, username }) => {
 
   const user = await prisma.user.create({
     data: {
+      name: name,
       email: email,
       password: hashedPassword,
       username: username,

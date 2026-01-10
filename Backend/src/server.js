@@ -6,6 +6,7 @@ import { env } from "./validators/env.schema.js";
 import noteRoutes from "./routes/notesRoutes.js";
 import { authMiddleware } from "./middlewares/authMiddleware.js";
 import tagRoutes from "./routes/tagsRoutes.js";
+import cors from "cors";
 
 // conncet to the database
 connectDB();
@@ -16,14 +17,20 @@ const app = express();
 
 // express middleware
 
+app.use(
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true, // IMPORTANT if using cookies
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // api endpoints
 
 app.use("/auth", authRoute);
-app.use("/note", authMiddleware, noteRoutes);
-app.use("/tag", authMiddleware, tagRoutes);
+app.use("api/note", authMiddleware, noteRoutes);
+app.use("api/tag", authMiddleware, tagRoutes);
 
 // port and listening
 

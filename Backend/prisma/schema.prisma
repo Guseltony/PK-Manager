@@ -18,15 +18,30 @@ datasource db {
 // }
 
 model User {
+  name        String   @default("Anonymous")
   id          String   @id @default(uuid())
   email       String   @unique
   password    String
   username    String?
   notes       Note[]
   tag         Tag[]
+  session     Session[]
   // roles       Roles[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Session {
+  id            String @id @default(uuid())
+  userId        String 
+  refreshToken  String
+  expiresAt     DateTime
+  revoked       Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Note {

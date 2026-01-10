@@ -1,18 +1,38 @@
 "use client";
 
-import { registerAction } from "./actios";
+import { registerAction } from "./actions";
+import { useState } from "react";
 
 export default function RegisterPage() {
-  const action = async (formData: FormData) => {
+  const [errors, setErrors] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+
     const result = await registerAction(formData);
 
-    console.log("result-form:", result);
+    if (!result.success) {
+      setErrors(
+        result.errors
+          ? Object.values(result.errors).flat().join(" | ")
+          : result.message || "Unknown error"
+      );
+      return;
+    }
+    setErrors(null);
   };
+
+  setTimeout(() => {
+    if (errors) {
+      setErrors("");
+    }
+  }, 4000);
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-bg">
       <form
-        action={action}
+        onSubmit={handleSubmit}
         className="py-20 px-16 flex flex-col gap-8 w-150 bg-amber-900/40 rounded-md"
       >
         <h1 className="text-2xl font-bold text-text">Create an account</h1>
@@ -57,6 +77,12 @@ export default function RegisterPage() {
           <input type="checkbox" name="agree" />I agree to the Terms &
           Conditions
         </label>
+
+        {errors && (
+          <p className="text-red-400/90 text-xs bg-red-400/20 py-2 px-2">
+            {errors}
+          </p>
+        )}
 
         <button
           type="submit"
