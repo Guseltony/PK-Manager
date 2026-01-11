@@ -6,13 +6,15 @@ import {
 
 export const refresh = async (req, res) => {
   try {
-    const tokens = await refreshToken(req.cookies.refresh, req.user.id);
+    const token = req.cookies.refreshToken;
 
-    const { newAccessToken, newRefreshToken } = tokens;
+    const refreshTokens = await refreshToken(token, req.user.id);
 
-    res.cookie("refresh", newRefreshToken, getRefreshTokenCookieOptions);
+    const { newAccessToken, newRefreshToken } = refreshTokens;
 
-    res.cookie("access", newAccessToken, getAccessTokenCookieOptions);
+    res.cookie("refreshToken", newRefreshToken, getRefreshTokenCookieOptions);
+
+    res.cookie("accessToken", newAccessToken, getAccessTokenCookieOptions);
 
     res.status(200).json({
       status: "success",

@@ -1,6 +1,6 @@
 import { prisma } from "../libs/prisma.js";
 
-const revoke = async ({ user_id }) => {
+const revoke = async (user_id) => {
   await prisma.session.updateMany({
     where: {
       userId: user_id,
@@ -24,7 +24,7 @@ const create = async (hashedRefreshToken, user_id) => {
   });
 };
 
-const update = async (user_id, session_id, hashedRefreshToken) => {
+const update = async (session_id, hashedRefreshToken) => {
   await prisma.session.update({
     where: {
       id: session_id,
@@ -35,10 +35,10 @@ const update = async (user_id, session_id, hashedRefreshToken) => {
   });
 };
 
-const remove = async (user_id, hashedRefreshToken) => {
+const remove = async (hashedRefreshToken) => {
   await prisma.session.delete({
     where: {
-      userId: user_id,
+      // userId: user_id,
       refreshToken: hashedRefreshToken,
     },
   });
@@ -49,6 +49,9 @@ const find = async (hashedRefreshToken) => {
     where: {
       refreshToken: hashedRefreshToken,
       revoked: false,
+    },
+    include: {
+      user: true,
     },
   });
 };

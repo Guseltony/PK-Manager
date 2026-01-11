@@ -5,7 +5,7 @@ import {
 } from "../utils/token.utils.js";
 import session from "./session.service.js";
 
-export const refreshToken = async ({ refreshToken }, user_id) => {
+export const refreshToken = async (refreshToken) => {
   if (!refreshToken) {
     throw new Error("No refresh token");
   }
@@ -28,6 +28,8 @@ export const refreshToken = async ({ refreshToken }, user_id) => {
   if (!newHashRToken) {
     throw new Error("Unable to create new refresh token");
   }
+
+  await session.remove(hashToken);
 
   await session.create(newHashRToken, user_id);
 

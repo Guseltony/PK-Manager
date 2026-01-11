@@ -48,9 +48,9 @@ export const login = async (req, res) => {
 
     const accessToken = await generateAccessToken(user.id);
 
-    res.cookie("refresh", refreshToken, getRefreshTokenCookieOptions);
+    res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions);
 
-    res.cookie("access", accessToken, getAccessTokenCookieOptions);
+    res.cookie("accessToken", accessToken, getAccessTokenCookieOptions);
 
     res.status(200).json({
       message: "log in successfully",

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
-import { env } from "../../validators/env.schema.js";
 import crypto from "crypto";
+import { env } from "../validators/env.schema.js";
 
 export const generateAccessToken = async (userId) => {
   // generate accessToken
