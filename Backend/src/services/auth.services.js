@@ -2,7 +2,7 @@
 
 import { prisma } from "../libs/prisma.js";
 import bcrypt from "bcryptjs";
-import { createSession } from "./auth/session.service.js";
+import session from "./session.service.js";
 
 const registerUser = async ({ email, password, username, name }) => {
   console.log("running user registration");
@@ -61,7 +61,7 @@ const loginUser = async ({ email, password }, hashRefreshToken) => {
     throw new Error("Invalid email or password");
   }
 
-  await createSession(hashRefreshToken, user.id);
+  await session.create(hashRefreshToken, user.id)
 
   // check password
 

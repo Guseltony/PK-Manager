@@ -1,11 +1,13 @@
-// register user
-
-import bcrypt from "bcryptjs";
 import { loginUser, registerUser } from "../services/auth.services.js";
 import {
   generateAccessToken,
   generateRefreshToken,
-} from "../services/auth/token.service.js";
+  hashRefreshToken,
+} from "../utils/token.utils.js";
+import {
+  getAccessTokenCookieOptions,
+  getRefreshTokenCookieOptions,
+} from "../utils/cookie.utils.js";
 
 export const register = async (req, res) => {
   try {
@@ -34,12 +36,11 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    // create user seesion
-    const salt = await bcrypt.genSalt(10);
     const refreshToken = await generateRefreshToken();
-    const hashRefreshToken = await bcrypt.hash(refreshToken, salt);
 
-    const user = await loginUser(req.body, hashRefreshToken);
+    const hashToken = await hashRefreshToken(refreshToken);
+
+    const user = await loginUser(req.body, hashToken);
 
     if (!user) {
       throw new Error("User not found, please sign up");
@@ -47,19 +48,9 @@ export const login = async (req, res) => {
 
     const accessToken = await generateAccessToken(user.id);
 
-    res.cookie("refresh", refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    res.cookie("refresh", refreshToken, getRefreshTokenCookieOptions);
 
-    res.cookie("access", accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000,
-    });
+    res.cookie("access", accessToken, getAccessTokenCookieOptions);
 
     res.status(200).json({
       message: "log in successfully",
@@ -99,7 +90,5 @@ export const logout = async (req, res) => {
     message: "Logged out successfully",
   });
 };
-
-
 
 // DON'T FORGET TO REMOVE THE TOKEN FROM RES AND THE VARIABLE
