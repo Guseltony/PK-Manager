@@ -8,6 +8,8 @@ import {
   getAccessTokenCookieOptions,
   getRefreshTokenCookieOptions,
 } from "../utils/cookie.utils.js";
+import { prisma } from "../libs/prisma.js";
+import { refreshToken } from "../services/refresh.service.js";
 
 export const register = async (req, res) => {
   try {
@@ -24,7 +26,7 @@ export const register = async (req, res) => {
           ...user,
           role: "user",
         },
-        token,
+        // token,
       });
     }
   } catch (error) {
@@ -36,17 +38,13 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const refreshToken = await generateRefreshToken();
+    const data = await loginUser(req.body);
 
-    const hashToken = await hashRefreshToken(refreshToken);
-
-    const user = await loginUser(req.body, hashToken);
+    const { user, accessToken, refreshToken } = data;
 
     if (!user) {
       throw new Error("User not found, please sign up");
     }
-
-    const accessToken = await generateAccessToken(user.id);
 
     res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions);
 
@@ -71,24 +69,31 @@ export const login = async (req, res) => {
 };
 
 export const logout = async (req, res) => {
-  const refreshToken = req.cookies.refresh;
+  const refreshToken = req.cookies.refreshToken;
 
-  await db.session.updateMany({
+  if (!refreshToken) {
+    return res.status(400).json({ message: "No refresh token found" });
+  }
+
+  const hashToken = await hashRefreshToken(refreshToken);
+
+  await prisma.session.updateMany({
     where: {
-      refreshTokenHash: hash(refreshToken),
+      refreshToken: hashToken,
     },
     data: {
       revoked: true,
     },
   });
 
-  res.clearCookie("access");
-  res.clearCookie("refresh");
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
 
-  res.status(200).json({
+  return res.status(200).json({
     status: "success",
     message: "Logged out successfully",
   });
 };
+
 
 // DON'T FORGET TO REMOVE THE TOKEN FROM RES AND THE VARIABLE

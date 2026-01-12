@@ -7,6 +7,7 @@ import noteRoutes from "./routes/notesRoutes.js";
 import { authMiddleware } from "./middlewares/authMiddleware.js";
 import tagRoutes from "./routes/tagsRoutes.js";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 
 // conncet to the database
 connectDB();
@@ -25,6 +26,7 @@ app.use(
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 // api endpoints
 

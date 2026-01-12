@@ -1,6 +1,6 @@
 import { prisma } from "../libs/prisma.js";
 
-const revoke = async (user_id) => {
+const revokeAll = async (user_id) => {
   await prisma.session.updateMany({
     where: {
       userId: user_id,
@@ -12,8 +12,21 @@ const revoke = async (user_id) => {
   });
 };
 
+const revoke = async (user_id, session_id) => {
+  return await prisma.session.update({
+    where: {
+      userId: user_id,
+      id: session_id,
+    },
+    data: {
+      revoked: true,
+    },
+  });
+};
+
 const create = async (hashedRefreshToken, user_id) => {
-  await prisma.session.create({
+  console.log("DB hash:", hashedRefreshToken);
+  return prisma.session.create({
     data: {
       refreshToken: hashedRefreshToken,
       user: {
@@ -24,13 +37,14 @@ const create = async (hashedRefreshToken, user_id) => {
   });
 };
 
-const update = async (session_id, hashedRefreshToken) => {
+const update = async (userId, session_id) => {
   await prisma.session.update({
     where: {
+      userId: userId,
       id: session_id,
     },
     data: {
-      refreshToken: hashedRefreshToken,
+      revoked: true,
     },
   });
 };
@@ -45,7 +59,7 @@ const remove = async (hashedRefreshToken) => {
 };
 
 const find = async (hashedRefreshToken) => {
-  await prisma.session.findFirst({
+  return prisma.session.findFirst({
     where: {
       refreshToken: hashedRefreshToken,
       revoked: false,
@@ -57,6 +71,7 @@ const find = async (hashedRefreshToken) => {
 };
 
 export const session = {
+  revokeAll,
   revoke,
   create,
   update,

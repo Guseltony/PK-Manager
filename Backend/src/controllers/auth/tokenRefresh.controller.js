@@ -8,9 +8,14 @@ export const refresh = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
 
-    const refreshTokens = await refreshToken(token, req.user.id);
+    const refreshTokens = await refreshToken(token);
 
-    const { newAccessToken, newRefreshToken } = refreshTokens;
+    if (!refreshTokens) {
+      throw new Error("Unable to access the session");
+    }
+
+    const { oldSession, newSession, newAccessToken, newRefreshToken } =
+      refreshTokens;
 
     res.cookie("refreshToken", newRefreshToken, getRefreshTokenCookieOptions);
 
@@ -19,6 +24,8 @@ export const refresh = async (req, res) => {
     res.status(200).json({
       status: "success",
       message: "token refresh and rotated",
+      oldSession: oldSession,
+      newSession,
     });
   } catch (error) {
     throw new Error(error);
