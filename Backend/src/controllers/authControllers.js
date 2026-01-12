@@ -1,15 +1,11 @@
 import { loginUser, registerUser } from "../services/auth.services.js";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-  hashRefreshToken,
-} from "../utils/token.utils.js";
+import { hashRefreshToken } from "../utils/token.utils.js";
 import {
   getAccessTokenCookieOptions,
+  getCsrfTokenCookieOptions,
   getRefreshTokenCookieOptions,
 } from "../utils/cookie.utils.js";
 import { prisma } from "../libs/prisma.js";
-import { refreshToken } from "../services/refresh.service.js";
 
 export const register = async (req, res) => {
   try {
@@ -38,9 +34,15 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const data = await loginUser(req.body);
+    const userAgent = req.headers["user-agent"];
 
-    const { user, accessToken, refreshToken } = data;
+    const ip =
+      req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
+      req.socket.remoteAddress;
+
+    const data = await loginUser(req.body, userAgent, ip);
+
+    const { user, accessToken, refreshToken, csrfToken } = data;
 
     if (!user) {
       throw new Error("User not found, please sign up");
@@ -49,6 +51,8 @@ export const login = async (req, res) => {
     res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions);
 
     res.cookie("accessToken", accessToken, getAccessTokenCookieOptions);
+
+    res.cookie("csrf", csrfToken, getCsrfTokenCookieOptions);
 
     res.status(200).json({
       message: "log in successfully",
@@ -88,6 +92,7 @@ export const logout = async (req, res) => {
 
   res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
+  res.clearCookie("csrf");
 
   return res.status(200).json({
     status: "success",

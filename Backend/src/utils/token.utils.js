@@ -20,3 +20,7 @@ export const generateRefreshToken = async () => {
 export const hashRefreshToken = async (token) => {
   return crypto.createHash("sha256").update(token).digest("hex");
 };
+
+export const generateCSRFToken = async () => {
+  return crypto.randomBytes(32).toString("hex");
+};

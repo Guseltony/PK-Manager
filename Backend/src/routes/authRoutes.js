@@ -9,6 +9,7 @@ import { loginSchema, registerUserSchema } from "../validators/auth.schema.js";
 import { validateRequest } from "../middlewares/zodValidation.js";
 import { deleteAllUser } from "../services/admin.services.js";
 import { refresh } from "../controllers/auth/tokenRefresh.controller.js";
+import { csrfMiddleware } from "../middlewares/csrfMiddleware.js";
 
 const authRoute = express.Router();
 
@@ -20,9 +21,9 @@ authRoute.post(
 
 authRoute.post("/login", validateRequest(loginSchema, "body"), login);
 
-authRoute.post("/refresh", refresh);
-    
-authRoute.post("/logout", logout);
+authRoute.post("/refresh", csrfMiddleware, refresh);
+
+authRoute.post("/logout", csrfMiddleware, logout);
 
 authRoute.get("/", deleteAllUser);
 

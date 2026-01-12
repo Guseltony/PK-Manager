@@ -19,3 +19,11 @@ export const getAccessTokenCookieOptions = () => {
     path: "/",
   };
 };
+
+export const getCsrfTokenCookieOptions = () => {
+  return {
+    httpOnly: false,
+    sameSite: "strict",
+    secure: true,
+  };
+};

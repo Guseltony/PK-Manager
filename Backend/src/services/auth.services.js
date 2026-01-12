@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import session from "./session.service.js";
 import {
   generateAccessToken,
+  generateCSRFToken,
   generateRefreshToken,
   hashRefreshToken,
 } from "../utils/token.utils.js";
@@ -51,7 +52,7 @@ const registerUser = async ({ email, password, username, name }) => {
   return user;
 };
 
-const loginUser = async ({ email, password }) => {
+const loginUser = async ({ email, password }, userAgent, ip) => {
   if (!email || !password) {
     throw new Error("All fields are required");
   }
@@ -83,11 +84,13 @@ const loginUser = async ({ email, password }) => {
 
   const accessToken = await generateAccessToken(User.id);
 
+  const csrfToken = await generateCSRFToken();
+
   console.log("unhash refresh token:", refreshToken);
 
   console.log("hashService:", hashToken);
 
-  const newSession = await session.create(hashToken, User.id);
+  const newSession = await session.create(hashToken, User.id, userAgent, ip);
 
   if (!newSession) {
     throw new Error("Unable to Log in");
@@ -104,6 +107,7 @@ const loginUser = async ({ email, password }) => {
     user,
     accessToken,
     refreshToken,
+    csrfToken,
   };
 };
 

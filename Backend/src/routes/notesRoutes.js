@@ -22,10 +22,16 @@ import {
   updateNoteSchema,
 } from "../validators/note.schema.js";
 import { idParamSchema } from "../validators/idParams.schema.js";
+import { csrfMiddleware } from "../middlewares/csrfMiddleware.js";
 
 const noteRoutes = express.Router();
 
-noteRoutes.post("/create", validateRequest(createNoteSchema, "body"), createNote);
+noteRoutes.post(
+  "/create",
+  validateRequest(createNoteSchema, "body"),
+  csrfMiddleware,
+  createNote
+);
 
 noteRoutes.get("/get", allUserNote);
 
@@ -39,12 +45,14 @@ noteRoutes.put(
   "/update/:id",
   validateRequest(idParamSchema, "params"),
   validateRequest(updateNoteSchema, "body"),
+  csrfMiddleware,
   updateNote
 );
 
 noteRoutes.delete(
   "/delete/:id",
   validateRequest(idParamSchema, "params"),
+  csrfMiddleware,
   deleteNote
 );
 
@@ -53,6 +61,7 @@ noteRoutes.delete("/all/delete", deleteAllNotes);
 noteRoutes.post(
   "/removetag/:id/tag",
   validateRequest(idParamSchema, "params"),
+  csrfMiddleware,
   tagRemoveFromNote
 );
 

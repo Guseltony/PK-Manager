@@ -1,5 +1,6 @@
 import {
   generateAccessToken,
+  generateCSRFToken,
   generateRefreshToken,
   hashRefreshToken,
 } from "../utils/token.utils.js";
@@ -19,10 +20,10 @@ export const refreshToken = async (refreshToken) => {
   console.log("cookieRefresh:", refreshToken);
   console.log("hashToken:", hashToken);
 
-  if (!Session) {
-    // await session.revoke(user_id);
-    throw new Error("Session Compromised");
-  }
+  // if (!Session) {
+  //   // await session.revoke(user_id);
+  //   throw new Error("Session Compromised");
+  // }
 
   const userId = Session.userId;
 
@@ -33,18 +34,20 @@ export const refreshToken = async (refreshToken) => {
     };
   }
 
-  if (session.expiresAt < new Date()) {
+  if (Session.expiresAt < new Date()) {
     await session.revoke(userId, Session.id);
     return {
       status: "INVALID SESSION",
     };
   }
 
-  await session.update(userId, Session.id);
+  // await session.update(userId, Session.id);
 
   const newAccessToken = await generateAccessToken(userId);
 
   const newRefreshToken = await generateRefreshToken();
+
+  const newCsrfToken = await generateCSRFToken();
 
   const newHashRToken = await hashRefreshToken(newRefreshToken);
 
@@ -58,5 +61,11 @@ export const refreshToken = async (refreshToken) => {
 
   const newSession = await session.create(newHashRToken, userId);
 
-  return { oldSession, newSession, newAccessToken, newRefreshToken };
+  return {
+    oldSession,
+    newSession,
+    newAccessToken,
+    newRefreshToken,
+    newCsrfToken,
+  };
 };
