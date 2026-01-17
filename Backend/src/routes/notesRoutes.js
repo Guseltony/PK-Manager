@@ -26,10 +26,16 @@ import { csrfMiddleware } from "../middlewares/csrfMiddleware.js";
 
 const noteRoutes = express.Router();
 
+noteRoutes.use((req, res, next) => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    return next();
+  }
+  return csrfMiddleware(req, res, next);
+});
+
 noteRoutes.post(
   "/create",
   validateRequest(createNoteSchema, "body"),
-  csrfMiddleware,
   createNote
 );
 
@@ -45,14 +51,12 @@ noteRoutes.put(
   "/update/:id",
   validateRequest(idParamSchema, "params"),
   validateRequest(updateNoteSchema, "body"),
-  csrfMiddleware,
   updateNote
 );
 
 noteRoutes.delete(
   "/delete/:id",
   validateRequest(idParamSchema, "params"),
-  csrfMiddleware,
   deleteNote
 );
 
@@ -61,7 +65,6 @@ noteRoutes.delete("/all/delete", deleteAllNotes);
 noteRoutes.post(
   "/removetag/:id/tag",
   validateRequest(idParamSchema, "params"),
-  csrfMiddleware,
   tagRemoveFromNote
 );
 

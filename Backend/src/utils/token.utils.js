@@ -24,3 +24,20 @@ export const hashRefreshToken = async (token) => {
 export const generateCSRFToken = async () => {
   return crypto.randomBytes(32).toString("hex");
 };
+
+export const generateTokens = async (user_id) => {
+  const refreshToken = await generateRefreshToken();
+
+  const refreshTokenHash = await hashRefreshToken(refreshToken);
+
+  const accessToken = await generateAccessToken(user_id);
+
+  const csrfToken = await generateCSRFToken();
+
+  return {
+    refreshToken,
+    refreshTokenHash,
+    accessToken,
+    csrfToken,
+  };
+};

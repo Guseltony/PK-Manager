@@ -1,9 +1,4 @@
-import {
-  generateAccessToken,
-  generateCSRFToken,
-  generateRefreshToken,
-  hashRefreshToken,
-} from "../utils/token.utils.js";
+import { generateTokens, hashRefreshToken } from "../utils/token.utils.js";
 import session from "./session.service.js";
 
 export const refreshToken = async (refreshToken) => {
@@ -20,10 +15,10 @@ export const refreshToken = async (refreshToken) => {
   console.log("cookieRefresh:", refreshToken);
   console.log("hashToken:", hashToken);
 
-  // if (!Session) {
-  //   // await session.revoke(user_id);
-  //   throw new Error("Session Compromised");
-  // }
+  if (!Session) {
+    // await session.revoke(user_id);
+    throw new Error("Session Compromised");
+  }
 
   const userId = Session.userId;
 
@@ -43,23 +38,39 @@ export const refreshToken = async (refreshToken) => {
 
   // await session.update(userId, Session.id);
 
-  const newAccessToken = await generateAccessToken(userId);
+  const {
+    refreshToken: newRefreshToken,
+    refreshTokenHash: newRefreshHashToken,
+    accessToken: newAccessToken,
+    csrfToken: newCsrfToken,
+  } = await generateTokens(userId);
 
-  const newRefreshToken = await generateRefreshToken();
+  // const newAccessToken = await generateAccessToken(userId);
 
-  const newCsrfToken = await generateCSRFToken();
+  // const newRefreshToken = await generateRefreshToken();
 
-  const newHashRToken = await hashRefreshToken(newRefreshToken);
+  // const newCsrfToken = await generateCSRFToken();
 
-  if (!newHashRToken) {
+  // const newRefreshHashToken = await hashRefreshToken(newRefreshToken);
+
+  if (!newRefreshHashToken) {
     throw new Error("Unable to create new refresh token");
   }
 
   // await session.remove(hashToken);
 
-  const oldSession = await session.revoke(userId, Session.id);
+  const oldSession = await session.find(hashToken);
 
-  const newSession = await session.create(newHashRToken, userId);
+  // const newSession = await session.create(newRefreshHashToken, userId);
+
+  const newSession = await session.update(
+    userId,
+    Session.id,
+    newRefreshHashToken,
+  );
+
+  console.log("newRefreshToken:", newRefreshToken);
+  console.log("newRefreshTokenHash:", newRefreshHashToken);
 
   return {
     oldSession,

@@ -6,14 +6,27 @@ import {
   getRefreshTokenCookieOptions,
 } from "../utils/cookie.utils.js";
 import { prisma } from "../libs/prisma.js";
+import { fetchUsrIpandAgent } from "../utils/userAgent.ip.js";
 
 export const register = async (req, res) => {
   try {
-    const user = await registerUser(req.body);
+    const { userAgent, ip } = await fetchUsrIpandAgent(req);
 
-    // create user token
+    const data = await registerUser(req.body, userAgent, ip);
 
-    // const token = generateToken(user.id, res);
+    if (!data) {
+      res.status(400).json({
+        error: "Error registering user",
+      });
+    }
+
+    const { user, refreshToken, accessToken, csrfToken } = data;
+
+    res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions);
+
+    res.cookie("accessToken", accessToken, getAccessTokenCookieOptions);
+
+    res.cookie("csrf", csrfToken, getCsrfTokenCookieOptions);
 
     if (user) {
       res.status(200).json({
@@ -22,7 +35,6 @@ export const register = async (req, res) => {
           ...user,
           role: "user",
         },
-        // token,
       });
     }
   } catch (error) {
@@ -34,19 +46,15 @@ export const register = async (req, res) => {
 
 export const login = async (req, res) => {
   try {
-    const userAgent = req.headers["user-agent"];
-
-    const ip =
-      req.headers["x-forwarded-for"]?.toString().split(",")[0] ||
-      req.socket.remoteAddress;
+    const { userAgent, ip } = await fetchUsrIpandAgent(req);
 
     const data = await loginUser(req.body, userAgent, ip);
 
-    const { user, accessToken, refreshToken, csrfToken } = data;
-
-    if (!user) {
+    if (!data) {
       throw new Error("User not found, please sign up");
     }
+
+    const { user, accessToken, refreshToken, csrfToken } = data;
 
     res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions);
 
@@ -63,7 +71,6 @@ export const login = async (req, res) => {
         role: "user",
         session: user.session,
       },
-      accessToken,
     });
   } catch (error) {
     res.status(401).json({

@@ -1,3 +1,4 @@
+import { updateNote } from "../controllers/noteControllers.js";
 import { prisma } from "../libs/prisma.js";
 import {
   allNoteResponseSchema,
@@ -51,40 +52,72 @@ const noteCreation = async ({ title, content, tagsArray }, user_id) => {
         connect: { id: user_id },
       },
       tags: {
-        connectOrCreate: tagsArray?.map((tag) => ({
-          where: {
-            name_userId: {
-              name: tag.name,
-              userId: user_id,
-            },
-          },
-          create: {
-            name: tag.name,
-            color: tag.color,
-            user: {
-              connect: { id: user_id },
+        create: tagsArray?.map((tag) => ({
+          tag: {
+            connectOrCreate: {
+              where: {
+                name_userId: {
+                  name: tag.name,
+                  userId: user_id,
+                },
+              },
+              create: {
+                name: tag.name,
+                color: tag.color,
+                user: {
+                  connect: { id: user_id },
+                },
+              },
             },
           },
         })),
+
+        // tags: {
+        //   connectOrCreate: tagsArray?.map((tag) => ({
+        //     where: {
+        //       name_userId: {
+        //         name: tag.name,
+        //         userId: user_id,
+        //       },
+        //     },
+        //     create: {
+        //       name: tag.name,
+        //       color: tag.color,
+        //       user: {
+        //         connect: { id: user_id },
+        //       },
+        //     },
+        //   })),
+        // },
+
+        // tags: {
+        //   connect: tagsObj?.map((tag) => ({
+        //     name_userId: {
+        //       name: tag.name,
+        //       userId: tag.userId,
+        //     },
+        //   })),
+        //   // connect: {
+        //   //   name_userId: {
+        //   //     name: tag.name,
+        //   //     userId: tag.userId,
+        //   //   },
+        //   // },
+        // },
+        // or  userId: user_id,
       },
-      // tags: {
-      //   connect: tagsObj?.map((tag) => ({
-      //     name_userId: {
-      //       name: tag.name,
-      //       userId: tag.userId,
-      //     },
-      //   })),
-      //   // connect: {
-      //   //   name_userId: {
-      //   //     name: tag.name,
-      //   //     userId: tag.userId,
-      //   //   },
-      //   // },
-      // },
-      // or  userId: user_id,
     },
     include: {
-      tags: true,
+      tags: {
+        select: {
+          tag: {
+            select: {
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -105,8 +138,33 @@ const getUserNotes = async (user_id) => {
   const userNotes = await prisma.note.findMany({
     where: { userId: user_id },
     include: {
-      tags: true,
+      tags: {
+        select: {
+          tag: {
+            select: {
+              name: true,
+              color: true,
+            },
+          },
+        },
+        // omit: {
+        //   id: true,
+        //   noteId: true,
+        //   tagId: true
+        // },
+        // include: {
+        //   tag: {
+        //     select: {
+        //       name: true,
+        //       color: true,
+        //     },
+        //   },
+        // },
+      },
     },
+    // include: {
+    //   tags: true,
+    // },
     // include: {
     //   tags: {
     //     select: {
@@ -129,13 +187,16 @@ const getNote = async (note_id, user_id) => {
       userId: user_id,
     },
     include: {
-      tags: true,
-      // tags: {
-      //   select: {
-      //     name: true,
-      //     color: true,
-      //   },
-      // },
+      tags: {
+        select: {
+          tag: {
+            select: {
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
     },
   });
 
@@ -228,23 +289,98 @@ const removeTagFromNote = async ({ name }, note_id, user_id) => {
 
   // update the note
 
-  const updatedNote = await prisma.note.update({
+  // explicit
+
+  await prisma.noteTag.delete({
+    where: {
+      noteId_tagId: {
+        noteId: note_id,
+        tagId: tag.id,
+      },
+    },
+  });
+
+  const updatedNote = await prisma.note.findUnique({
     where: {
       id: note_id,
       userId: user_id,
     },
-    data: {
-      tags: {
-        disconnect: {
-          name_userId: {
-            name: name,
-            userId: user_id,
-          },
-        },
-      },
-    },
-    include: { tags: true },
   });
+
+  //   const updatedNote = await prisma.$transaction(async (tx) => {
+  //   const tag = await tx.tag.findUnique({
+  //     where: {
+  //       name_userId: {
+  //         name,
+  //         userId: user_id,
+  //       },
+  //     },
+  //     select: { id: true },
+  //   });
+
+  //   if (!tag) return null;
+
+  //   await tx.noteTag.delete({
+  //     where: {
+  //       noteId_tagId: {
+  //         noteId: note_id,
+  //         tagId: tag.id,
+  //       },
+  //     },
+  //   });
+
+  //   return tx.note.findUnique({
+  //     where: {
+  //       id: note_id,
+  //       userId: user_id,
+  //     },
+  //     include: {
+  //       tags: {
+  //         include: {
+  //           tag: {
+  //             select: {
+  //               name: true,
+  //               color: true,
+  //             },
+  //           },
+  //         },
+  //       },
+  //     },
+  //   });
+  // });
+
+  // const updatedNote = await prisma.note.update({
+  //   where: {
+  //     id: note_id,
+  //     userId: user_id,
+  //   },
+  //   data: {
+  //     tags: {
+  //       disconnect: {
+  //         name_userId: {
+  //           name: name,
+  //           userId: user_id,
+  //         },
+  //       },
+  //     },
+  //   },
+  //   include: {
+  //     tags: {
+  //       select: {
+  //         tag: {
+  //           select: {
+  //             name: true,
+  //             color: true,
+  //           },
+  //         },
+  //       },
+  //     },
+  //   },
+  // });
+
+  if (!updateNote) {
+    throw new Error("Tag not remove from note");
+  }
 
   return updatedNote;
 };
@@ -255,12 +391,28 @@ const tagNote = async (name, user_id) => {
       userId: user_id,
       tags: {
         some: {
-          name: name,
+          tag: {
+            name: name,
+          },
         },
       },
+      // tags: {
+      //   some: {
+      //     name: name,
+      //   },
+      // },
     },
     include: {
-      tags: true,
+      tags: {
+        select: {
+          tag: {
+            select: {
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
     },
   });
 

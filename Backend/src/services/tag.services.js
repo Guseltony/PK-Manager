@@ -213,14 +213,78 @@ const addTagToNote = async ({ tagNameArray }, note_id, user_id) => {
     where: { id: note_id, userId: user_id },
     data: {
       tags: {
-        connect: tags.map((tag) => ({
-          name_userId: {
-            name: tag.name,
-            userId: user_id,
+        create: tags.map(({ name }) => ({
+          tag: {
+            connect: {
+              name_userId: {
+                name: name,
+                userId: user_id,
+              },
+            },
           },
         })),
       },
     },
+    include: {
+      tags: {
+        select: {
+          tag: {
+            select: {
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
+    },
+
+    // simple and explicit way
+    //  await prisma.noteTag.createMany({
+    //   data: tags.map(tagId => ({
+    //     noteId,
+    //     tagId
+    //   })),
+    //   skipDuplicates: true
+    // })
+
+    // implicit
+    // tags: {
+    //   connect: tags.map((tag) => ({
+    //     name_userId: {
+    //       name: tag.name,
+    //       userId: user_id,
+    //     },
+    //   })),
+    // },
+
+    // if tag exist or not
+    //     await prisma.note.update({
+    //   where: {
+    //     id: noteId,
+    //     userId
+    //   },
+    //   data: {
+    //     tags: {
+    //       create: tags.map(tag => ({
+    //         tag: {
+    //           connectOrCreate: {
+    //             where: {
+    //               name_userId: {
+    //                 name: tag.name,
+    //                 userId
+    //               }
+    //             },
+    //             create: {
+    //               name: tag.name,
+    //               color: tag.color,
+    //               userId
+    //             }
+    //           }
+    //         }
+    //       }))
+    //     }
+    //   }
+    // })
   });
 
   return updatedNote;

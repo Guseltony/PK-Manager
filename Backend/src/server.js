@@ -31,8 +31,8 @@ app.use(cookieParser());
 // api endpoints
 
 app.use("/auth", authRoute);
-app.use("api/note", authMiddleware, noteRoutes);
-app.use("api/tag", authMiddleware, tagRoutes);
+app.use("/note", authMiddleware, noteRoutes);
+app.use("/tag", authMiddleware, tagRoutes);
 
 // port and listening
 

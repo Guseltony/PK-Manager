@@ -38,17 +38,17 @@ const create = async (hashedRefreshToken, user_id, userAgent, ip) => {
   });
 };
 
-// const update = async (userId, session_id) => {
-//   await prisma.session.update({
-//     where: {
-//       userId: userId,
-//       id: session_id,
-//     },
-//     data: {
-//       revoked: true,
-//     },
-//   });
-// };
+const update = async (userId, session_id, newRefreshToken) => {
+  return await prisma.session.update({
+    where: {
+      userId: userId,
+      id: session_id,
+    },
+    data: {
+      refreshToken: newRefreshToken,
+    },
+  });
+};
 
 const remove = async (user_id, hashedRefreshToken) => {
   await prisma.session.delete({
@@ -74,7 +74,7 @@ export const session = {
   revokeAll,
   revoke,
   create,
-  // update,
+  update,
   remove,
   find,
 };

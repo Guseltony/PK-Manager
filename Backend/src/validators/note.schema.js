@@ -42,15 +42,20 @@ export const noteResponseSchema = z.object({
   }, z.iso.datetime()),
   tags: z.array(
     z.object({
-      id: z.uuid(),
-      name: z.string(),
-      color: z.string().nullable().optional(),
-      userId: z.uuid(),
-      createdAt: z.preprocess((arg) => {
-        if (arg instanceof Date) return arg.toISOString();
-        return arg;
-      }, z.string().datetime()),
-      // createdAt: z.iso.datetime(),
+      // id: z.uuid(),
+      // noteId: z.uuid(),
+      // tagId: z.uuid(),
+      tag: z.object({
+        // id: z.uuid(),
+        name: z.string(),
+        color: z.string().nullable().optional(),
+        // userId: z.uuid(),
+        // createdAt: z.preprocess((arg) => {
+        //   if (arg instanceof Date) return arg.toISOString();
+        //   return arg;
+        // }, z.string().datetime()),
+        // // createdAt: z.iso.datetime(),
+      }),
     })
   ),
   // createdAt: z.preprocess((arg) => {
