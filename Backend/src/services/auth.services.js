@@ -4,11 +4,16 @@ import { prisma } from "../libs/prisma.js";
 import bcrypt from "bcryptjs";
 import session from "./session.service.js";
 import { generateTokens } from "../utils/token.utils.js";
+import { OAuth2Client } from "google-auth-library";
+
+const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+
+const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
 const registerUser = async (
   { email, password, username, name },
   userAgent,
-  ip
+  ip,
 ) => {
   console.log("running user registration");
   if (!email || !password || !username || !name) {
@@ -57,7 +62,7 @@ const registerUser = async (
     refreshTokenHash,
     newUser.id,
     userAgent,
-    ip
+    ip,
   );
 
   if (!newSession) {
@@ -88,6 +93,96 @@ const registerUser = async (
   });
 
   return { user, refreshToken, accessToken, csrfToken };
+};
+
+// Google Sign-in
+
+const googleSignIn = async (credential, userAgent, ip) => {
+  if (!credential) {
+    throw new Error("Google ID not provider");
+  }
+
+  console.log(process.env.GOOGLE_CLIENT_ID);
+
+  console.log(credential);
+
+  try {
+    // verify the credential
+
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture, sub, email_verified } = payload;
+
+    console.log("google payload:", payload);
+
+    // find if the user email already exist
+
+    const userExisted = await prisma.user.findUnique({
+      where: {
+        email: email,
+      },
+    });
+
+    if (userExisted) {
+      throw new Error("Email already registered");
+    }
+
+    const newUser = await prisma.user.create({
+      data: {
+        name: name,
+        email: email,
+        emailVerified: email_verified,
+        googleId: sub,
+      },
+    });
+
+    // create user session
+
+    const { refreshToken, refreshTokenHash, accessToken, csrfToken } =
+      await generateTokens(newUser.id);
+
+    const newSession = await session.create(
+      refreshTokenHash,
+      newUser.id,
+      userAgent,
+      ip,
+    );
+
+    if (!newSession) {
+      throw new Error("Unable to Log in");
+    }
+
+    await prisma.user.update({
+      where: {
+        id: newUser.id,
+      },
+      data: {
+        session: {
+          connect: {
+            id: newSession.id,
+          },
+        },
+      },
+    });
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: newUser.id,
+        email: newUser.email,
+      },
+      include: {
+        session: true,
+      },
+    });
+
+    return { user, refreshToken, accessToken, csrfToken };
+  } catch (error) {
+    throw new Error(error);
+  }
 };
 
 const loginUser = async ({ email, password }, userAgent, ip) => {
@@ -123,7 +218,7 @@ const loginUser = async ({ email, password }, userAgent, ip) => {
     refreshTokenHash,
     User.id,
     userAgent,
-    ip
+    ip,
   );
 
   if (!newSession) {
@@ -145,4 +240,4 @@ const loginUser = async ({ email, password }, userAgent, ip) => {
   };
 };
 
-export { registerUser, loginUser };
+export { registerUser, loginUser, googleSignIn };

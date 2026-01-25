@@ -17,65 +17,83 @@ datasource db {
 //   user
 // }
 
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
 model User {
-  name        String   @default("Anonymous")
-  id          String   @id @default(uuid())
-  email       String   @unique
-  password    String
-  username    String?
-  notes       Note[]
-  tag         Tag[]
-  session     Session[]
-  // roles       Roles[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id    String @id @default(uuid())
+  name  String @default("Anonymous")
+  email String @unique
+
+  // 🔐 AUTH
+  password String? // made optional (for Google users)
+  provider AuthProvider @default(LOCAL)
+  googleId String?      @unique
+
+  // ✅ VERIFICATION
+  emailVerified Boolean   @default(false)
+  verifiedAt    DateTime?
+
+  // 🧠 OPTIONAL PROFILE
+  username String?
+  avatar   String?
+
+  // 🔗 RELATIONS
+  notes   Note[]
+  tag     Tag[]
+  session Session[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Session {
-  id            String @id @default(uuid())
-  userId        String 
-  refreshToken  String
-  expiresAt     DateTime
-  revoked       Boolean   @default(false)
-  createdAt     DateTime  @default(now())
-  userAgent     String?
-  ipAddress     String?
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String
+  expiresAt    DateTime
+  revoked      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  userAgent    String?
+  ipAddress    String?
 
-  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
 }
 
 model Note {
-  id          String      @id @default(uuid())
-  title       String
-  content     String
-  isArchived  Boolean     @default(false)
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  tags        NoteTag[]
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @default(now())
+  id         String    @id @default(uuid())
+  title      String
+  content    String
+  isArchived Boolean   @default(false)
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags       NoteTag[]
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @default(now())
 }
 
 model Tag {
-  id          String       @id @default(uuid())
-  name        String
-  color       String?
-  userId      String
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  notes       NoteTag[]
-  createdAt   DateTime    @default(now())
+  id        String    @id @default(uuid())
+  name      String
+  color     String?
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes     NoteTag[]
+  createdAt DateTime  @default(now())
 
   @@unique([name, userId])
 }
 
 model NoteTag {
-  id        String  @id @default(uuid())
-  noteId    String
-  tagId     String
-  note      Note    @relation(fields: [noteId], references: [id], onDelete: Cascade)
-  tag       Tag     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid())
+  noteId String
+  tagId  String
+  note   Note   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@unique([noteId, tagId])
 }

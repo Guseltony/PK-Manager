@@ -1,10 +1,13 @@
 "use client";
 
+import GoogleBtn from "@/src/components/GoogleBtn";
 import { registerAction } from "./actions";
 import { useState } from "react";
+import CustomGoogleButton from "@/src/components/customGoogleBtn";
 
 export default function RegisterPage() {
   const [errors, setErrors] = useState<string | null>(null);
+  const [isLocal, setIsLocal] = useState<boolean>(false);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -16,7 +19,7 @@ export default function RegisterPage() {
       setErrors(
         result.errors
           ? Object.values(result.errors).flat().join(" | ")
-          : result.message || "Unknown error"
+          : result.message || "Unknown error",
       );
       return;
     }
@@ -78,18 +81,22 @@ export default function RegisterPage() {
           Conditions
         </label>
 
-        {errors && (
+        {errors && isLocal && (
           <p className="text-red-400/90 text-xs bg-red-400/20 py-2 px-2">
             {errors}
           </p>
         )}
-
         <button
           type="submit"
           className="w-full rounded-2xl bg-blue-800 px-10 py-4 text-xs font-extrabold text-text"
+          onClick={() => setIsLocal(true)}
         >
           Create Account
         </button>
+
+        <GoogleBtn />
+
+        <CustomGoogleButton />
       </form>
     </div>
   );
