@@ -4,73 +4,62 @@ import { useEffect } from "react";
 
 declare global {
   interface Window {
-    google: {
-      accounts: {
-        id: {
-          initialize: (config: unknown) => void;
-          renderButton: (element: HTMLElement | null, config: unknown) => void;
-        };
-      };
-    };
+    google?: typeof google;
   }
 }
 
-const handleCredentialResponse = async (response: { credential: string }) => {
-  try {
-    const res = await fetch("http://localhost:5000/api/auth/google", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ token: response.credential }),
-    });
-
-    const data = await res.json();
-
-    if (res.ok) {
-      // Handle successful authentication
-      localStorage.setItem("token", data.token);
-      window.location.href = "/dashboard";
-    }
-  } catch (error) {
-    console.error("Error:", error);
-  }
+type Props = {
+  onSuccess: (credential: string) => void;
 };
 
-export default function ManualGoogleButton() {
+export default function CustomGoogleButton({ onSuccess }: Props) {
   useEffect(() => {
-    // Load Google Identity Services script
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
+    if (!window.google) return;
 
-    script.onload = () => {
-      window.google.accounts.id.initialize({
-        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
-        callback: handleCredentialResponse,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-      });
+    window.google.accounts.id.initialize({
+      client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!,
+      callback: (response) => {
+        onSuccess(response.credential);
+      },
 
-      window.google.accounts.id.renderButton(
-        document.getElementById("googleSignInDiv"),
-        {
-          theme: "outline",
-          size: "large",
-          type: "standard",
-          text: "signin_with",
-          shape: "rectangular",
-          logo_alignment: "left",
-        },
-      );
-    };
+      // ✅ FedCM-safe
+      use_fedcm_for_prompt: true,
+    });
+  }, [onSuccess]);
 
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
+  const handleClick = () => {
+    if (!window.google) return;
 
-  return <div id="googleSignInDiv"></div>;
+    window.google.accounts.id.prompt(); // FedCM will handle UI
+  };
+
+  return (
+    <button
+      onClick={handleClick}
+      className="flex items-center justify-center w-12 h-12 rounded-full border hover:bg-gray-100 transition"
+      aria-label="Sign in with Google"
+    >
+      <img src="/google.svg" alt="Google" className="w-6 h-6" />
+    </button>
+  );
 }
+
+// usage
+<CustomGoogleButton
+  onSuccess={(credential) => {
+    console.log("JWT:", credential);
+
+    fetch("/api/auth/google", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ credential }),
+    });
+  }}
+/>;
+
+// in layout
+<script src="https://accounts.google.com/gsi/client" async defer></script>;
+
+// npm to install
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>;

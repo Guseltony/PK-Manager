@@ -15,6 +15,8 @@ import { validateRequest } from "../middlewares/zodValidation.js";
 import { deleteAllUser } from "../services/admin.services.js";
 import { refresh } from "../controllers/auth/tokenRefresh.controller.js";
 import { csrfMiddleware } from "../middlewares/csrfMiddleware.js";
+import { googleAuth } from "../controllers/auth/googleAuth.js";
+import { authCallback } from "../controllers/auth/googleAuthCallback.js";
 
 const authRoute = express.Router();
 
@@ -25,6 +27,9 @@ authRoute.post(
 );
 
 authRoute.post("/gmail", gmailReg);
+
+authRoute.get("/google", googleAuth);
+authRoute.get("/google/callback", authCallback);
 
 authRoute.post("/login", validateRequest(loginSchema, "body"), login);
 
