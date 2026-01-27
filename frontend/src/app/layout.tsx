@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { cookies } from "next/headers";
 import { Providers } from "./providers";
+import { getAuth } from "../utils/getAuth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,10 +24,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = await cookies();
-  const isLoggedIn = !cookieStore.get("token");
+  const { isAuthenticated } = await getAuth();
 
-  console.log("isLogIn:", isLoggedIn);
+  console.log("isAuthenticated:", isAuthenticated);
 
   return (
     <html lang="en">

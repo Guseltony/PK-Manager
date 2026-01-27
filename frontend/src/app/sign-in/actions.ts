@@ -1,11 +1,13 @@
-import { registerSchema } from "./schema";
+import { AuthActionResult } from "@/src/type/type";
+import { loginSchema, registerSchema } from "./schema";
 
-export async function registerAction(formData: FormData) {
+export async function registerAction(
+  formData: FormData,
+): Promise<AuthActionResult> {
   const rawData = {
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
     email: formData.get("email"),
-    userName: formData.get("userName"),
     password: formData.get("password"),
     agree: formData.get("agree") === "on",
   };
@@ -17,11 +19,20 @@ export async function registerAction(formData: FormData) {
     return { success: false, errors: result.error.flatten().fieldErrors };
   }
 
-  const { firstName, lastName, email, userName, password } = result.data;
+  const { firstName, lastName, email, password } = result.data;
+
+  const isGmail = (email: string) => email.toLowerCase().endsWith("@gmail.com");
+
+  if (isGmail(email)) {
+    return {
+      success: false,
+      redirectToGoogle: true,
+      email,
+    };
+  }
 
   const data = {
     name: `${firstName} ${lastName}`,
-    username: userName,
     email,
     password,
   };
@@ -34,17 +45,106 @@ export async function registerAction(formData: FormData) {
       credentials: "include",
     });
 
-    const resultData = await res.json();
-
     if (!res.ok) {
-      const text = await res.text();
-      return { success: false, message: text || "Something went wrong" };
+      const errorData = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        message: errorData.message || errorData.error || "Something went wrong",
+      };
     }
 
     console.log(res);
+    const resultData = await res.json();
+    console.log("result:", resultData);
+    return { success: true };
+
+    // redirect("/dashboard");
+  } catch (error: unknown) {
+    return { success: false, message: "Server request failed", errors: error };
+  }
+}
+
+export async function loginAction(
+  formData: FormData,
+): Promise<AuthActionResult> {
+  const rawData = {
+    email: formData.get("email"),
+    password: formData.get("password"),
+  };
+
+  const result = loginSchema.safeParse(rawData);
+
+  if (!result.success) {
+    // return the errors as a plain object
+    return { success: false, errors: result.error.flatten().fieldErrors };
+  }
+
+  const { email, password } = result.data;
+
+  const isGmail = (email: string) => email.toLowerCase().endsWith("@gmail.com");
+
+  if (isGmail(email)) {
+    return {
+      success: false,
+      redirectToGoogle: true,
+      email,
+    };
+  }
+
+  const data = {
+    email,
+    password,
+  };
+
+  try {
+    const res = await fetch("http://localhost:5000/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      credentials: "include",
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        message: errorData.message || errorData.error || "Something went wrong",
+      };
+    }
+
+    console.log(res);
+    const resultData = await res.json();
+    console.log("result:", resultData);
+    return { success: true };
+    // redirect("/dashboard");
+  } catch (error) {
+    return { success: false, message: "Server request failed", errors: error };
+  }
+}
+
+export async function logOutAction(): Promise<AuthActionResult> {
+  try {
+    const res = await fetch("http://localhost:5000/auth/logout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+    });
+
+    console.log("res:", res);
+
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        message: errorData.message || errorData.error || "Something went wrong",
+      };
+    }
+
+    console.log(res);
+    const resultData = await res.json();
     console.log("result:", resultData);
     return { success: true };
   } catch (error) {
-    return { success: false, message: "Server request failed", error: error };
+    return { success: false, message: "Server request failed", errors: error };
   }
 }

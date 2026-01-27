@@ -11,14 +11,10 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
-const registerUser = async (
-  { email, password, username, name },
-  userAgent,
-  ip,
-) => {
+const registerUser = async ({ email, password, name }, userAgent, ip) => {
   console.log("running user registration");
-  if (!email || !password || !username || !name) {
-    throw new Error("name, email, password and username are required");
+  if (!email || !password || !name) {
+    throw new Error("name, email, password are required");
   }
 
   // check if the email already exist
@@ -29,6 +25,12 @@ const registerUser = async (
 
   if (emailExisted) {
     throw new Error("Email already exists");
+  }
+
+  if (email.endsWith("@gmail.com")) {
+    return res.status(400).json({
+      message: "Please sign up using Google for Gmail addresses",
+    });
   }
 
   // hash the password
@@ -42,7 +44,6 @@ const registerUser = async (
       name: name,
       email: email,
       password: hashedPassword,
-      username: username,
     },
     omit: { password: true },
     // or
@@ -103,6 +104,7 @@ const googleOAuthSignIn = async (
   cookiesPkce,
   userAgent,
   ip,
+  mode,
 ) => {
   // 1️⃣ CSRF protection
   if (!state || state !== cookiesState) {
@@ -112,7 +114,11 @@ const googleOAuthSignIn = async (
 
   console.log(process.env.GOOGLE_CLIENT_ID);
 
+  let google_mode = mode;
+
   // console.log(credential);
+
+  console.log("mode:", mode);
 
   try {
     // / 2️⃣ Exchange code for tokens
@@ -155,20 +161,30 @@ const googleOAuthSignIn = async (
     });
 
     if (userExisted) {
-      throw new Error("Email already registered");
+      google_mode = "login";
     }
 
-    const newUser = await prisma.user.create({
-      data: {
-        name: name,
-        email: email,
-        emailVerified: email_verified,
-        googleId: sub,
-      },
-    });
+    const newUser =
+      google_mode === "signup"
+        ? await prisma.user.create({
+            data: {
+              name: name,
+              email: email,
+              emailVerified: email_verified,
+              googleId: sub,
+              provider: "GOOGLE",
+            },
+          })
+        : await prisma.user.findUnique({
+            where: {
+              email: email,
+            },
+          });
 
     // create user session
 
+    console.log("modeeee:", mode);
+    console.log("google_mode:", google_mode);
     const { refreshToken, refreshTokenHash, accessToken, csrfToken } =
       await generateTokens(newUser.id);
 
