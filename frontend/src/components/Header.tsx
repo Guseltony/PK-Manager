@@ -3,6 +3,7 @@ import { FaBars, FaRegUser } from "react-icons/fa";
 import { IoIosNotifications } from "react-icons/io";
 import { BiSearch } from "react-icons/bi";
 import SignButton from "../utils/SignButton";
+import SignOut from "../utils/SignOut";
 
 const Header = () => {
   return (
@@ -55,6 +56,7 @@ const Header = () => {
 
         {/* Sign Up */}
         <SignButton />
+        <SignOut />
       </div>
     </div>
   );

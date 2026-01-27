@@ -11,13 +11,9 @@ const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
 const client = new OAuth2Client(GOOGLE_CLIENT_ID);
 
-const registerUser = async (
-  { email, password, username, name },
-  userAgent,
-  ip,
-) => {
+const registerUser = async ({ email, password, name }, userAgent, ip) => {
   console.log("running user registration");
-  if (!email || !password || !username || !name) {
+  if (!email || !password || !name) {
     throw new Error("name, email, password and username are required");
   }
 
@@ -42,7 +38,6 @@ const registerUser = async (
       name: name,
       email: email,
       password: hashedPassword,
-      username: username,
     },
     omit: { password: true },
     // or

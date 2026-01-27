@@ -25,7 +25,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const cookieStore = await cookies();
-  const isLoggedIn = !cookieStore.get("token");
+  const isLoggedIn = !!cookieStore.get("accessToken");
 
   console.log("isLogIn:", isLoggedIn);
 
