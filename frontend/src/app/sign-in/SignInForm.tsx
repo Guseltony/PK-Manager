@@ -21,11 +21,16 @@ export default function RegisterPage() {
       ? await loginAction(formData)
       : await registerAction(formData);
 
-    if (!result.success) {
+    if (!result?.success && result?.redirectToGoogle) {
+      window.location.href = `http://localhost:5000/auth/google?mode=signup&email=${encodeURIComponent(result.email || "")}`;
+      return;
+    }
+
+    if (!result?.success) {
       setErrors(
-        result.errors
-          ? Object.values(result.errors).flat().join(" | ")
-          : result.message || "Unknown error",
+        result?.errors
+          ? Object.values(result?.errors).flat().join(" | ")
+          : result?.message || "Unknown error",
       );
       return;
     }

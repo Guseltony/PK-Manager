@@ -7,9 +7,13 @@ interface GoogleLoginButtonProps {
 }
 
 export default function GoogleLoginButton({ isLogIn }: GoogleLoginButtonProps) {
+  const BACKEND_URL =
+    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
+
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:5000/auth/google";
+    window.location.href = `${BACKEND_URL}/auth/google?mode=${isLogIn ? "login" : "signup"}`;
   };
+  //  "http://localhost:5000/auth/google?mode=signup";
 
   return (
     <button
@@ -27,7 +31,7 @@ export default function GoogleLoginButton({ isLogIn }: GoogleLoginButtonProps) {
       }}
       aria-label="Continue with Google"
     >
-      <Image src="/google-icon.svg" alt="Google" width={22} height={22} />\
+      <Image src="/google-icon.svg" alt="Google" width={22} height={22} />
       <p className=" text-black font-bold text-sm">
         {isLogIn ? "Sign in with Google" : "Sign up with Google"}
       </p>

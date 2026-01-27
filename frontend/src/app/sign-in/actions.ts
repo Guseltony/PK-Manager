@@ -1,6 +1,9 @@
+import { AuthActionResult } from "@/src/type/type";
 import { loginSchema, registerSchema } from "./schema";
 
-export async function registerAction(formData: FormData) {
+export async function registerAction(
+  formData: FormData,
+): Promise<AuthActionResult> {
   const rawData = {
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
@@ -18,6 +21,16 @@ export async function registerAction(formData: FormData) {
 
   const { firstName, lastName, email, password } = result.data;
 
+  const isGmail = (email: string) => email.toLowerCase().endsWith("@gmail.com");
+
+  if (isGmail(email)) {
+    return {
+      success: false,
+      redirectToGoogle: true,
+      email,
+    };
+  }
+
   const data = {
     name: `${firstName} ${lastName}`,
     email,
@@ -32,23 +45,28 @@ export async function registerAction(formData: FormData) {
       credentials: "include",
     });
 
-    const resultData = await res.json();
-
     if (!res.ok) {
-      const text = await res.text();
-      return { success: false, message: text || "Something went wrong" };
+      const errorData = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        message: errorData.message || errorData.error || "Something went wrong",
+      };
     }
 
     console.log(res);
+    const resultData = await res.json();
     console.log("result:", resultData);
     return { success: true };
+
     // redirect("/dashboard");
-  } catch (error) {
-    return { success: false, message: "Server request failed", error: error };
+  } catch (error: unknown) {
+    return { success: false, message: "Server request failed", errors: error };
   }
 }
 
-export async function loginAction(formData: FormData) {
+export async function loginAction(
+  formData: FormData,
+): Promise<AuthActionResult> {
   const rawData = {
     email: formData.get("email"),
     password: formData.get("password"),
@@ -63,6 +81,16 @@ export async function loginAction(formData: FormData) {
 
   const { email, password } = result.data;
 
+  const isGmail = (email: string) => email.toLowerCase().endsWith("@gmail.com");
+
+  if (isGmail(email)) {
+    return {
+      success: false,
+      redirectToGoogle: true,
+      email,
+    };
+  }
+
   const data = {
     email,
     password,
@@ -76,23 +104,25 @@ export async function loginAction(formData: FormData) {
       credentials: "include",
     });
 
-    const resultData = await res.json();
-
     if (!res.ok) {
-      const text = await res.text();
-      return { success: false, message: text || "Something went wrong" };
+      const errorData = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        message: errorData.message || errorData.error || "Something went wrong",
+      };
     }
 
     console.log(res);
+    const resultData = await res.json();
     console.log("result:", resultData);
-    // redirect("/dashboard");
     return { success: true };
+    // redirect("/dashboard");
   } catch (error) {
-    return { success: false, message: "Server request failed", error: error };
+    return { success: false, message: "Server request failed", errors: error };
   }
 }
 
-export async function logOutAction() {
+export async function logOutAction(): Promise<AuthActionResult> {
   try {
     const res = await fetch("http://localhost:5000/auth/logout", {
       method: "POST",
@@ -101,17 +131,20 @@ export async function logOutAction() {
     });
 
     console.log("res:", res);
-    const resultData = await res.json();
 
     if (!res.ok) {
-      const text = await res.text();
-      return { success: false, message: text || "Something went wrong" };
+      const errorData = await res.json().catch(() => ({}));
+      return {
+        success: false,
+        message: errorData.message || errorData.error || "Something went wrong",
+      };
     }
 
     console.log(res);
+    const resultData = await res.json();
     console.log("result:", resultData);
     return { success: true };
   } catch (error) {
-    return { success: false, message: "Server request failed", error: error };
+    return { success: false, message: "Server request failed", errors: error };
   }
 }

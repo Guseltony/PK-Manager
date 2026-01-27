@@ -4,8 +4,11 @@ import { IoIosNotifications } from "react-icons/io";
 import { BiSearch } from "react-icons/bi";
 import SignButton from "../utils/SignButton";
 import SignOut from "../utils/SignOut";
+import { getAuth } from "../utils/getAuth";
 
-const Header = () => {
+const Header = async () => {
+  const { isAuthenticated } = await getAuth();
+
   return (
     <div className="w-full flex items-center justify-between px-20 py-4 bg-[#131720] rounded-full">
       {/* input */}
@@ -55,8 +58,8 @@ const Header = () => {
         </div>
 
         {/* Sign Up */}
-        <SignButton />
-        <SignOut />
+
+        {isAuthenticated ? <SignOut /> : <SignButton />}
       </div>
     </div>
   );

@@ -87,7 +87,11 @@ export const authCallback = async (req, res) => {
 
     const cookiesState = req.cookies.oauth_state;
 
+    const mode = req.cookies.mode;
+
     const cookiesPkce = req.cookies.pkce_verifier;
+
+    console.log("mode:", mode);
 
     const data = await googleOAuthSignIn(
       code,
@@ -96,6 +100,7 @@ export const authCallback = async (req, res) => {
       cookiesPkce,
       userAgent,
       ip,
+      mode,
     );
 
     console.log("gmail data:", data);
@@ -119,8 +124,7 @@ export const authCallback = async (req, res) => {
     res.clearCookie("pkce_verifier");
 
     // 7️⃣ Redirect to frontend
-    res.redirect("http://localhost:3000/dashboard");
-
+    // res.redirect("http://localhost:3000/dashboard");
     if (user) {
       res.status(200).json({
         message: "User successfully register",
