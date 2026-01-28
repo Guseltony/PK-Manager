@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import { getAuth } from "../utils/getAuth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,12 +23,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { isAuthenticated, accessToken, refreshToken, csrf } = await getAuth();
-
-  console.log("isAuthenticated:", isAuthenticated);
-
-  console.log(accessToken, refreshToken, csrf);
-
   return (
     <html lang="en">
       <body

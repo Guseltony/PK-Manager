@@ -15,9 +15,8 @@ export const User = async () => {
       };
     }
 
-    console.log(res);
     const resultData = await res.json();
-    console.log("result:", resultData);
+
     return { data: resultData };
   } catch (error) {
     return { success: false, message: "Server request failed", errors: error };

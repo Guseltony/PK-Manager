@@ -14,8 +14,6 @@ export async function auth(): Promise<AuthResult> {
       .map((c) => `${c.name}=${c.value}`)
       .join("; ");
 
-    console.log("cookieHeader:", cookieHeader);
-
     if (!cookieHeader) {
       return { user: null, authenticated: false };
     }

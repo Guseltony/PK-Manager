@@ -23,6 +23,10 @@ export default function RegisterPage() {
       : await registerAction(formData);
 
     if (!result?.success && result?.redirectToGoogle) {
+      if (!BACKEND_URL) {
+        setErrors("Authentication service is unavailable.");
+        return;
+      }
       window.location.href = `${BACKEND_URL}/auth/google?mode=signup&email=${encodeURIComponent(result.email || "")}`;
       return;
     }

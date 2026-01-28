@@ -13,8 +13,6 @@ const Header = async () => {
 
   const { authenticated, user } = await auth();
 
-  console.log("user:", user);
-
   return (
     <div className="w-full flex items-center justify-between px-20 py-4 bg-[#131720] rounded-full">
       {/* input */}
