@@ -40,6 +40,8 @@ export type User = {
   updatedAt: string;
 };
 
+// fjdfjd
+
 // export type AuthResult =
 //   | { user: User; authenticated: true }
 //   | { user: null; authenticated: false };
