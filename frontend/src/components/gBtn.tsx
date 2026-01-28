@@ -1,15 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import { BACKEND_URL } from "../constants/constants";
 
 interface GoogleLoginButtonProps {
   isLogIn: boolean;
 }
 
 export default function GoogleLoginButton({ isLogIn }: GoogleLoginButtonProps) {
-  const BACKEND_URL =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000";
-
   const handleGoogleLogin = () => {
     window.location.href = `${BACKEND_URL}/auth/google?mode=${isLogIn ? "login" : "signup"}`;
   };

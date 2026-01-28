@@ -4,10 +4,16 @@ import { IoIosNotifications } from "react-icons/io";
 import { BiSearch } from "react-icons/bi";
 import SignButton from "../utils/SignButton";
 import SignOut from "../utils/SignOut";
-import { getAuth } from "../utils/getAuth";
+// import { User } from "../actions/user.actions";
+import { auth } from "../libs/auth";
+// import { useState } from "react";
 
 const Header = async () => {
-  const { isAuthenticated } = await getAuth();
+  // const [isAuth, setIsAuth] = useState<boolean>("")
+
+  const { authenticated, user } = await auth();
+
+  console.log("user:", user);
 
   return (
     <div className="w-full flex items-center justify-between px-20 py-4 bg-[#131720] rounded-full">
@@ -54,12 +60,12 @@ const Header = async () => {
           <div className="bg-fuchsia-300 rounded-full w-10 h-10 flex items-center justify-center">
             <FaRegUser size={25} />
           </div>
-          <p>Guseltony</p>
+          <p>{user?.name}</p>
         </div>
 
         {/* Sign Up */}
 
-        {isAuthenticated ? <SignOut /> : <SignButton />}
+        {authenticated ? <SignOut /> : <SignButton />}
       </div>
     </div>
   );

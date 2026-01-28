@@ -1,5 +1,6 @@
 import { AuthActionResult } from "@/src/type/type";
 import { loginSchema, registerSchema } from "./schema";
+import { BACKEND_URL } from "@/src/constants/constants";
 
 export async function registerAction(
   formData: FormData,
@@ -38,7 +39,7 @@ export async function registerAction(
   };
 
   try {
-    const res = await fetch("http://localhost:5000/auth/register", {
+    const res = await fetch(`${BACKEND_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -97,7 +98,7 @@ export async function loginAction(
   };
 
   try {
-    const res = await fetch("http://localhost:5000/auth/login", {
+    const res = await fetch(`${BACKEND_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
@@ -124,7 +125,7 @@ export async function loginAction(
 
 export async function logOutAction(): Promise<AuthActionResult> {
   try {
-    const res = await fetch("http://localhost:5000/auth/logout", {
+    const res = await fetch(`${BACKEND_URL}/auth/logout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

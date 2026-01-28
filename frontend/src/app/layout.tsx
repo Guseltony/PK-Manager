@@ -24,9 +24,11 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const { isAuthenticated } = await getAuth();
+  const { isAuthenticated, accessToken, refreshToken, csrf } = await getAuth();
 
   console.log("isAuthenticated:", isAuthenticated);
+
+  console.log(accessToken, refreshToken, csrf);
 
   return (
     <html lang="en">

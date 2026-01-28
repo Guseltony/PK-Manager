@@ -4,6 +4,7 @@ import { loginAction, registerAction } from "./actions";
 import { useState } from "react";
 import GoogleLoginButton from "@/src/components/gBtn";
 import { useRouter } from "next/navigation";
+import { BACKEND_URL } from "@/src/constants/constants";
 // import CustomGoogleButton from "@/src/components/customGoogleBtn";
 
 export default function RegisterPage() {
@@ -22,7 +23,7 @@ export default function RegisterPage() {
       : await registerAction(formData);
 
     if (!result?.success && result?.redirectToGoogle) {
-      window.location.href = `http://localhost:5000/auth/google?mode=signup&email=${encodeURIComponent(result.email || "")}`;
+      window.location.href = `${BACKEND_URL}/auth/google?mode=signup&email=${encodeURIComponent(result.email || "")}`;
       return;
     }
 

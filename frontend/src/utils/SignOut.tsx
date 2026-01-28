@@ -1,5 +1,6 @@
 "use client";
 
+import { BACKEND_URL } from "../constants/constants";
 import { getCookie } from "./getCrsf";
 
 const SignOut = () => {
@@ -7,7 +8,7 @@ const SignOut = () => {
     try {
       const csrfToken = getCookie("csrf");
 
-      const res = await fetch("http://localhost:5000/auth/logout", {
+      const res = await fetch(`${BACKEND_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
         headers: {
@@ -15,7 +16,15 @@ const SignOut = () => {
         },
       });
 
-      const resultData = await res.json();
+      if (!res.ok) {
+        const message = await res.text();
+        throw new Error(message || "Logout failed");
+      }
+
+      const contentType = res.headers.get("content-type") ?? "";
+      const resultData = contentType.includes("application/json")
+        ? await res.json()
+        : await res.text();
       console.log("result:", resultData);
     } catch (error) {
       console.error(error);
