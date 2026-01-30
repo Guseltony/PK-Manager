@@ -5,7 +5,10 @@ export const googleAuth = async (req, res) => {
   // 1️⃣ CSRF protection
   const state = crypto.randomUUID();
 
-  const mode = req.query.mode;
+  const mode = typeof req.query.mode === "string" ? req.query.mode : undefined;
+  if (mode !== "login" && mode !== "signup") {
+    return res.status(400).json({ message: "Invalid mode" });
+  }
 
   const email = req.query.email;
 

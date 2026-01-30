@@ -11,6 +11,7 @@ import {
 } from "../utils/cookie.utils.js";
 import { prisma } from "../libs/prisma.js";
 import { fetchUsrIpandAgent } from "../utils/userAgent.ip.js";
+import { buildAuthCookies, setAuthCookies } from "../libs/cookie.option.js";
 
 export const register = async (req, res) => {
   try {
@@ -26,11 +27,19 @@ export const register = async (req, res) => {
 
     const { user, refreshToken, accessToken, csrfToken } = data;
 
-    res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions);
+    const cookiesToken = buildAuthCookies({
+      refreshToken,
+      accessToken,
+      csrfToken,
+    });
 
-    res.cookie("accessToken", accessToken, getAccessTokenCookieOptions);
+    setAuthCookies(res, cookiesToken);
 
-    res.cookie("csrf", csrfToken, getCsrfTokenCookieOptions);
+    // res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions());
+
+    // res.cookie("accessToken", accessToken, getAccessTokenCookieOptions());
+
+    // res.cookie("csrf", csrfToken, getCsrfTokenCookieOptions());
 
     if (user) {
       res.status(200).json({
@@ -68,11 +77,18 @@ export const gmailReg = async (req, res) => {
 
     const { user, refreshToken, accessToken, csrfToken } = data;
 
-    res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions);
+    const cookiesToken = buildAuthCookies({
+      refreshToken,
+      accessToken,
+      csrfToken,
+    });
 
-    res.cookie("accessToken", accessToken, getAccessTokenCookieOptions);
+    setAuthCookies(res, cookiesToken);
+    // res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions());
 
-    res.cookie("csrf", csrfToken, getCsrfTokenCookieOptions);
+    // res.cookie("accessToken", accessToken, getAccessTokenCookieOptions());
+
+    // res.cookie("csrf", csrfToken, getCsrfTokenCookieOptions());
 
     if (user) {
       res.status(200).json({
@@ -101,11 +117,18 @@ export const login = async (req, res) => {
 
     const { user, accessToken, refreshToken, csrfToken } = data;
 
-    res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions);
+    const cookiesToken = buildAuthCookies({
+      refreshToken,
+      accessToken,
+      csrfToken,
+    });
 
-    res.cookie("accessToken", accessToken, getAccessTokenCookieOptions);
+    setAuthCookies(res, cookiesToken);
+    // res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions());
 
-    res.cookie("csrf", csrfToken, getCsrfTokenCookieOptions);
+    // res.cookie("accessToken", accessToken, getAccessTokenCookieOptions());
+
+    // res.cookie("csrf", csrfToken, getCsrfTokenCookieOptions());
 
     res.status(200).json({
       message: "log in successfully",

@@ -7,11 +7,20 @@ import SignOut from "../utils/SignOut";
 // import { User } from "../actions/user.actions";
 import { auth } from "../libs/auth";
 // import { useState } from "react";
+// import { redirect } from "next/navigation";
 
 const Header = async () => {
   // const [isAuth, setIsAuth] = useState<boolean>("")
 
   const { authenticated, user } = await auth();
+
+  console.log(authenticated, user)
+
+  // Akanji Anthony Abidem
+
+  const name = user?.name.split(" ")[0];
+
+  // if (!authenticated) redirect("/sign-in");
 
   return (
     <div className="w-full flex items-center justify-between px-20 py-4 bg-[#131720] rounded-full">
@@ -58,7 +67,7 @@ const Header = async () => {
           <div className="bg-fuchsia-300 rounded-full w-10 h-10 flex items-center justify-center">
             <FaRegUser size={25} />
           </div>
-          <p>{user?.name}</p>
+          <p>{name}.</p>
         </div>
 
         {/* Sign Up */}

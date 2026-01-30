@@ -147,6 +147,10 @@ const googleOAuthSignIn = async (
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
+    if (!ticket) {
+      throw new Error("Unable to verify id_token");
+    }
+
     const payload = ticket.getPayload();
     const { email, name, picture, sub, email_verified } = payload;
 
@@ -177,7 +181,7 @@ const googleOAuthSignIn = async (
           })
         : await prisma.user.findUnique({
             where: {
-              email: email,
+            email: email,
             },
           });
 

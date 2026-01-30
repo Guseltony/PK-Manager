@@ -1,22 +1,30 @@
-import { cookies } from "next/headers";
 import { BACKEND_URL } from "@/src/constants/constants";
 import { User, UserApiResponse } from "../type/type";
+// import { getCookies } from "../utils/getCookie";
+// import { secureFetch } from "./secureFetch";
+import { cookies } from "next/headers";
+import { getCookies } from "../utils/getCookie";
 export type AuthResult =
   | { user: User; authenticated: true }
-  | { user: null; authenticated: false };
+  | { user: User; authenticated: true; error: string }
+  | { user: null; authenticated: false; error: string };
 
 export async function auth(): Promise<AuthResult> {
   try {
-    const cookieStore = await cookies();
+    // const cookieStore = await cookies();
 
-    const cookieHeader = cookieStore
-      .getAll()
-      .map((c) => `${c.name}=${c.value}`)
-      .join("; ");
+    // const cookieHeader = cookieStore
+    //   .getAll()
+    //   .map((c) => `${c.name}=${c.value}`)
+    //   .join("; ");
+
+    const cookieHeader = (await getCookies()) || "";
 
     if (!cookieHeader) {
-      return { user: null, authenticated: false };
+      return { user: null, authenticated: false, error: "Error" };
     }
+
+    console.log("serverCookies:", cookieHeader);
 
     const res = await fetch(`${BACKEND_URL}/user/get`, {
       method: "GET",
@@ -26,8 +34,24 @@ export async function auth(): Promise<AuthResult> {
       cache: "no-store", // 👈 correct for auth
     });
 
+    // const serverCookie = (await getCookies()) || "";
+
+    // console.log(serverCookie);
+
+    // if (!serverCookie) {
+    //   return { user: null, authenticated: false };
+    // }
+
+    // console.log("This is frustrating");
+
+    // const res = await secureFetch("http://localhost:3000/api/user/get");
+
+    // console.log("res:", res);
+
+    console.log("res:", res.json());
+
     if (!res.ok) {
-      return { user: null, authenticated: false };
+      return { user: null, authenticated: false, error: "Error" };
     }
 
     const result: UserApiResponse = await res.json();
@@ -37,6 +61,29 @@ export async function auth(): Promise<AuthResult> {
       authenticated: true,
     };
   } catch {
-    return { user: null, authenticated: false };
+    return { user: null, authenticated: false, error: "Error" };
   }
 }
+
+// import { UserApiResponse } from "../type/type";
+
+// export async function auth() {
+//   try {
+//     const res = await fetch("/api/user", {
+//       cache: "no-store",
+//     });
+
+//     if (!res.ok) {
+//       return { user: null, authenticated: false };
+//     }
+
+//     const result: UserApiResponse = await res.json();
+
+//     return {
+//       user: result.data,
+//       authenticated: true,
+//     };
+//   } catch {
+//     return { user: null, authenticated: false };
+//   }
+// }

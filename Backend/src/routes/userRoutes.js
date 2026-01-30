@@ -1,5 +1,17 @@
 import express from "express";
+import { getUserController } from "../controllers/userControllers.js";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
+import { csrfMiddleware } from "../middlewares/csrfMiddleware.js";
 
-const userRouter = express.Router();
+const userRoutes = express.Router();
 
-userRouter.get("/user", getUser);
+userRoutes.use((req, res, next) => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) {
+    return next();
+  }
+  return csrfMiddleware(req, res, next);
+});
+
+userRoutes.get("/get", authMiddleware, getUserController);
+
+export default userRoutes;

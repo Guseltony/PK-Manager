@@ -1,12 +1,18 @@
 // import { OAuth2Client } from "google-auth-library";
 // import fetch from "node-fetch";
 
+import { buildAuthCookies, setAuthCookies } from "../../libs/cookie.option.js";
 import { googleOAuthSignIn } from "../../services/auth.services.js";
 import {
   getAccessTokenCookieOptions,
   getCsrfTokenCookieOptions,
   getRefreshTokenCookieOptions,
 } from "../../utils/cookie.utils.js";
+// import {
+//   getAccessTokenCookieOptions,
+//   getCsrfTokenCookieOptions,
+//   getRefreshTokenCookieOptions,
+// } from "../../utils/cookie.utils.js";
 import { fetchUsrIpandAgent } from "../../utils/userAgent.ip.js";
 
 // const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -80,6 +86,7 @@ import { fetchUsrIpandAgent } from "../../utils/userAgent.ip.js";
 // });
 
 export const authCallback = async (req, res) => {
+  const isProd = process.env.NODE_ENV === "production";
   try {
     const { userAgent, ip } = await fetchUsrIpandAgent(req);
 
@@ -113,27 +120,38 @@ export const authCallback = async (req, res) => {
 
     const { user, refreshToken, accessToken, csrfToken } = data;
 
-    res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions);
+    const cookies = buildAuthCookies({
+      refreshToken,
+      accessToken,
+      csrfToken,
+    });
 
-    res.cookie("accessToken", accessToken, getAccessTokenCookieOptions);
+    setAuthCookies(res, cookies);
 
-    res.cookie("csrf", csrfToken, getCsrfTokenCookieOptions);
+    // await cookieTokenOptions(cookieObj);
+
+    // res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions());
+
+    // res.cookie("accessToken", accessToken, getAccessTokenCookieOptions());
+
+    // res.cookie("csrf", csrfToken, getCsrfTokenCookieOptions());
 
     // 6️⃣ Cleanup
     res.clearCookie("oauth_state");
     res.clearCookie("pkce_verifier");
+    res.clearCookie("mode");
 
     // 7️⃣ Redirect to frontend
-    // res.redirect("http://localhost:3000/dashboard");
-    if (user) {
-      res.status(200).json({
-        message: "User successfully register",
-        data: {
-          ...user,
-          role: "user",
-        },
-      });
-    }
+    res.redirect("http://localhost:3000/dashboard");
+    // if (user) {
+    //   res.status(200).json({
+    //     message: "User successfully register",
+    //     data: {
+    //       ...user,
+    //       role: "user",
+    //     },
+    //   });
+    // }
   } catch (error) {
     return res.status(401).json({
       error: error.message,

@@ -7,6 +7,10 @@ export const authMiddleware = async (req, res, next) => {
     let token;
     // get the token
 
+    console.log("accessToken:", req.cookies.accessToken);
+
+    console.log("cookie:", req.cookies);
+
     const authHeader = req.headers.authorization;
 
     if (authHeader && authHeader.startsWith("Bearer ")) {

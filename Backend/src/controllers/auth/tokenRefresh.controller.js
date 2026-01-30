@@ -1,3 +1,4 @@
+import { buildAuthCookies, setAuthCookies } from "../../libs/cookie.option.js";
 import { refreshToken } from "../../services/refresh.service.js";
 import {
   getAccessTokenCookieOptions,
@@ -9,10 +10,17 @@ export const refresh = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
 
+    if (!token) {
+      throw new Error("cookies token missing");
+    }
+
     const refreshTokens = await refreshToken(token);
 
     if (!refreshTokens) {
-      throw new Error("Unable to access the session");
+      res.status(400).json({
+        error: "Error encounteres when refreshing the token",
+      });
+      // throw new Error("Unable to access the session");
     }
 
     const {
@@ -23,11 +31,19 @@ export const refresh = async (req, res) => {
       newCsrfToken,
     } = refreshTokens;
 
-    res.cookie("refreshToken", newRefreshToken, getRefreshTokenCookieOptions);
+    const cookiesToken = buildAuthCookies({
+      newRefreshToken,
+      newAccessToken,
+      newCsrfToken,
+    });
 
-    res.cookie("accessToken", newAccessToken, getAccessTokenCookieOptions);
+    setAuthCookies(res, cookiesToken);
 
-    res.cookie("csrf", newCsrfToken, getCsrfTokenCookieOptions);
+    // res.cookie("refreshToken", newRefreshToken, getRefreshTokenCookieOptions());
+
+    // res.cookie("accessToken", newAccessToken, getAccessTokenCookieOptions());
+
+    // res.cookie("csrf", newCsrfToken, getCsrfTokenCookieOptions());
 
     res.status(200).json({
       status: "success",

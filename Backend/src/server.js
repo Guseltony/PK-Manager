@@ -8,6 +8,7 @@ import { authMiddleware } from "./middlewares/authMiddleware.js";
 import tagRoutes from "./routes/tagsRoutes.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import userRoutes from "./routes/userRoutes.js";
 
 // conncet to the database
 connectDB();
@@ -33,6 +34,7 @@ app.use(cookieParser());
 app.use("/auth", authRoute);
 app.use("/note", authMiddleware, noteRoutes);
 app.use("/tag", authMiddleware, tagRoutes);
+app.use("/user", authMiddleware, userRoutes);
 
 // port and listening
 

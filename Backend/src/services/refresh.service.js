@@ -2,6 +2,8 @@ import { generateTokens, hashRefreshToken } from "../utils/token.utils.js";
 import session from "./session.service.js";
 
 export const refreshToken = async (refreshToken) => {
+
+  console.log("starting cookie rotation");
   if (!refreshToken) {
     throw new Error("No refresh token");
   }
@@ -9,6 +11,10 @@ export const refreshToken = async (refreshToken) => {
   const hashToken = await hashRefreshToken(refreshToken);
 
   const Session = await session.find(hashToken);
+
+  const { userAgent, ip } = await fetchUsrIpandAgent(req);
+
+  console.log("session:", Session);
 
   console.log("session:", Session);
 
@@ -18,6 +24,12 @@ export const refreshToken = async (refreshToken) => {
   if (!Session) {
     // await session.revoke(user_id);
     throw new Error("Session Compromised");
+  }
+
+  if (Session.ipAddress !== ip && Session.userAgent !== userAgent) {
+    await session.revoke(userId, Session.id);
+
+    throw new Error("Entry Denied, user not verified");
   }
 
   const userId = Session.userId;

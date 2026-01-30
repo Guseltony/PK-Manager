@@ -18,7 +18,7 @@ datasource db {
 // }
 
 enum AuthProvider {
-  LOCAL
+  EMAIL
   GOOGLE
 }
 
@@ -29,7 +29,7 @@ model User {
 
   // 🔐 AUTH
   password String? // made optional (for Google users)
-  provider AuthProvider @default(LOCAL)
+  provider AuthProvider @default(EMAIL)
   googleId String?      @unique
 
   // ✅ VERIFICATION
