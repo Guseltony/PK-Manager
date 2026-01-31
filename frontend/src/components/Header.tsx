@@ -7,14 +7,15 @@ import SignOut from "../utils/SignOut";
 // import { User } from "../actions/user.actions";
 import { auth } from "../libs/auth";
 // import { useState } from "react";
-// import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 const Header = async () => {
   // const [isAuth, setIsAuth] = useState<boolean>("")
 
+  console.log("Awaiting auth.ts");
   const { authenticated, user } = await auth();
-
-  console.log(authenticated, user)
+  console.log(authenticated, user);
+  console.log("auth response finished");
 
   // Akanji Anthony Abidem
 

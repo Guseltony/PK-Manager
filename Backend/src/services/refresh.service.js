@@ -1,7 +1,8 @@
 import { generateTokens, hashRefreshToken } from "../utils/token.utils.js";
+// import { fetchUsrIpandAgent } from "../utils/userAgent.ip.js";
 import session from "./session.service.js";
 
-export const refreshToken = async (refreshToken) => {
+export const refreshToken = async (refreshToken,userAgent, ip) => {
 
   console.log("starting cookie rotation");
   if (!refreshToken) {
@@ -12,7 +13,7 @@ export const refreshToken = async (refreshToken) => {
 
   const Session = await session.find(hashToken);
 
-  const { userAgent, ip } = await fetchUsrIpandAgent(req);
+  // const { userAgent, ip } = await fetchUsrIpandAgent(req);
 
   console.log("session:", Session);
 
@@ -26,13 +27,14 @@ export const refreshToken = async (refreshToken) => {
     throw new Error("Session Compromised");
   }
 
-  if (Session.ipAddress !== ip && Session.userAgent !== userAgent) {
+  
+  const userId = Session.userId;
+
+  if ((Session.ipAddress !== ip) && (Session.userAgent !== userAgent)) {
     await session.revoke(userId, Session.id);
 
     throw new Error("Entry Denied, user not verified");
   }
-
-  const userId = Session.userId;
 
   if (Session.revoked) {
     await session.revokeAll(userId);
@@ -56,6 +58,8 @@ export const refreshToken = async (refreshToken) => {
     accessToken: newAccessToken,
     csrfToken: newCsrfToken,
   } = await generateTokens(userId);
+
+  console.log(refreshToken, newRefreshToken)
 
   // const newAccessToken = await generateAccessToken(userId);
 

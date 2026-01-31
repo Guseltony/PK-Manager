@@ -5,16 +5,21 @@ import {
   getCsrfTokenCookieOptions,
   getRefreshTokenCookieOptions,
 } from "../../utils/cookie.utils.js";
+import { fetchUsrIpandAgent } from "../../utils/userAgent.ip.js";
 
 export const refresh = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
 
+    console.log(":", token);
+
+    const { userAgent, ip } = await fetchUsrIpandAgent(req);
+
     if (!token) {
       throw new Error("cookies token missing");
     }
 
-    const refreshTokens = await refreshToken(token);
+    const refreshTokens = await refreshToken(token, userAgent, ip);
 
     if (!refreshTokens) {
       res.status(400).json({
@@ -36,6 +41,10 @@ export const refresh = async (req, res) => {
       newAccessToken,
       newCsrfToken,
     });
+
+    if (cookiesToken) {
+      throw new Error("invalid");
+    }
 
     setAuthCookies(res, cookiesToken);
 

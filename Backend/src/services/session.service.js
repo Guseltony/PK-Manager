@@ -41,8 +41,8 @@ const create = async (hashedRefreshToken, user_id, userAgent, ip) => {
 const update = async (userId, session_id, newRefreshToken) => {
   return await prisma.session.update({
     where: {
-      userId: userId,
       id: session_id,
+      userId: userId,
     },
     data: {
       refreshToken: newRefreshToken,
@@ -62,6 +62,7 @@ const remove = async (user_id, hashedRefreshToken) => {
 const find = async (hashedRefreshToken) => {
   return await prisma.session.findFirst({
     where: {
+      revoked: false,
       refreshToken: hashedRefreshToken,
     },
     include: {
