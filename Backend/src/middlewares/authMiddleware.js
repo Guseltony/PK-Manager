@@ -7,7 +7,7 @@ export const authMiddleware = async (req, res, next) => {
     let token;
     // get the token
 
-    console.log("accessToken:", req.cookies.accessToken);
+    console.log("middleWare-accessToken:", req.cookies.accessToken);
 
     console.log("cookie:", req.cookies);
 
@@ -29,6 +29,8 @@ export const authMiddleware = async (req, res, next) => {
       });
     }
 
+    console.log("token from cookie set:", token);
+
     // decode the token to get the user
 
     const decoded = jwt.verify(token, env.JWT_SECRET);
@@ -44,7 +46,7 @@ export const authMiddleware = async (req, res, next) => {
       omit: { password: true },
     });
 
-    console.log(user);
+    console.log("user from DB:", user);
 
     if (!user) {
       return res.status(401).json({
@@ -54,6 +56,8 @@ export const authMiddleware = async (req, res, next) => {
 
     // attach the user to the req
     req.user = user;
+
+    console.log("req.user:", req.user);
 
     next();
   } catch (error) {

@@ -36,17 +36,19 @@ export const refresh = async (req, res) => {
       newCsrfToken,
     } = refreshTokens;
 
-    const cookiesToken = buildAuthCookies({
+    const cookiesToken = await buildAuthCookies({
       newRefreshToken,
       newAccessToken,
       newCsrfToken,
     });
 
-    if (cookiesToken) {
+    if (!cookiesToken) {
       throw new Error("invalid");
     }
 
-    setAuthCookies(res, cookiesToken);
+    await setAuthCookies(res, cookiesToken);
+
+    console.log("new access token send to the frontend:", newAccessToken);
 
     // res.cookie("refreshToken", newRefreshToken, getRefreshTokenCookieOptions());
 

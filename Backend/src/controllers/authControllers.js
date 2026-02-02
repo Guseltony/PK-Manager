@@ -27,13 +27,13 @@ export const register = async (req, res) => {
 
     const { user, refreshToken, accessToken, csrfToken } = data;
 
-    const cookiesToken = buildAuthCookies({
+    const cookiesToken = await buildAuthCookies({
       refreshToken,
       accessToken,
       csrfToken,
     });
 
-    setAuthCookies(res, cookiesToken);
+    await setAuthCookies(res, cookiesToken);
 
     // res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions());
 
@@ -77,13 +77,13 @@ export const gmailReg = async (req, res) => {
 
     const { user, refreshToken, accessToken, csrfToken } = data;
 
-    const cookiesToken = buildAuthCookies({
+    const cookiesToken = await buildAuthCookies({
       refreshToken,
       accessToken,
       csrfToken,
     });
 
-    setAuthCookies(res, cookiesToken);
+    await setAuthCookies(res, cookiesToken);
     // res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions());
 
     // res.cookie("accessToken", accessToken, getAccessTokenCookieOptions());
@@ -117,13 +117,13 @@ export const login = async (req, res) => {
 
     const { user, accessToken, refreshToken, csrfToken } = data;
 
-    const cookiesToken = buildAuthCookies({
+    const cookiesToken = await buildAuthCookies({
       refreshToken,
       accessToken,
       csrfToken,
     });
 
-    setAuthCookies(res, cookiesToken);
+    await setAuthCookies(res, cookiesToken);
     // res.cookie("refreshToken", refreshToken, getRefreshTokenCookieOptions());
 
     // res.cookie("accessToken", accessToken, getAccessTokenCookieOptions());

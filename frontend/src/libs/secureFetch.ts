@@ -9,21 +9,22 @@ let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
 
 export async function refreshAccessToken(): Promise<boolean> {
-  console.log("getting csrf token");
-  const allCookies = await getCookies();
-
-  const csrf = allCookies
-    .split("; ")
-    .find((t) => t.startsWith("csrf"))
-    ?.split("=")[1];
-
-  console.log("csrf:", allCookies);
-  console.log("real csrf:", csrf);
-  if (!csrf) {
-    throw new Error("CSRF cookie missing");
-  }
 
   try {
+    console.log("getting csrf token");
+    const allCookies = await getCookies();
+
+    const csrf = allCookies
+      .split("; ")
+      .find((t) => t.startsWith("csrf"))
+      ?.split("=")[1];
+
+    console.log("csrf:", allCookies);
+    console.log("real csrf:", csrf);
+    if (!csrf) {
+      throw new Error("CSRF cookie missing");
+    }
+
     console.log("calling refresh endpoint");
     const res = await fetch(`${BACKEND_URL}/auth/refresh`, {
       method: "POST",
@@ -34,8 +35,8 @@ export async function refreshAccessToken(): Promise<boolean> {
       },
     });
 
-    console.log("refresh endpoint res:", res);
     console.log("refresh endpoint json) res:", await res.json());
+    console.log("refresh endpoint res:", res);
 
     return res.ok;
   } catch {

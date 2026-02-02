@@ -6,13 +6,13 @@ import { getCookie } from "./getCrsf";
 const SignOut = () => {
   const logOut = async () => {
     try {
-      const csrfToken = getCookie("csrf");
+      const csrfToken = await getCookie("csrf");
 
       const res = await fetch(`${BACKEND_URL}/auth/logout`, {
         method: "POST",
         credentials: "include",
         headers: {
-          "x-csrf-token": csrfToken || "",
+          "x-csrf-token": csrfToken ?? "",
         },
       });
 

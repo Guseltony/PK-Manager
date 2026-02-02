@@ -5,7 +5,7 @@ export const getRefreshTokenCookieOptions = () => {
     httpOnly: true,
     // secure: process.env.NODE_ENV === "production",
     secure: isProd,
-    sameSite: isProd ? "strict" : "none",
+    sameSite: isProd ? "strict" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/",
   };
@@ -16,8 +16,8 @@ export const getAccessTokenCookieOptions = () => {
     httpOnly: true,
     // secure: process.env.NODE_ENV === "production",
     secure: isProd,
-    sameSite: isProd ? "strict" : "none",
-    maxAge: 15 * 60 * 1000,
+    sameSite: isProd ? "strict" : "lax",
+    maxAge: 5 * 60 * 1000,
     path: "/",
   };
 };
@@ -25,8 +25,8 @@ export const getAccessTokenCookieOptions = () => {
 export const getCsrfTokenCookieOptions = () => {
   return {
     httpOnly: false,
-    sameSite: isProd ? "strict" : "none",
     secure: isProd,
+    sameSite: isProd ? "strict" : "lax",
     path: "/",
   };
 };

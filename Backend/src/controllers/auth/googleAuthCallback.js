@@ -120,13 +120,13 @@ export const authCallback = async (req, res) => {
 
     const { user, refreshToken, accessToken, csrfToken } = data;
 
-    const cookies = buildAuthCookies({
+    const cookies = await buildAuthCookies({
       refreshToken,
       accessToken,
       csrfToken,
     });
 
-    setAuthCookies(res, cookies);
+    await setAuthCookies(res, cookies);
 
     // await cookieTokenOptions(cookieObj);
 

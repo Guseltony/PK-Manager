@@ -11,11 +11,11 @@ export const refreshToken = async (refreshToken,userAgent, ip) => {
 
   const hashToken = await hashRefreshToken(refreshToken);
 
+  console.log("Hashed:", hashToken);
+
   const Session = await session.find(hashToken);
 
   // const { userAgent, ip } = await fetchUsrIpandAgent(req);
-
-  console.log("session:", Session);
 
   console.log("session:", Session);
 
@@ -27,10 +27,9 @@ export const refreshToken = async (refreshToken,userAgent, ip) => {
     throw new Error("Session Compromised");
   }
 
-  
   const userId = Session.userId;
 
-  if ((Session.ipAddress !== ip) && (Session.userAgent !== userAgent)) {
+  if (Session.ipAddress !== ip && Session.userAgent !== userAgent) {
     await session.revoke(userId, Session.id);
 
     throw new Error("Entry Denied, user not verified");
@@ -59,7 +58,7 @@ export const refreshToken = async (refreshToken,userAgent, ip) => {
     csrfToken: newCsrfToken,
   } = await generateTokens(userId);
 
-  console.log(refreshToken, newRefreshToken)
+  console.log(refreshToken, newRefreshToken);
 
   // const newAccessToken = await generateAccessToken(userId);
 
@@ -87,6 +86,8 @@ export const refreshToken = async (refreshToken,userAgent, ip) => {
 
   console.log("newRefreshToken:", newRefreshToken);
   console.log("newRefreshTokenHash:", newRefreshHashToken);
+
+  console.log("SESSION CREATED AND SEND TO CONTROLER");
 
   return {
     oldSession,

@@ -14,6 +14,10 @@ const Header = async () => {
 
   console.log("Awaiting auth.ts");
   const { authenticated, user } = await auth();
+
+  // const userAuth = await auth();
+
+  // console.log("userAUth:", userAuth);
   console.log(authenticated, user);
   console.log("auth response finished");
 
@@ -62,17 +66,14 @@ const Header = async () => {
             />
           </div>
         </div>
-
-        {/* user profile */}
+        user profile
         <div className="flex items-center justify-center gap-4 mr-10">
           <div className="bg-fuchsia-300 rounded-full w-10 h-10 flex items-center justify-center">
             <FaRegUser size={25} />
           </div>
           <p>{name}.</p>
         </div>
-
         {/* Sign Up */}
-
         {authenticated ? <SignOut /> : <SignButton />}
       </div>
     </div>

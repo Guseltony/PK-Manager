@@ -4,25 +4,29 @@ import {
   getRefreshTokenCookieOptions,
 } from "../utils/cookie.utils.js";
 
-export const buildAuthCookies = ({ refreshToken, accessToken, csrfToken }) => [
+export const buildAuthCookies = async ({
+  refreshToken,
+  accessToken,
+  csrfToken,
+}) => [
   {
     name: "refreshToken",
     token: refreshToken,
-    options: getRefreshTokenCookieOptions,
+    options: getRefreshTokenCookieOptions(),
   },
   {
     name: "accessToken",
     token: accessToken,
-    options: getAccessTokenCookieOptions,
+    options: getAccessTokenCookieOptions(),
   },
   {
     name: "csrf",
     token: csrfToken,
-    options: getCsrfTokenCookieOptions,
+    options: getCsrfTokenCookieOptions(),
   },
 ];
 
-export const setAuthCookies = (res, cookies) => {
+export const setAuthCookies = async (res, cookies) => {
   cookies.forEach(({ name, token, options }) => {
     if (!token) return;
     res.cookie(name, token, options);
