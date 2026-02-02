@@ -13,7 +13,9 @@ export type AuthResult =
  */
 export async function auth(): Promise<AuthResult> {
   try {
-    const cookieHeader = cookies().toString();
+    const cookieStore = await cookies();
+
+    const cookieHeader = cookieStore.toString();
     if (!cookieHeader)
       return { user: null, authenticated: false, error: "No cookies" };
 
