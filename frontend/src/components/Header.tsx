@@ -5,15 +5,15 @@ import { BiSearch } from "react-icons/bi";
 import SignButton from "../utils/SignButton";
 import SignOut from "../utils/SignOut";
 // import { User } from "../actions/user.actions";
-import { auth } from "../libs/auth";
+import { auth, AuthResult } from "../libs/auth";
 // import { useState } from "react";
 import { redirect } from "next/navigation";
 
-const Header = async () => {
+const Header = async ({ auth }: { auth: AuthResult }) => {
   // const [isAuth, setIsAuth] = useState<boolean>("")
 
   console.log("Awaiting auth.ts");
-  const { authenticated, user } = await auth();
+  const { authenticated, user } = auth;
 
   // const userAuth = await auth();
 
@@ -66,7 +66,7 @@ const Header = async () => {
             />
           </div>
         </div>
-        user profile
+        {/* user profile */}
         <div className="flex items-center justify-center gap-4 mr-10">
           <div className="bg-fuchsia-300 rounded-full w-10 h-10 flex items-center justify-center">
             <FaRegUser size={25} />

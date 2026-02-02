@@ -1,12 +1,14 @@
+import AuthGate from "@/src/components/AuthGate";
 import Header from "@/src/components/Header";
 import SideBar from "@/src/components/SideBar";
+import { auth } from "@/src/libs/auth";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-
+  const authResult = await auth();
   return (
     <div className="flex flex-1">
       {/* Sidebar */}
@@ -14,8 +16,8 @@ export default function DashboardLayout({
 
       {/* Main content */}
       <main className="flex-1 py-2 pl-2">
-        <Header />
-        {children}
+        <Header auth={authResult} />
+        <AuthGate authenticated={authResult.authenticated}>{children}</AuthGate>
       </main>
     </div>
   );

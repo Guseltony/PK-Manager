@@ -37,9 +37,9 @@ export const refresh = async (req, res) => {
     } = refreshTokens;
 
     const cookiesToken = await buildAuthCookies({
-      newRefreshToken,
-      newAccessToken,
-      newCsrfToken,
+      refreshToken: newRefreshToken,
+      accessToken: newAccessToken,
+      csrfToken: newCsrfToken,
     });
 
     if (!cookiesToken) {

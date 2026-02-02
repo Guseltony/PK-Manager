@@ -16,50 +16,23 @@ export async function auth(): Promise<AuthResult> {
     const cookieStore = await cookies();
 
     const cookieHeader = cookieStore.toString();
+
+    console.log("cookies sent 1st:", cookieHeader);
     if (!cookieHeader)
       return { user: null, authenticated: false, error: "No cookies" };
 
     // Helper to fetch user from backend
-    const fetchUser = async (cookie: string) => {
-      const res = await fetch(`${BACKEND_URL}/user/get`, {
-        method: "GET",
-        headers: { Cookie: cookie },
-        cache: "no-store",
-      });
-      return res;
-    };
-
-    // 1️⃣ Try fetching user normally
-    let res = await fetchUser(cookieHeader);
-
-    // 2️⃣ If 401, try refreshing token server-side via /api/refresh
-    if (res.status === 401) {
-      console.log("Access token expired. Attempting server-side refresh...");
-
-      const refreshRes = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/refresh`,
-        {
-          method: "POST",
-          headers: { Cookie: cookieHeader },
-        },
-      );
-
-      if (!refreshRes.ok) {
-        return { user: null, authenticated: false, error: "Refresh failed" };
-      }
-
-      // Forward set-cookie headers from refresh to next fetch
-      const setCookie = refreshRes.headers.get("set-cookie");
-      const newCookieHeader = setCookie ? setCookie : cookieHeader;
-
-      // Retry fetching user with refreshed cookie
-      res = await fetchUser(newCookieHeader);
-    }
+    const res = await fetch(`${BACKEND_URL}/user/get`, {
+      method: "GET",
+      headers: { Cookie: cookieHeader },
+      cache: "no-store",
+    });
 
     if (!res.ok)
       return { user: null, authenticated: false, error: "Unauthorized" };
 
     const result: UserApiResponse = await res.json();
+    
     return { user: result.data, authenticated: true };
   } catch (err) {
     return { user: null, authenticated: false, error: err };
