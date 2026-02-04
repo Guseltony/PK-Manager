@@ -4,12 +4,12 @@ import { IoIosNotifications } from "react-icons/io";
 import { BiSearch } from "react-icons/bi";
 import SignButton from "../utils/SignButton";
 import SignOut from "../utils/SignOut";
-// import { User } from "../actions/user.actions";
-import { auth, AuthResult } from "../libs/auth";
-// import { useState } from "react";
-import { redirect } from "next/navigation";
+import { AuthResult } from "../libs/auth";
+
+
 
 const Header = async ({ auth }: { auth: AuthResult }) => {
+  // const Header = async () => {
   // const [isAuth, setIsAuth] = useState<boolean>("")
 
   console.log("Awaiting auth.ts");
@@ -67,17 +67,20 @@ const Header = async ({ auth }: { auth: AuthResult }) => {
           </div>
         </div>
         {/* user profile */}
-        <div className="flex items-center justify-center gap-4 mr-10">
-          <div className="bg-fuchsia-300 rounded-full w-10 h-10 flex items-center justify-center">
-            <FaRegUser size={25} />
+
+        {authenticated && (
+          <div className="flex items-center justify-center gap-4 mr-10">
+            <div className="bg-fuchsia-300 rounded-full w-10 h-10 flex items-center justify-center">
+              <FaRegUser size={25} />
+            </div>
+            <p>{name}.</p>
+            <SignOut />
           </div>
-          <p>{name}.</p>
-        </div>
-        {/* Sign Up */}
-        {authenticated ? <SignOut /> : <SignButton />}
+        )}
+        {/* {authenticated ? <SignOut /> : <SignButton />} */}
       </div>
     </div>
   );
-};
+};;
 
 export default Header;

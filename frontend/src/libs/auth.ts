@@ -1,7 +1,50 @@
+// "use server";
+
+// // libs/auth.ts
+// import { BACKEND_URL } from "@/src/constants/constants";
+// import { User, UserApiResponse } from "../type/type";
+// import { cookies } from "next/headers";
+// import { getCookies } from "../utils/getCookie";
+
+// export type AuthResult =
+//   | { user: User; authenticated: true }
+//   | { user: null; authenticated: false; error: unknown };
+
+// /**
+//  * Fetch user from backend using server-side cookies.
+//  * If 401, automatically tries to refresh token via /api/refresh endpoint (server-side).
+//  */
+// export async function auth(): Promise<AuthResult> {
+//   try {
+//     const cookieStore = await cookies();
+
+//     const cookieHeader = cookieStore.toString();
+//     if (!cookieHeader)
+//       return { user: null, authenticated: false, error: "No cookies" };
+
+//     const res = await fetch(`${BACKEND_URL}/user/get`, {
+//       method: "GET",
+//       headers: { Cookie: cookieHeader },
+//       cache: "no-store",
+//     });
+
+//     if (!res.ok)
+//       return { user: null, authenticated: false, error: "Unauthorized" };
+
+//     const result: UserApiResponse = await res.json();
+//     return { user: result.data, authenticated: true };
+//   } catch (err) {
+//     return { user: null, authenticated: false, error: err };
+//   }
+// }
+
 // libs/auth.ts
 import { BACKEND_URL } from "@/src/constants/constants";
 import { User, UserApiResponse } from "../type/type";
 import { cookies } from "next/headers";
+import { getCookies } from "../utils/getCookie";
+import { refreshToken } from "../actions/refresh.action";
+import { redirect } from "next/navigation";
 
 export type AuthResult =
   | { user: User; authenticated: true }
@@ -11,32 +54,60 @@ export type AuthResult =
  * Fetch user from backend using server-side cookies.
  * If 401, automatically tries to refresh token via /api/refresh endpoint (server-side).
  */
+// export async function auth(): Promise<AuthResult> {
+//   const cookieStore = await cookies();
+
+//   const cookieHeader = cookieStore.toString();
+//   if (!cookieHeader)
+//     return { user: null, authenticated: false, error: "No cookies" };
+
+//   const res = await fetch(`${BACKEND_URL}/user/get`, {
+//     method: "GET",
+//     headers: { Cookie: cookieHeader },
+//     cache: "no-store",
+//   });
+
+//   if (res.status === 401) {
+//     console.log("running refresh endpoint");
+//     const refreshed = await refreshToken();
+//     console.log("refresh res from auth:", refreshed);
+
+//     console.log("refreshed response:", refreshed);
+//     if (!refreshed) {
+//       console.log("about to nav to sign-in page");
+//       // redirect("/sign-in");
+//     }
+
+//     if (refreshed) redirect("/dashboard");
+//   }
+
+//   if (!res.ok)
+//     return { user: null, authenticated: false, error: "Unauthorized" };
+
+//   const result: UserApiResponse = await res.json();
+//   return { user: result.data, authenticated: true };
+// }
+
 export async function auth(): Promise<AuthResult> {
-  try {
-    const cookieStore = await cookies();
+  const cookieStore = await cookies();
+  const cookieHeader = cookieStore.toString();
 
-    const cookieHeader = cookieStore.toString();
+  if (!cookieHeader)
+    return { user: null, authenticated: false, error: "No cookies" };
 
-    console.log("cookies sent 1st:", cookieHeader);
-    if (!cookieHeader)
-      return { user: null, authenticated: false, error: "No cookies" };
+  console.log("cookie-header", cookieHeader);
 
-    // Helper to fetch user from backend
-    const res = await fetch(`${BACKEND_URL}/user/get`, {
-      method: "GET",
-      headers: { Cookie: cookieHeader },
-      cache: "no-store",
-    });
+  const res = await fetch(`${BACKEND_URL}/user/get`, {
+    headers: { Cookie: cookieHeader },
+    cache: "no-store",
+  });
 
-    if (!res.ok)
-      return { user: null, authenticated: false, error: "Unauthorized" };
+  if (!res.ok)
+    return { user: null, authenticated: false, error: "Unauthorized" };
 
-    const result: UserApiResponse = await res.json();
-    
-    return { user: result.data, authenticated: true };
-  } catch (err) {
-    return { user: null, authenticated: false, error: err };
-  }
+  const result: UserApiResponse = await res.json();
+
+  return { user: result.data, authenticated: true };
 }
 
 // import { BACKEND_URL } from "@/src/constants/constants";
@@ -54,6 +125,8 @@ export async function auth(): Promise<AuthResult> {
 //   | { user: null; authenticated: false; error: unknown };
 
 // export async function auth(): Promise<AuthResult> {
+
+//   let refreshed
 //   try {
 //     const cookieHeader = (await getCookies()) || "";
 
@@ -76,42 +149,16 @@ export async function auth(): Promise<AuthResult> {
 //     console.log("before refresh");
 
 //     if (res.status === 401) {
-//       console.log("refreshing");
+//       console.log("running refresh endpoint");
+//       refreshed = await refreshToken();
+//       console.log("refresh res from auth:", refreshed);
 
-//       try {
-//         const refreshRes = await refreshToken();
-
-//         if (!refreshRes) {
-//           console.log("refresh failed");
-//           throw new Error("Refresh failed");
-//         }
-
-//         console.log("GETTING REFRESH REPONSE");
-
-//         const newServerCookie = await getCookies();
-
-//         console.log("newServerCookies after refresh:", newServerCookie);
-
-//         const response = await fetch(`${BACKEND_URL}/user/get`, {
-//           method: "GET",
-//           headers: {
-//             Cookie: newServerCookie,
-//           },
-//           cache: "no-store",
-//         });
-
-//         if (!response.ok) {
-//           return { user: null, authenticated: false, error: "Error" };
-//         }
-//         const result: UserApiResponse = await response.json();
-//         return {
-//           user: result.data, // 👈 unwrap here
-//           authenticated: true,
-//         };
-//       } catch (error: unknown) {
-//         return { user: null, authenticated: false, error: error };
+//       if (!refreshed) {
+//         console.log("about to nav to sign-in page");
+//         redirect("/sign-in");
 //       }
 //     }
+
 //     console.log("getting res without refeshing:");
 
 //     // if (!res.ok) {

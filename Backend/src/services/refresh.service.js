@@ -29,10 +29,10 @@ export const refreshToken = async (refreshToken,userAgent, ip) => {
 
   const userId = Session.userId;
 
-  if (Session.ipAddress !== ip && Session.userAgent !== userAgent) {
+  if (Session.ipAddress !== ip || Session.userAgent !== userAgent) {
     await session.revoke(userId, Session.id);
 
-    throw new Error("Entry Denied, user not verified");
+    throw new Error("Entry Denied, wrong userAgent and Ip observed");
   }
 
   if (Session.revoked) {

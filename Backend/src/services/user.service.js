@@ -11,6 +11,9 @@ const getUser = async (user_id) => {
       omit: {
         password: true,
       },
+      // include: {
+      //   session: true,
+      // },
     });
 
     if (!user) {
@@ -18,7 +21,29 @@ const getUser = async (user_id) => {
     }
 
     return user;
-  } catch (error) {}
+  } catch (error) {
+    throw new Error(error);
+  }
 };
 
-export { getUser };
+const getAllUser = async () => {
+  try {
+    const Users = await prisma.user.findMany({
+      include: {
+        session: true,
+        notes: true,
+        tag: true,
+      },
+    });
+
+    if (!Users) {
+      throw new Error("Users can't be fetch");
+    }
+
+    return Users;
+  } catch (error) {
+    throw new Error(error);
+  }
+};
+
+export { getUser, getAllUser };

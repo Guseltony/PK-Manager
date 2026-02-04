@@ -1,5 +1,8 @@
 import express from "express";
-import { getUserController } from "../controllers/userControllers.js";
+import {
+  getAllUserController,
+  getUserController,
+} from "../controllers/userControllers.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 import { csrfMiddleware } from "../middlewares/csrfMiddleware.js";
 
@@ -13,5 +16,6 @@ userRoutes.use((req, res, next) => {
 });
 
 userRoutes.get("/get", authMiddleware, getUserController);
+userRoutes.get("/getAll", getAllUserController);
 
 export default userRoutes;

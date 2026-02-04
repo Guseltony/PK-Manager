@@ -34,7 +34,8 @@ app.use(cookieParser());
 app.use("/auth", authRoute);
 app.use("/note", authMiddleware, noteRoutes);
 app.use("/tag", authMiddleware, tagRoutes);
-app.use("/user", authMiddleware, userRoutes);
+// app.use("/user", authMiddleware, userRoutes);
+app.use("/user", userRoutes);
 
 // port and listening
 

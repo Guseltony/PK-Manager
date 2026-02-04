@@ -10,3 +10,12 @@ export const getCookies = async () => {
 
   return cookieHeader;
 };
+
+
+export const getCookie = async () => {
+  const allCookies = await getCookies();
+
+  const csrf = allCookies.split("; ");
+
+  console.log("getting specific cookie", csrf);
+};

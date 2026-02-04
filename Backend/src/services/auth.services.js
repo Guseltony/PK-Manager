@@ -28,9 +28,9 @@ const registerUser = async ({ email, password, name }, userAgent, ip) => {
   }
 
   if (email.endsWith("@gmail.com")) {
-    return res.status(400).json({
-      message: "Please sign up using Google for Gmail addresses",
-    });
+    throw new Error(
+      " message: Please sign up using Google for Gmail addresses",
+    );
   }
 
   // hash the password
