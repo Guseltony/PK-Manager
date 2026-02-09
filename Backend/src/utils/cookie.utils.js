@@ -17,7 +17,7 @@ export const getAccessTokenCookieOptions = () => {
     // secure: process.env.NODE_ENV === "production",
     secure: isProd,
     sameSite: isProd ? "strict" : "lax",
-    maxAge: 15 * 60 * 1000,
+    maxAge: 5 * 60 * 1000,
     path: "/",
   };
 };
@@ -27,6 +27,7 @@ export const getCsrfTokenCookieOptions = () => {
     httpOnly: false,
     secure: isProd,
     sameSite: isProd ? "strict" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/",
   };
 };
