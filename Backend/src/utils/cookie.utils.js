@@ -17,7 +17,7 @@ export const getAccessTokenCookieOptions = () => {
     // secure: process.env.NODE_ENV === "production",
     secure: isProd,
     sameSite: isProd ? "strict" : "lax",
-    maxAge: 5 * 60 * 1000,
+    maxAge: 15 * 60 * 1000,
     path: "/",
   };
 };

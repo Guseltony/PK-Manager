@@ -134,20 +134,47 @@ const googleOAuthSignIn = async (
         redirect_uri: process.env.GOOGLE_REDIRECT_URI,
       }),
     });
+    
+    if (!tokenRes) {
+      console.log(
+        "failed response from google verification:",
+        await tokenRes.json(),
+      );
+      throw new Error(await tokenRes.json());
+    }
 
     const tokens = await tokenRes.json();
+
+    console.log("response from google:", tokens);
 
     if (!tokens.id_token) {
       throw new Error("No id_token returned");
     }
 
     // 3️⃣ Verify ID token
-    const ticket = await client.verifyIdToken({
-      idToken: tokens.id_token,
-      audience: process.env.GOOGLE_CLIENT_ID,
-    });
+
+    async function verifyWithRetry(client, tokens) {
+      for (let i = 0; i < 3; i++) {
+        try {
+          return await client.verifyIdToken({
+            idToken: tokens.id_token,
+            audience: process.env.GOOGLE_CLIENT_ID,
+          });
+        } catch (err) {
+          if (i === 2) throw err;
+        }
+      }
+    }
+
+    // const ticket = await client.verifyIdToken({
+    //   idToken: tokens.id_token,
+    //   audience: process.env.GOOGLE_CLIENT_ID,
+    // });
+
+    const ticket = await verifyWithRetry(client, tokens);
 
     if (!ticket) {
+      console.log("failed ticket verification:", ticket);
       throw new Error("Unable to verify id_token");
     }
 
