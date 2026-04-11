@@ -12,41 +12,8 @@ import { FiSave, FiMoreHorizontal, FiTrash2, FiArchive, FiEye, FiEdit3, FiMaximi
 import dayjs from "dayjs";
 
 export default function NoteEditor() {
-  const { selectedNoteId, notes, updateNote } = useNotesStore();
+  const { selectedNoteId, notes } = useNotesStore();
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
-  const { updateNote: syncWithBackend, deleteNote: deleteFromBackend } = useNotes();
-  
-  const [content, setContent] = useState("");
-  const [title, setTitle] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
-  const [viewMode, setViewMode] = useState<"edit" | "preview" | "split">("edit");
-  
-  const debouncedContent = useDebounce(content, 1000);
-  const debouncedTitle = useDebounce(title, 1000);
-
-  // Load note data
-  useEffect(() => {
-    if (selectedNote) {
-      setContent(selectedNote.content);
-      setTitle(selectedNote.title);
-    } else {
-      setContent("");
-      setTitle("");
-    }
-  }, [selectedNoteId]); // Only reset when selectedNoteId changes
-
-  // Auto-save logic
-  useEffect(() => {
-    if (selectedNote && (debouncedContent !== selectedNote.content || debouncedTitle !== selectedNote.title)) {
-      setIsSaving(true);
-      updateNote(selectedNote.id, { content: debouncedContent, title: debouncedTitle });
-      syncWithBackend({ 
-        id: selectedNote.id, 
-        updates: { content: debouncedContent, title: debouncedTitle } 
-      });
-      setTimeout(() => setIsSaving(false), 800);
-    }
-  }, [debouncedContent, debouncedTitle]);
 
   if (!selectedNote) {
     return (
@@ -62,6 +29,39 @@ export default function NoteEditor() {
     );
   }
 
+  // Passing the selectedNoteId as a 'key' forces the child to re-mount
+  // and reset its internal state whenever the user switches notes.
+  // This avoids the 'cascading renders' effect warning.
+  return <NoteEditorContent key={selectedNote.id} note={selectedNote} />;
+}
+
+function NoteEditorContent({ note }: { note: any }) {
+  const { updateNote } = useNotesStore();
+  const { updateNote: syncWithBackend, deleteNote: deleteFromBackend } = useNotes();
+  
+  const [content, setContent] = useState(note.content);
+  const [title, setTitle] = useState(note.title);
+  const [isSaving, setIsSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<"edit" | "preview" | "split">("edit");
+  
+  const debouncedContent = useDebounce(content, 1000);
+  const debouncedTitle = useDebounce(title, 1000);
+
+  // Auto-save logic
+  useEffect(() => {
+    // Only save if content/title actually changed from the initial note prop
+    if (debouncedContent !== note.content || debouncedTitle !== note.title) {
+      setIsSaving(true);
+      updateNote(note.id, { content: debouncedContent, title: debouncedTitle });
+      syncWithBackend({ 
+        id: note.id, 
+        updates: { content: debouncedContent, title: debouncedTitle } 
+      });
+      const timer = setTimeout(() => setIsSaving(false), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [debouncedContent, debouncedTitle]);
+
   return (
     <div className="flex-1 flex flex-col h-full bg-surface-base overflow-hidden">
       {/* Editor Header */}
@@ -71,7 +71,7 @@ export default function NoteEditor() {
             {isSaving ? "Saving..." : "Saved"}
           </div>
           <span className="text-[10px] text-text-muted/50 font-medium">
-            Edited {dayjs(selectedNote.updatedAt).format("MMM D, HH:mm")}
+            Edited {dayjs(note.updatedAt).format("MMM D, HH:mm")}
           </span>
         </div>
 
@@ -100,7 +100,7 @@ export default function NoteEditor() {
             </button>
           </div>
           
-          <button className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 hover:text-red-400 transition-all" onClick={() => deleteFromBackend(selectedNote.id)}>
+          <button className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 hover:text-red-400 transition-all" onClick={() => deleteFromBackend(note.id)}>
             <FiTrash2 size={16} />
           </button>
           <button className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 transition-all">
@@ -119,8 +119,7 @@ export default function NoteEditor() {
           className="text-4xl font-display font-bold bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/20 w-full"
         />
         <div className="flex flex-wrap gap-2 items-center">
-            {/* Tag component will go here */}
-            {selectedNote.tags.map(tag => (
+            {note.tags.map((tag: string) => (
                 <span key={tag} className="text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded">#{tag}</span>
             ))}
             <button className="text-xs font-bold text-text-muted hover:text-text-main">+ Add Tag</button>
