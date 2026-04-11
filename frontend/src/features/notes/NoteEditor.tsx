@@ -12,7 +12,7 @@ import { FiSave, FiMoreHorizontal, FiTrash2, FiArchive, FiEye, FiEdit3, FiMaximi
 import dayjs from "dayjs";
 
 export default function NoteEditor() {
-  const { selectedNoteId, notes, updateNote, deleteNote } = useNotesStore();
+  const { selectedNoteId, notes, updateNote } = useNotesStore();
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
   const { updateNote: syncWithBackend, deleteNote: deleteFromBackend } = useNotes();
   
