@@ -4,30 +4,24 @@
 import { useRouter } from "next/navigation";
 import { getCookie } from "./getCookie";
 
+import { FiLogOut } from "react-icons/fi";
+
 const SignOut = () => {
   const router = useRouter();
 
   const logOut = async () => {
     const res = await fetch("/api/logout", { method: "POST" });
-
-    // console.log(await getCookie());
-
-    // const data = await res.json();
     console.log("logout response:", res);
-
     router.refresh();
-
-    // if (res.ok) {
-    //   window.location.href = "/sign-in";
-    // }
   };
 
   return (
     <button
       onClick={logOut}
-      className="bg-[#6366f1] rounded-full px-2 py-2 uppercase text-xs font-bold"
+      className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg border border-white/5 bg-surface-soft text-text-muted transition-all hover:bg-red-500/10 hover:text-red-400"
+      title="Sign Out"
     >
-      Log Out
+      <FiLogOut size={18} />
     </button>
   );
 };
