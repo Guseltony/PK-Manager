@@ -1,3 +1,5 @@
+"use server";
+
 import { AuthActionResult } from "@/src/type/type";
 import { loginSchema, registerSchema } from "./schema";
 import { BACKEND_URL } from "@/src/constants/constants";
@@ -10,39 +12,27 @@ export async function registerAction(
     lastName: formData.get("lastName"),
     email: formData.get("email"),
     password: formData.get("password"),
-    agree: formData.get("agree") === "on",
+    agree: formData.get("agree") === "true" || formData.get("agree") === "on",
   };
 
   const result = registerSchema.safeParse(rawData);
 
   if (!result.success) {
-    // return the errors as a plain object
     return { success: false, errors: result.error.flatten().fieldErrors };
   }
 
   const { firstName, lastName, email, password } = result.data;
 
-  const isGmail = (email: string) => email.toLowerCase().endsWith("@gmail.com");
-
-  if (isGmail(email)) {
-    return {
-      success: false,
-      redirectToGoogle: true,
-      email,
-    };
+  // Gmail users should use Google OAuth
+  if (email.toLowerCase().endsWith("@gmail.com")) {
+    return { success: false, redirectToGoogle: true, email };
   }
-
-  const data = {
-    name: `${firstName} ${lastName}`,
-    email,
-    password,
-  };
 
   try {
     const res = await fetch(`${BACKEND_URL}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ name: `${firstName} ${lastName}`, email, password }),
       credentials: "include",
     });
 
@@ -50,18 +40,13 @@ export async function registerAction(
       const errorData = await res.json().catch(() => ({}));
       return {
         success: false,
-        message: errorData.message || errorData.error || "Something went wrong",
+        message: errorData.message || errorData.error || "Registration failed. Please try again.",
       };
     }
 
-    console.log(res);
-    const resultData = await res.json();
-    console.log("result:", resultData);
     return { success: true };
-
-    // redirect("/dashboard");
-  } catch (error: unknown) {
-    return { success: false, message: "Server request failed", errors: error };
+  } catch {
+    return { success: false, message: "Cannot connect to server. Please try again later." };
   }
 }
 
@@ -76,32 +61,21 @@ export async function loginAction(
   const result = loginSchema.safeParse(rawData);
 
   if (!result.success) {
-    // return the errors as a plain object
     return { success: false, errors: result.error.flatten().fieldErrors };
   }
 
   const { email, password } = result.data;
 
-  const isGmail = (email: string) => email.toLowerCase().endsWith("@gmail.com");
-
-  if (isGmail(email)) {
-    return {
-      success: false,
-      redirectToGoogle: true,
-      email,
-    };
+  // Gmail users should use Google OAuth
+  if (email.toLowerCase().endsWith("@gmail.com")) {
+    return { success: false, redirectToGoogle: true, email };
   }
-
-  const data = {
-    email,
-    password,
-  };
 
   try {
     const res = await fetch(`${BACKEND_URL}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ email, password }),
       credentials: "include",
     });
 
@@ -109,17 +83,13 @@ export async function loginAction(
       const errorData = await res.json().catch(() => ({}));
       return {
         success: false,
-        message: errorData.message || errorData.error || "Something went wrong",
+        message: errorData.message || errorData.error || "Invalid email or password.",
       };
     }
 
-    console.log(res);
-    const resultData = await res.json();
-    console.log("result:", resultData);
     return { success: true };
-    // redirect("/dashboard");
-  } catch (error) {
-    return { success: false, message: "Server request failed", errors: error };
+  } catch {
+    return { success: false, message: "Cannot connect to server. Please try again later." };
   }
 }
 
@@ -131,21 +101,16 @@ export async function logOutAction(): Promise<AuthActionResult> {
       credentials: "include",
     });
 
-    console.log("res:", res);
-
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       return {
         success: false,
-        message: errorData.message || errorData.error || "Something went wrong",
+        message: errorData.message || errorData.error || "Logout failed.",
       };
     }
 
-    console.log(res);
-    const resultData = await res.json();
-    console.log("result:", resultData);
     return { success: true };
-  } catch (error) {
-    return { success: false, message: "Server request failed", errors: error };
+  } catch {
+    return { success: false, message: "Cannot connect to server. Please try again later." };
   }
 }

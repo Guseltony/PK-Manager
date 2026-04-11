@@ -15,18 +15,20 @@ export default async function DashboardLayout({
 
   console.log(authResult);
   return (
-    <div className="flex flex-1">
-      {/* Sidebar */}
+    <div className="flex min-h-screen bg-surface-base">
+      {/* Sidebar - Fixed width, sticky height */}
       <SideBar />
 
-      {/* Main content */}
-      <main className="flex-1 py-2 pl-2">
+      {/* Main content - Scrollable area */}
+      <div className="flex flex-1 flex-col">
         <Header auth={authResult} />
-        {/* <Header /> */}
-        {/* <AuthGate authenticated={authResult.authenticated}>{children}</AuthGate> */}
-        {children}
-        {/* {children} */}
-      </main>
+        
+        <main className="flex-1 overflow-y-auto p-8">
+          <div className="mx-auto max-w-7xl">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }

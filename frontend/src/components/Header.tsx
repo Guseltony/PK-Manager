@@ -1,86 +1,62 @@
 import { IoMdSettings } from "react-icons/io";
-import { FaBars, FaRegUser } from "react-icons/fa";
+import { FaRegUser } from "react-icons/fa";
 import { IoIosNotifications } from "react-icons/io";
 import { BiSearch } from "react-icons/bi";
-import SignButton from "../utils/SignButton";
 import SignOut from "../utils/SignOut";
 import { AuthResult } from "../libs/auth";
 
-
-
 const Header = async ({ auth }: { auth: AuthResult }) => {
-  // const Header = async () => {
-  // const [isAuth, setIsAuth] = useState<boolean>("")
-
-  console.log("Awaiting auth.ts");
   const { authenticated, user } = auth;
-
-  // const userAuth = await auth();
-
-  // console.log("userAUth:", userAuth);
-  console.log(authenticated, user);
-  console.log("auth response finished");
-
-  // Akanji Anthony Abidem
-
-  const name = user?.name.split(" ")[0];
-
-  // if (!authenticated) redirect("/sign-in");
+  const name = user?.name.split(" ")[0] || "User";
 
   return (
-    <div className="w-full flex items-center justify-between px-20 py-4 bg-[#131720] rounded-full">
-      {/* input */}
-      <div className="relative w-125 py-2 px-4 bg-gray-700 rounded-md">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted">
-          <BiSearch size={18} />
-        </span>
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-white/5 bg-surface-base/80 px-8 backdrop-blur-md">
+      {/* Search Bar */}
+      <div className="relative max-w-md w-full group">
+        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+          <BiSearch className="h-5 w-5 text-text-muted group-focus-within:text-brand-primary transition-colors" />
+        </div>
         <input
           type="text"
-          className="w-full py-1 pl-10 pr-3 rounded-md border-0 outline-0 bg-gray-700 text-text placeholder:text-muted"
-          placeholder="Search notes, tags, or archives…"
+          className="block w-full rounded-xl border border-white/5 bg-surface-soft py-2 pl-10 pr-3 text-sm text-text-main placeholder:text-text-muted transition-all focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20 outline-none"
+          placeholder="Quick search (Ctrl + K)"
         />
       </div>
 
-      {/* right col */}
-      <div className="w-fit flex items-center justify-between">
-        {/* icons */}
-        <div className="flex items-center justify-center gap-4 mr-10">
-          <div className="flex items-center w-8 h-8 justify-center bg-gray-200 rounded-full">
-            <IoIosNotifications
-              size={20}
-              className="text-[#6366f1] hover:text-[#2225f5] cursor-pointer"
-            />
-          </div>
-
-          <div className="flex items-center w-8 h-8 justify-center bg-gray-200 rounded-full">
-            <IoMdSettings
-              size={20}
-              className="text-[#6366f1] hover:text-[#2225f5] cursor-pointer"
-            />
-          </div>
-
-          <div className="flex items-center w-8 h-8 justify-center bg-gray-200 rounded-full">
-            <FaBars
-              size={20}
-              className="text-[#6366f1] hover:text-[#2225f5] cursor-pointer"
-            />
-          </div>
+      {/* Right Section */}
+      <div className="flex items-center gap-6">
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <button className="flex h-9 w-9 items-center justify-center rounded-lg text-text-muted hover:bg-surface-soft hover:text-text-main transition-all">
+            <IoIosNotifications size={20} />
+          </button>
+          <button className="flex h-9 w-9 items-center justify-center rounded-lg text-text-muted hover:bg-surface-soft hover:text-text-main transition-all">
+            <IoMdSettings size={20} />
+          </button>
         </div>
-        {/* user profile */}
 
-        {authenticated && (
-          <div className="flex items-center justify-center gap-4 mr-10">
-            <div className="bg-fuchsia-300 rounded-full w-10 h-10 flex items-center justify-center">
-              <FaRegUser size={25} />
+        <div className="h-6 w-px bg-white/5" />
+
+        {/* User Profile */}
+        {authenticated ? (
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col items-end">
+              <span className="text-sm font-semibold text-text-main leading-none">{user?.name}</span>
+              <span className="text-[10px] text-text-muted font-medium uppercase tracking-wider">Free Plan</span>
             </div>
-            <p>{name}.</p>
+            <div className="relative h-9 w-9 overflow-hidden rounded-full ring-2 ring-white/5 bg-brand-primary/20 flex items-center justify-center">
+               <FaRegUser className="text-brand-primary" size={18} />
+            </div>
             <SignOut />
           </div>
+        ) : (
+          <div className="h-9 w-9 rounded-full bg-white/5 flex items-center justify-center">
+            <FaRegUser className="text-text-muted" size={18} />
+          </div>
         )}
-        {/* {authenticated ? <SignOut /> : <SignButton />} */}
       </div>
-    </div>
+    </header>
   );
-};;
+};
 
 export default Header;
