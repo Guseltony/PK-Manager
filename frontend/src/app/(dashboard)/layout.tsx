@@ -23,10 +23,8 @@ export default async function DashboardLayout({
       <div className="flex flex-1 flex-col">
         <Header auth={authResult} />
         
-        <main className="flex-1 overflow-y-auto p-8">
-          <div className="mx-auto max-w-7xl">
-            {children}
-          </div>
+        <main className="flex-1 overflow-hidden">
+          {children}
         </main>
       </div>
     </div>

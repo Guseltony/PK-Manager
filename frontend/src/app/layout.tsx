@@ -15,12 +15,16 @@ const outfit = Outfit({
   display: "swap",
 });
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
   title: "PK-Manager | Personal Knowledge & Learning System",
   description: "Capture, organize, and connect your knowledge. The ultimate PKM system for developers and learners.",
   keywords: ["PKM", "Personal Knowledge Management", "Note taking", "Task tracking", "Learning", "SaaS"],
   authors: [{ name: "Gusel-OS Team" }],
-  viewport: "width=device-width, initial-scale=1",
 };
 
 export default async function RootLayout({

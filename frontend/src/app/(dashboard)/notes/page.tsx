@@ -1,14 +1,16 @@
-import { cookies } from "next/headers";
+import NoteList from "@/src/features/notes/NoteList";
+import NoteEditor from "@/src/features/notes/NoteEditor";
 
-const page = async () => {
-  const cookieStore = await cookies();
-  const refreshTokenCookie = cookieStore.get("refreshToken");
-
-  const refreshCookie = refreshTokenCookie?.value;
-
-  console.log("note cookie refreshCookie", refreshCookie);
-
-  return <div>NOTE</div>;
+export const metadata = {
+  title: "Notes | PK-Manager",
+  description: "Capture and connect your personal knowledge.",
 };
 
-export default page;
+export default function NotesPage() {
+  return (
+    <div className="flex h-[calc(100vh-64px)] overflow-hidden rounded-3xl border border-white/5 bg-surface-base shadow-2xl">
+      <NoteList />
+      <NoteEditor />
+    </div>
+  );
+}
