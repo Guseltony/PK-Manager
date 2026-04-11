@@ -13,8 +13,12 @@ export function useNotes() {
   const { data: fetchedNotes, isLoading, error } = useQuery<Note[]>({
     queryKey: ["notes"],
     queryFn: async () => {
-      const { data } = await axios.get(`${BACKEND_URL}/notes`, { withCredentials: true });
-      return data.data; // Assuming backend returns { success: true, data: [...] }
+      const { data } = await axios.get(`${BACKEND_URL}/note/get`, { withCredentials: true });
+      // Map backend nested tags to string[]
+      return (data.data as any[]).map(note => ({
+        ...note,
+        tags: note.tags?.map((t: any) => t.tag?.name).filter(Boolean) || []
+      })); 
     },
   });
 
@@ -28,7 +32,14 @@ export function useNotes() {
   // Create Note
   const createMutation = useMutation({
     mutationFn: async (newNote: NewNote) => {
-      const { data } = await axios.post(`${BACKEND_URL}/notes`, newNote, { withCredentials: true });
+      // Backend expects tagsArray as [{ name, color }]
+      const payload = {
+        ...newNote,
+        tagsArray: newNote.tags.map(t => ({ name: t })),
+        title: newNote.title || "New Note",
+        content: newNote.content || "Start writing...",
+      };
+      const { data } = await axios.post(`${BACKEND_URL}/note/create`, payload, { withCredentials: true });
       return data.data;
     },
     onSuccess: (data) => {
@@ -40,19 +51,22 @@ export function useNotes() {
   // Update Note
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Note> }) => {
-      const { data } = await axios.patch(`${BACKEND_URL}/notes/${id}`, updates, { withCredentials: true });
+      const payload = {
+        ...updates,
+        ...(updates.tags ? { tagsArray: updates.tags.map(t => ({ name: t })) } : {}),
+      };
+      const { data } = await axios.put(`${BACKEND_URL}/note/update/${id}`, payload, { withCredentials: true });
       return data.data;
     },
     onSuccess: (data) => {
       updateNote(data.id, data);
-      // We don't necessarily need to invalidate here if we trust Zustand
     },
   });
 
   // Delete Note
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await axios.delete(`${BACKEND_URL}/notes/${id}`, { withCredentials: true });
+      await axios.delete(`${BACKEND_URL}/note/delete/${id}`, { withCredentials: true });
       return id;
     },
     onSuccess: (id) => {

@@ -5,24 +5,36 @@ export function proxy(req: NextRequest) {
   const refresh = req.cookies.get("refreshToken")?.value;
 
   const path = req.nextUrl.pathname;
+  const isAuthenticated = !!(access || refresh);
 
-  console.log("running proxy middleware on:", path);
+  console.log("running proxy middleware on:", path, "auth:", isAuthenticated);
 
-  // Avoid loops and bypass landing page
-  if (path.startsWith("/api/refresh") || path.startsWith("/sign-in") || path === "/") {
-    return NextResponse.next();
+  // 1. If authenticated and at landing or sign-in, go to dashboard
+  if (isAuthenticated && (path === "/" || path === "/sign-in")) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
-  // Access expired but refresh exists → refresh flow
-  if (!access && refresh) {
+  // 2. If unauthenticated and trying to access protected routes, go to home
+  // (Assuming protected routes are dashboard, notes, etc. handled by matcher)
+  if (
+    !isAuthenticated &&
+    path !== "/" &&
+    path !== "/sign-in" &&
+    !path.startsWith("/api/")
+  ) {
+    return NextResponse.redirect(new URL("/", req.url));
+  }
+
+  // 3. Handle refresh logic if access is missing but refresh exists
+  if (
+    !access &&
+    refresh &&
+    !path.startsWith("/api/refresh") &&
+    !path.startsWith("/sign-in")
+  ) {
     const url = new URL("/api/refresh", req.url);
     url.searchParams.set("next", path);
     return NextResponse.redirect(url);
-  }
-
-  // No auth at all → login page
-  if (!access && !refresh) {
-    return NextResponse.redirect(new URL("/sign-in", req.url));
   }
 
   return NextResponse.next();
@@ -30,6 +42,8 @@ export function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
+    "/sign-in",
     "/dashboard/:path*",
     "/notes/:path*",
     "/tags/:path*",
