@@ -1,4 +1,3 @@
-// src/middleware.ts
 import { NextRequest, NextResponse } from "next/server";
 
 export function proxy(req: NextRequest) {
@@ -7,10 +6,10 @@ export function proxy(req: NextRequest) {
 
   const path = req.nextUrl.pathname;
 
-  console.log("running midleware");
+  console.log("running proxy middleware on:", path);
 
-  // Avoid loops
-  if (path.startsWith("/api/refresh") || path.startsWith("/sign-in")) {
+  // Avoid loops and bypass landing page
+  if (path.startsWith("/api/refresh") || path.startsWith("/sign-in") || path === "/") {
     return NextResponse.next();
   }
 
@@ -21,7 +20,7 @@ export function proxy(req: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // No auth at all → login
+  // No auth at all → login page
   if (!access && !refresh) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
@@ -32,7 +31,7 @@ export function proxy(req: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
-    "/note/:path*",
+    "/notes/:path*",
     "/tags/:path*",
     "/archive/:path*",
   ],
