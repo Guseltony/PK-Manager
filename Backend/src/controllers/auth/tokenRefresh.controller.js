@@ -61,6 +61,7 @@ export const refresh = async (req, res) => {
       message: "token refresh and rotated",
       oldSession: oldSession,
       newSession,
+      csrfToken: newCsrfToken,
     });
   } catch (error) {
     throw new Error(error);

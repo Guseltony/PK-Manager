@@ -5,8 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  --font-sans: "Inter", "Plus Jakarta Sans", ui-sans-serif, system-ui;
-  --font-display: "Outfit", "Plus Jakarta Sans", ui-sans-serif, system-ui;
+  --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui;
+  --font-display: var(--font-outfit), ui-sans-serif, system-ui;
+  --font-mono: ui-monospace, monospace;
 
   --color-brand-primary: #6366f1;
   --color-brand-secondary: #8b5cf6;
@@ -213,5 +214,103 @@ textarea {
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* --- Premium Markdown Preview (Prose) --- */
+@layer utilities {
+  .prose {
+    --tw-prose-body: rgba(248, 250, 252, 0.8) !important;
+    --tw-prose-headings: #f8fafc !important;
+    --tw-prose-links: #6366f1 !important;
+    --tw-prose-bold: #f8fafc !important;
+    --tw-prose-bullets: #6366f1 !important;
+    --tw-prose-hr: rgba(255, 255, 255, 0.08) !important;
+    --tw-prose-quotes: #94a3b8 !important;
+    --tw-prose-quote-borders: #6366f1 !important;
+    max-width: none !important;
+  }
+
+  .prose h1 {
+    font-size: 2.25rem !important;
+    margin-top: 1rem !important;
+    margin-bottom: 1rem !important;
+    font-weight: 800 !important;
+    letter-spacing: -0.025em !important;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+    padding-bottom: 0.5rem;
+  }
+
+  .prose h2 {
+    font-size: 1.5rem !important;
+    margin-top: 2rem !important;
+    margin-bottom: 0.75rem !important;
+    font-weight: 700 !important;
+    padding-bottom: 0.25rem;
+    color: #f8fafc !important;
+  }
+
+  .prose h3 {
+    font-size: 1.25rem !important;
+    margin-top: 1.5rem !important;
+    margin-bottom: 0.5rem !important;
+    font-weight: 600 !important;
+  }
+
+  .prose p {
+    margin-top: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+    line-height: 1.7 !important;
+    font-size: 1.05rem !important;
+  }
+
+  .prose ul, .prose ol {
+    margin-top: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+    padding-left: 1.5rem !important;
+  }
+
+  .prose li {
+    margin-top: 0.4rem !important;
+    margin-bottom: 0.4rem !important;
+    padding-left: 0.4rem !important;
+  }
+
+  .prose hr {
+    margin: 2.5rem 0 !important;
+    border: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .prose blockquote {
+    font-style: italic;
+    border-left: 4px solid #6366f1 !important;
+    background: rgba(99, 102, 241, 0.05);
+    padding: 1.5rem 2rem !important;
+    border-radius: 0 1rem 1rem 0;
+    margin: 2.5rem 0 !important;
+  }
+
+  .prose pre {
+    background-color: #0d0d0d !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1.25rem !important;
+    padding: 1.5rem !important;
+    margin: 2rem 0 !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+  }
+
+  .prose code {
+    color: #818cf8 !important;
+    background: rgba(129, 140, 248, 0.1);
+    padding: 0.2rem 0.4rem;
+    border-radius: 0.4rem;
+    font-weight: 500 !important;
+  }
+
+  .prose pre code {
+    background: transparent !important;
+    padding: 0 !important;
+    color: inherit !important;
   }
 }

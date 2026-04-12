@@ -44,7 +44,8 @@ export async function registerAction(
       };
     }
 
-    return { success: true };
+    const data = await res.json();
+    return { success: true, csrfToken: data.data?.csrfToken || data.csrfToken };
   } catch {
     return { success: false, message: "Cannot connect to server. Please try again later." };
   }
@@ -87,7 +88,8 @@ export async function loginAction(
       };
     }
 
-    return { success: true };
+    const data = await res.json();
+    return { success: true, csrfToken: data.data?.csrfToken || data.csrfToken };
   } catch {
     return { success: false, message: "Cannot connect to server. Please try again later." };
   }

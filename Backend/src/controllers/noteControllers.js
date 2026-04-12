@@ -15,7 +15,7 @@ export const createNote = async (req, res) => {
 
     if (note) {
       res.status(200).json({
-        note,
+        data: note,
       });
     }
   } catch (error) {
@@ -64,7 +64,12 @@ export const allUserNote = async (req, res) => {
 
 export const updateNote = async (req, res) => {
   try {
-    const data = await updateUserNote(req.body, req.params.id, req.user.id);
+    const { title, content, tagsArray } = req.body;
+    const data = await updateUserNote(
+      { title, content, tagsArray },
+      req.params.id,
+      req.user.id,
+    );
 
     if (data) {
       res.status(200).json({

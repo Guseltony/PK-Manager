@@ -28,8 +28,8 @@ export default function NoteItem({ note }: NoteItemProps) {
       }`}
     >
       <div className="flex items-center justify-between gap-2">
-        <h4 className={`text-sm font-bold truncate ${isSelected ? "text-brand-primary" : "text-text-main group-hover:text-brand-primary"}`}>
-          {note.title || "Untitled Note"}
+        <h4 className={`text-[11px] font-extrabold truncate uppercase tracking-wider ${isSelected ? "text-brand-primary" : "text-text-main group-hover:text-brand-primary"}`}>
+          {note.title || "UNTITLED NOTE"}
         </h4>
         <div className="flex items-center gap-1 text-[10px] text-text-muted shrink-0">
           <FiClock size={10} />

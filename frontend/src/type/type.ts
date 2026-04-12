@@ -12,7 +12,7 @@ export type RegisterForm = {
 };
 
 export type AuthActionResult =
-  | { success: true }
+  | { success: true; csrfToken?: string }
   | {
       success: false;
       errors?: Record<string, string[]> | unknown;

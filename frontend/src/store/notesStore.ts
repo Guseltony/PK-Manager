@@ -6,11 +6,13 @@ interface NotesState {
   selectedNoteId: string | null;
   searchQuery: string;
   selectedTag: string | null;
+  isCreating: boolean;
   
   setNotes: (notes: Note[]) => void;
   selectNote: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
   setSelectedTag: (tag: string | null) => void;
+  setIsCreating: (isCreating: boolean) => void;
   
   addNote: (note: Note) => void;
   updateNote: (id: string, updates: Partial<Note>) => void;
@@ -22,15 +24,18 @@ export const useNotesStore = create<NotesState>((set) => ({
   selectedNoteId: null,
   searchQuery: '',
   selectedTag: null,
+  isCreating: false,
   
   setNotes: (notes) => set({ notes }),
-  selectNote: (id) => set({ selectedNoteId: id }),
+  selectNote: (id) => set({ selectedNoteId: id, isCreating: false }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSelectedTag: (tag) => set({ selectedTag: tag }),
+  setIsCreating: (isCreating) => set({ isCreating, selectedNoteId: null }),
   
   addNote: (note) => set((state) => ({ 
     notes: [note, ...state.notes],
-    selectedNoteId: note.id 
+    selectedNoteId: note.id,
+    isCreating: false
   })),
   
   updateNote: (id, updates) => set((state) => ({

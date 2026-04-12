@@ -209,11 +209,11 @@ const getNote = async (note_id, user_id) => {
   return validateNote;
 };
 
-const updateUserNote = async ({ title, content }, note_id, user_id) => {
+const updateUserNote = async ({ title, content, tagsArray }, note_id, user_id) => {
   const noteObj = {};
 
-  if (title !== undefined && title !== "") noteObj.title = title;
-  if (content !== undefined && content !== "") noteObj.content = content;
+  if (title !== undefined) noteObj.title = title;
+  if (content !== undefined) noteObj.content = content;
 
   const updateNote = await prisma.note.update({
     where: {
@@ -222,6 +222,42 @@ const updateUserNote = async ({ title, content }, note_id, user_id) => {
     },
     data: {
       ...noteObj,
+      ...(tagsArray && {
+        tags: {
+          deleteMany: {},
+          create: tagsArray.map((tag) => ({
+            tag: {
+              connectOrCreate: {
+                where: {
+                  name_userId: {
+                    name: tag.name,
+                    userId: user_id,
+                  },
+                },
+                create: {
+                  name: tag.name,
+                  color: tag.color,
+                  user: {
+                    connect: { id: user_id },
+                  },
+                },
+              },
+            },
+          })),
+        },
+      }),
+    },
+    include: {
+      tags: {
+        select: {
+          tag: {
+            select: {
+              name: true,
+              color: true,
+            },
+          },
+        },
+      },
     },
   });
 

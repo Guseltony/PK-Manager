@@ -1,20 +1,36 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useNotesStore } from "../../store/notesStore";
 import { useNotes } from "../../hooks/useNotes";
+import { useTags } from "../../hooks/useTags";
 import { useDebounce } from "../../hooks/useDebounce";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { FiMoreHorizontal, FiTrash2, FiEye, FiEdit3, FiMaximize2, FiCpu, FiFileText } from "react-icons/fi";
+import {
+  FiMoreHorizontal,
+  FiTrash2,
+  FiEye,
+  FiEdit3,
+  FiMaximize2,
+  FiCpu,
+  FiFileText,
+  FiSave,
+  FiX,
+} from "react-icons/fi";
 import dayjs from "dayjs";
 import { Note } from "../../types/note";
 
 export default function NoteEditor() {
-  const { selectedNoteId, notes } = useNotesStore();
+  const { selectedNoteId, notes, isCreating } = useNotesStore();
   const selectedNote = notes.find((n) => n.id === selectedNoteId);
+
+  if (isCreating) {
+    return <NewNoteForm />;
+  }
 
   if (!selectedNote) {
     return (
@@ -39,15 +55,182 @@ export default function NoteEditor() {
   return <NoteEditorContent key={selectedNote.id} note={selectedNote} />;
 }
 
+function NewNoteForm() {
+  const { setIsCreating } = useNotesStore();
+  const { createNote, isCreating: isSaving } = useNotes();
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState("");
+  const [isAddingTag, setIsAddingTag] = useState(false);
+  const { tags: allTags } = useTags();
+
+  const suggestions = allTags.filter(
+    (tag) =>
+      tag.name.toLowerCase().includes(newTag.toLowerCase()) &&
+      !tags.includes(tag.name)
+  );
+
+  const handleSave = async () => {
+    if (!title.trim() && !content.trim()) return;
+    try {
+      createNote({
+        title: title || "New Note",
+        content: content || "Start writing...",
+        tags,
+      });
+      // The store update (isCreating: false) happens in the mutation's onSuccess
+    } catch (err) {
+      console.error("Failed to save note:", err);
+    }
+  };
+
+  const handleAddTag = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newTag.trim()) {
+      setIsAddingTag(false);
+      return;
+    }
+
+    const newTags = newTag
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => t !== "" && !tags.includes(t));
+
+    if (newTags.length > 0) {
+      setTags([...tags, ...newTags]);
+    }
+    setNewTag("");
+    // We don't necessarily close it here so they can add more, 
+    // unless it was a blur event (handled in onBlur)
+  };
+
+  const handleSelectSuggestion = (tagName: string) => {
+    if (!tags.includes(tagName)) {
+      setTags([...tags, tagName]);
+    }
+    setNewTag("");
+    setIsAddingTag(false);
+  };
+
+  return (
+    <div className="flex-1 flex flex-col h-full bg-surface-base overflow-hidden">
+      <div className="p-4 border-b border-white/5 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          <div className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-brand-primary/20 text-brand-primary">
+            Drafting New Note
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setIsCreating(false)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-text-muted hover:bg-white/5 transition-all"
+          >
+            <FiX size={16} /> Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold bg-brand-primary text-white shadow-lg shadow-brand-primary/20 hover:bg-brand-primary/90 transition-all disabled:opacity-50"
+          >
+            <FiSave size={16} /> {isSaving ? "Saving..." : "Save Note"}
+          </button>
+        </div>
+      </div>
+
+      <div className="px-8 pt-8 flex flex-col gap-4">
+        <input
+          autoFocus
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Note Title"
+          className="text-4xl font-display font-bold bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/20 w-full"
+        />
+        <div className="flex flex-wrap gap-2 items-center">
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              onClick={() => setTags(tags.filter((t) => t !== tag))}
+              className="text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded cursor-pointer hover:bg-brand-primary/20 transition-colors"
+            >
+              #{tag} &times;
+            </span>
+          ))}
+
+          {isAddingTag ? (
+            <div className="relative inline-block">
+              <form onSubmit={handleAddTag} className="inline-block">
+                <input
+                  autoFocus
+                  type="text"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onBlur={() => {
+                    setTimeout(() => setIsAddingTag(false), 200);
+                  }}
+                  placeholder="tag name..."
+                  className="text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded outline-none border border-brand-primary/30 w-32"
+                />
+              </form>
+              {newTag && suggestions.length > 0 && (
+                <div className="absolute top-full left-0 mt-1 w-48 bg-surface-soft border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden py-1">
+                  {suggestions.slice(0, 5).map((tag) => (
+                    <button
+                      key={tag.id}
+                      onClick={() => handleSelectSuggestion(tag.name)}
+                      className="w-full text-left px-3 py-2 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-white/5 transition-colors"
+                    >
+                      #{tag.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsAddingTag(true)}
+              className="text-xs font-bold text-text-muted hover:text-text-main"
+            >
+              + Add Tag
+            </button>
+          )}
+        </div>
+      </div>
+
+      <div className="flex-1 flex overflow-hidden mt-6 p-8 pt-0">
+        <textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          placeholder="Start writing your thoughts..."
+          className="flex-1 bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/30 resize-none font-mono leading-relaxed custom-scrollbar"
+        />
+      </div>
+    </div>
+  );
+}
+
 function NoteEditorContent({ note }: { note: Note }) {
   const { updateNote } = useNotesStore();
-  const { updateNote: syncWithBackend, deleteNote: deleteFromBackend, isUpdating } =
-    useNotes();
+  const {
+    updateNote: syncWithBackend,
+    deleteNote: deleteFromBackend,
+    isUpdating,
+  } = useNotes();
 
   const [content, setContent] = useState(note.content);
   const [title, setTitle] = useState(note.title);
+  const [isAddingTag, setIsAddingTag] = useState(false);
+  const [newTag, setNewTag] = useState("");
   const [viewMode, setViewMode] = useState<"edit" | "preview" | "split">(
-    "edit",
+    "preview",
+  );
+  const { tags: allTags } = useTags();
+
+  const suggestions = allTags.filter(
+    (tag) =>
+      tag.name.toLowerCase().includes(newTag.toLowerCase()) &&
+      !note.tags.includes(tag.name)
   );
 
   const debouncedContent = useDebounce(content, 1000);
@@ -55,15 +238,63 @@ function NoteEditorContent({ note }: { note: Note }) {
 
   // Auto-save logic
   useEffect(() => {
-    // Only save if content/title actually changed from the initial note prop
     if (debouncedContent !== note.content || debouncedTitle !== note.title) {
-      updateNote(note.id, { content: debouncedContent, title: debouncedTitle });
+      updateNote(note.id, { 
+        content: debouncedContent, 
+        title: debouncedTitle,
+        updatedAt: new Date().toISOString() // Optimistic timestamp update
+      });
       syncWithBackend({
         id: note.id,
         updates: { content: debouncedContent, title: debouncedTitle },
       });
     }
   }, [debouncedContent, debouncedTitle]);
+
+  const handleAddTag = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newTag.trim()) {
+      setIsAddingTag(false);
+      return;
+    }
+
+    const newTagsToAdd = newTag
+      .split(",")
+      .map((t) => t.trim())
+      .filter((t) => t !== "" && !note.tags.includes(t));
+
+    if (newTagsToAdd.length > 0) {
+      const updatedTags = [...note.tags, ...newTagsToAdd];
+      updateNote(note.id, { tags: updatedTags });
+      syncWithBackend({
+        id: note.id,
+        updates: { tags: updatedTags },
+      });
+    }
+    setNewTag("");
+  };
+
+  const handleSelectSuggestion = (tagName: string) => {
+    if (!note.tags.includes(tagName)) {
+      const updatedTags = [...note.tags, tagName];
+      updateNote(note.id, { tags: updatedTags });
+      syncWithBackend({
+        id: note.id,
+        updates: { tags: updatedTags },
+      });
+    }
+    setNewTag("");
+    setIsAddingTag(false);
+  };
+
+  const handleRemoveTag = (tagToRemove: string) => {
+    const updatedTags = note.tags.filter((t) => t !== tagToRemove);
+    updateNote(note.id, { tags: updatedTags });
+    syncWithBackend({
+      id: note.id,
+      updates: { tags: updatedTags },
+    });
+  };
 
   return (
     <div className="flex-1 flex flex-col h-full bg-surface-base overflow-hidden">
@@ -123,21 +354,61 @@ function NoteEditorContent({ note }: { note: Note }) {
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Note Title"
-          className="text-4xl font-display font-bold bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/20 w-full"
+          placeholder="NOTE TITLE"
+          className="text-4xl font-display font-bold bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/20 w-full uppercase tracking-tight"
         />
         <div className="flex flex-wrap gap-2 items-center">
           {note.tags.map((tag: string) => (
             <span
               key={tag}
-              className="text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded"
+              onClick={() => handleRemoveTag(tag)}
+              className="text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded cursor-pointer hover:bg-brand-primary/20 transition-colors group"
+              title="Click to remove"
             >
               #{tag}
+              <span className="ml-1 opacity-0 group-hover:opacity-100">
+                &times;
+              </span>
             </span>
           ))}
-          <button className="text-xs font-bold text-text-muted hover:text-text-main">
-            + Add Tag
-          </button>
+
+          {isAddingTag ? (
+            <div className="relative inline-block">
+              <form onSubmit={handleAddTag} className="inline-block">
+                <input
+                  autoFocus
+                  type="text"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onBlur={() => {
+                    setTimeout(() => setIsAddingTag(false), 200);
+                  }}
+                  placeholder="tag name..."
+                  className="text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded outline-none border border-brand-primary/30 w-32"
+                />
+              </form>
+              {newTag && suggestions.length > 0 && (
+                <div className="absolute top-full left-0 mt-1 w-48 bg-surface-soft border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden py-1">
+                  {suggestions.slice(0, 5).map((tag) => (
+                    <button
+                      key={tag.id}
+                      onClick={() => handleSelectSuggestion(tag.name)}
+                      className="w-full text-left px-3 py-2 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-white/5 transition-colors"
+                    >
+                      #{tag.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsAddingTag(true)}
+              className="text-xs font-bold text-text-muted hover:text-text-main transition-colors"
+            >
+              + Add Tag
+            </button>
+          )}
         </div>
       </div>
 
@@ -154,24 +425,24 @@ function NoteEditorContent({ note }: { note: Note }) {
 
         {(viewMode === "preview" || viewMode === "split") && (
           <div
-            className={`flex-1 overflow-y-auto custom-scrollbar prose prose-invert prose-brand max-w-none ${viewMode === "preview" ? "px-4" : ""}`}
+            className={`flex-1 overflow-y-auto custom-scrollbar prose max-w-none ${viewMode === "preview" ? "px-12 py-8" : "px-4"}`}
           >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
-                code({ inline, className, children, ...props }: React.ComponentPropsWithoutRef<'code'> & { inline?: boolean }) {
+                code(props) {
+                  const { node, className, children, ...rest } = props as any;
                   const match = /language-(\w+)/.exec(className || "");
-                  return !inline && match ? (
+                  return match ? (
                     <SyntaxHighlighter
-                      style={atomDark as unknown as React.ComponentProps<typeof SyntaxHighlighter>["style"]}
+                      style={atomDark as { [key: string]: React.CSSProperties }}
                       language={match[1]}
                       PreTag="div"
-                      {...props}
                     >
                       {String(children).replace(/\n$/, "")}
                     </SyntaxHighlighter>
                   ) : (
-                    <code className={className} {...props}>
+                    <code {...rest} className={className}>
                       {children}
                     </code>
                   );

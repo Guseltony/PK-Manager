@@ -1,22 +1,18 @@
 import type { Metadata } from "next";
-import { Inter, Geist, Geist_Mono } from "next/font/google";
+import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
 
-const inter = Inter({
-  variable: "--font-inter",
+const outfit = Outfit({
+  variable: "--font-outfit",
   subsets: ["latin"],
-  display: "swap",
+  weight: ["400", "500", "600", "700", "800"],
 });
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const viewport = {
@@ -45,16 +41,16 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${inter.variable} ${geistSans.variable} ${geistMono.variable} font-sans antialiased bg-surface-base text-text-main min-h-screen selection:bg-brand-primary/30`}
+        className={`${outfit.variable} ${plusJakarta.variable} font-sans antialiased bg-surface-base text-text-main min-h-screen selection:bg-brand-primary/30`}
       >
+        <Providers>{children}</Providers>
         <script
           src="https://accounts.google.com/gsi/client"
           async
           defer
         ></script>
-        <Providers>{children}</Providers>
       </body>
     </html>
   );

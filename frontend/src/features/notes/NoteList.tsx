@@ -8,8 +8,8 @@ import { FiPlus } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function NoteList() {
-  const { notes, searchQuery, selectNote } = useNotesStore();
-  const { createNote, isLoading } = useNotes();
+  const { notes, searchQuery, setIsCreating } = useNotesStore();
+  const { isLoading } = useNotes();
 
   const filteredNotes = notes.filter((n) =>
     n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -17,11 +17,7 @@ export default function NoteList() {
   );
 
   const handleCreate = () => {
-    createNote({
-      title: "",
-      content: "",
-      tags: [],
-    });
+    setIsCreating(true);
   };
 
   return (

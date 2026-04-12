@@ -1,9 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import api from "../libs/api";
 import { Note, NewNote } from "../types/note";
 import { useNotesStore } from "../store/notesStore";
 import { useEffect } from "react";
-import { BACKEND_URL } from "../constants/constants";
+
+interface BackendTag {
+  tag: {
+    name: string;
+  };
+}
+
+interface BackendNote extends Omit<Note, "tags"> {
+  tags: BackendTag[];
+}
+
+const mapBackendNote = (note: BackendNote): Note => ({
+  ...note,
+  tags: note.tags?.map((t) => t.tag?.name).filter(Boolean) as string[] || [],
+});
 
 export function useNotes() {
   const queryClient = useQueryClient();
@@ -13,12 +27,8 @@ export function useNotes() {
   const { data: fetchedNotes, isLoading, error } = useQuery<Note[]>({
     queryKey: ["notes"],
     queryFn: async () => {
-      const { data } = await axios.get(`${BACKEND_URL}/note/get`, { withCredentials: true });
-      // Map backend nested tags to string[]
-      return (data.data as any[]).map(note => ({
-        ...note,
-        tags: note.tags?.map((t: any) => t.tag?.name).filter(Boolean) || []
-      })); 
+      const { data } = await api.get("/note/get");
+      return (data.data as BackendNote[]).map(mapBackendNote);
     },
   });
 
@@ -39,8 +49,8 @@ export function useNotes() {
         title: newNote.title || "New Note",
         content: newNote.content || "Start writing...",
       };
-      const { data } = await axios.post(`${BACKEND_URL}/note/create`, payload, { withCredentials: true });
-      return data.data;
+      const { data } = await api.post("/note/create", payload);
+      return mapBackendNote(data.data as BackendNote);
     },
     onSuccess: (data) => {
       addNote(data);
@@ -55,8 +65,8 @@ export function useNotes() {
         ...updates,
         ...(updates.tags ? { tagsArray: updates.tags.map(t => ({ name: t })) } : {}),
       };
-      const { data } = await axios.put(`${BACKEND_URL}/note/update/${id}`, payload, { withCredentials: true });
-      return data.data;
+      const { data } = await api.put(`/note/update/${id}`, payload);
+      return mapBackendNote(data.data as BackendNote);
     },
     onSuccess: (data) => {
       updateNote(data.id, data);
@@ -66,7 +76,7 @@ export function useNotes() {
   // Delete Note
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await axios.delete(`${BACKEND_URL}/note/delete/${id}`, { withCredentials: true });
+      await api.delete(`/note/delete/${id}`);
       return id;
     },
     onSuccess: (id) => {

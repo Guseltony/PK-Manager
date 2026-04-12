@@ -138,6 +138,7 @@ export const login = async (req, res) => {
         email: user.email,
         role: "user",
         session: user.session,
+        csrfToken,
       },
     });
   } catch (error) {

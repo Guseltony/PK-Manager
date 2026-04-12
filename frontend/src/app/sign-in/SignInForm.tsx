@@ -9,6 +9,7 @@ import { FcGoogle } from "react-icons/fc";
 import { loginSchema, registerSchema, type RegisterFormData, type LoginFormData } from "./schema";
 import { loginAction, registerAction } from "./actions";
 import { BACKEND_URL } from "@/src/constants/constants";
+import { setManualCsrfToken } from "@/src/libs/api";
 
 export default function SignInForm() {
   const [isLogin, setIsLogin] = useState(true);
@@ -45,6 +46,9 @@ export default function SignInForm() {
       setServerError("message" in result ? result.message || "Login failed" : "Login failed");
       return;
     }
+    if (result.csrfToken) {
+      setManualCsrfToken(result.csrfToken);
+    }
     router.push("/dashboard");
   };
 
@@ -61,6 +65,9 @@ export default function SignInForm() {
     if (!result?.success) {
       setServerError("message" in result ? result.message || "Registration failed" : "Registration failed");
       return;
+    }
+    if (result.csrfToken) {
+      setManualCsrfToken(result.csrfToken);
     }
     router.push("/dashboard");
   };
