@@ -250,7 +250,11 @@ function NoteEditorContent({ note }: { note: Note }) {
       });
       syncWithBackend({
         id: note.id,
-        updates: { content: debouncedContent, title: debouncedTitle },
+        updates: { 
+          content: debouncedContent, 
+          title: debouncedTitle,
+          updatedAt: new Date().toISOString() // Inform backend of the sync time
+        },
       });
     }
   }, [debouncedContent, debouncedTitle]);
@@ -273,7 +277,7 @@ function NoteEditorContent({ note }: { note: Note }) {
       updateNote(note.id, { tags: updatedTags, updatedAt: now });
       syncWithBackend({
         id: note.id,
-        updates: { tags: updatedTags },
+        updates: { tags: updatedTags, updatedAt: now },
       });
     }
     setNewTag("");
@@ -286,7 +290,7 @@ function NoteEditorContent({ note }: { note: Note }) {
       updateNote(note.id, { tags: updatedTags, updatedAt: now });
       syncWithBackend({
         id: note.id,
-        updates: { tags: updatedTags },
+        updates: { tags: updatedTags, updatedAt: now },
       });
     }
     setNewTag("");
@@ -300,7 +304,7 @@ function NoteEditorContent({ note }: { note: Note }) {
     updateNote(note.id, { tags: updatedTags, updatedAt: now });
     syncWithBackend({
       id: note.id,
-      updates: { tags: updatedTags },
+      updates: { tags: updatedTags, updatedAt: now },
     });
   };
 

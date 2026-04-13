@@ -31,6 +31,8 @@ export function useNotes() {
       const { data } = await api.get("/note/get");
       return (data.data as BackendNote[]).map(mapBackendNote);
     },
+    refetchOnWindowFocus: false, // Prevent flicker while editing
+    staleTime: 30000,           // Keep data fresh longer
   });
 
   // Sync with Zustand

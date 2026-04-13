@@ -222,6 +222,7 @@ const updateUserNote = async ({ title, content, tagsArray }, note_id, user_id) =
     },
     data: {
       ...noteObj,
+      updatedAt: new Date(), // Force timestamp update
       ...(tagsArray && {
         tags: {
           deleteMany: {},
