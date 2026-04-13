@@ -3,6 +3,7 @@ import api from "../libs/api";
 import { Tag, NewTag } from "../types/tag";
 import { useTagsStore } from "../store/tagsStore";
 import { useEffect } from "react";
+const EMPTY_ARRAY: unknown[] = [];
 
 export function useTags() {
   const queryClient = useQueryClient();
@@ -20,7 +21,13 @@ export function useTags() {
   // Sync with Store
   useEffect(() => {
     if (fetchedTags) {
-      setTags(fetchedTags);
+      // Basic stability check to prevent setting the same data repeatedly
+      const currentTagsJson = JSON.stringify(useTagsStore.getState().tags);
+      const newTagsJson = JSON.stringify(fetchedTags);
+      
+      if (currentTagsJson !== newTagsJson) {
+        setTags(fetchedTags);
+      }
     }
   }, [fetchedTags, setTags]);
 
@@ -63,7 +70,7 @@ export function useTags() {
   });
 
   return {
-    tags: fetchedTags || [],
+    tags: fetchedTags || (EMPTY_ARRAY as Tag[]),
     isLoading,
     error,
     createTag: createMutation.mutate,

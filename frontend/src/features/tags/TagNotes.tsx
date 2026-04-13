@@ -4,21 +4,26 @@ import { useRouter } from "next/navigation";
 import { useTagsStore } from "../../store/tagsStore";
 import { useNotesStore } from "../../store/notesStore";
 import { useTags } from "../../hooks/useTags";
+import { useNotes } from "../../hooks/useNotes";
 import { FiTrash2, FiEdit3, FiFileText, FiTag } from "react-icons/fi";
 import NoteItem from "../notes/NoteItem";
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import ConfirmationModal from "../../components/ui/ConfirmationModal";
 
 export default function TagNotes() {
   const router = useRouter();
-  const { tags, selectedTagId, selectTag } = useTagsStore();
-  const { notes } = useNotesStore();
-  const { selectNote } = useNotesStore();
+  const { tags, selectedTagId } = useTagsStore();
+  const { notes, selectNote } = useNotesStore();
+  const { isLoading: isLoadingNotes } = useNotes();
   const { deleteTag, updateTag } = useTags();
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const tag = tags.find((t) => t.id === selectedTagId);
-  const taggedNotes = notes.filter((n) => n.tags.includes(tag?.name || ""));
+  const taggedNotes = useMemo(() => {
+    return tag ? notes.filter((n) => n.tags.includes(tag.name)) : [];
+  }, [tag, notes]);
 
   if (!tag) {
     return (
@@ -60,7 +65,7 @@ export default function TagNotes() {
               </form>
             ) : (
               <div className="flex items-center gap-4">
-                <h1 className="text-4xl font-display font-extrabold text-text-main uppercase tracking-tight">#{tag.name}</h1>
+                <h1 className="text-4xl font-display font-bold text-text-main uppercase tracking-tight">#{tag.name}</h1>
                 <button 
                   onClick={() => { setEditName(tag.name); setIsEditing(true); }}
                   className="p-2 rounded-lg hover:bg-white/5 text-text-muted transition-all"
@@ -76,7 +81,7 @@ export default function TagNotes() {
           </div>
 
           <button
-            onClick={() => { if(confirm("Are you sure?")) deleteTag(tag.id); }}
+            onClick={() => setShowDeleteConfirm(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-red-400 hover:bg-red-400/10 transition-all"
           >
             <FiTrash2 size={16} /> Delete Tag
@@ -86,7 +91,13 @@ export default function TagNotes() {
 
       {/* Notes List */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
-        {taggedNotes.length > 0 ? (
+        {isLoadingNotes ? (
+           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+             {[1, 2, 3].map((i) => (
+                <div key={i} className="h-40 rounded-2xl bg-white/5 animate-pulse" />
+             ))}
+           </div>
+        ) : taggedNotes.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {taggedNotes.map((note) => (
               <div 
@@ -95,7 +106,7 @@ export default function TagNotes() {
                   selectNote(note.id);
                   router.push("/notes");
                 }}
-                className="bg-surface-soft border border-white/5 rounded-2xl hover:border-brand-primary/30 transition-all cursor-pointer overflow-hidden"
+                className="bg-surface-soft border border-white/5 rounded-2xl hover:border-brand-primary/30 transition-all cursor-pointer overflow-hidden h-fit"
               >
                  <NoteItem note={note} />
               </div>
@@ -110,6 +121,15 @@ export default function TagNotes() {
           </div>
         )}
       </div>
+
+      <ConfirmationModal 
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={() => deleteTag(tag.id)}
+        title="Delete Tag"
+        message={`Are you sure you want to delete the tag "${tag.name}"? This will not delete your notes, but they will no longer be associated with this tag.`}
+        confirmText="Delete Tag"
+      />
     </div>
   );
 }

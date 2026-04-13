@@ -36,20 +36,19 @@ api.interceptors.response.use(
           setManualCsrfToken(data.csrfToken);
         }
         
-        // Re-construct a CLEAN request to avoid adapterFn/internal state errors
-        const retryConfig = {
-          url: originalRequest.url,
-          method: originalRequest.method,
-          data: originalRequest.data,
-          params: originalRequest.params,
-          headers: {
-            ...originalRequest.headers,
-            "x-csrf-token": localStorage.getItem("csrf-token") || "",
-          },
-        };
+        // Update headers on the original request
+        if (originalRequest.headers) {
+          originalRequest.headers["x-csrf-token"] = localStorage.getItem("csrf-token") || "";
+        }
         
-        return api(retryConfig);
+        // Retry the original request using the base axios instance
+        return axios(originalRequest);
       } catch (refreshError) {
+        console.error("Token refresh failed:", refreshError);
+        // Optional: Redirect to login if refresh fails
+        if (typeof window !== "undefined") {
+          window.location.href = "/sign-in";
+        }
         return Promise.reject(refreshError);
       }
     }

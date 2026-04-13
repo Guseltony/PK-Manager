@@ -8,10 +8,9 @@ import { useState } from "react";
 
 export default function TagList() {
   const { tags, searchQuery, setSearchQuery, selectedTagId } = useTagsStore();
-  const { isLoading } = useTags();
+  const { isLoading, createTag } = useTags();
   const [isAdding, setIsAdding] = useState(false);
   const [newTagName, setNewTagName] = useState("");
-  const { createTag } = useTags();
 
   const filteredTags = tags.filter((t) =>
     t.name.toLowerCase().includes(searchQuery.toLowerCase())

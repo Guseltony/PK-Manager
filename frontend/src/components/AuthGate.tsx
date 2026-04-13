@@ -28,7 +28,8 @@ export default function AuthGate({
       console.log("resss:", res);
 
       if (res.ok) {
-        router.refresh(); // 🔁 retry navigation
+        // Just push to home or current path to trigger re-evaluation
+        router.push("/");
       } else {
         router.push("/sign-in");
       }

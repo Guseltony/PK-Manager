@@ -10,3 +10,4 @@
 10. Let all design be always responsive on all screen..
 11. in the latest tailwind css bg-gradient-to-r is now bg-linear-to-r
 12. For custom px always use the p-x format that is w-[100px] will now be w-25
+13. Before any thing take a preoper look at the frontend and backend folder to understand the existing architectural system.

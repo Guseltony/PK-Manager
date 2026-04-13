@@ -24,7 +24,7 @@ const navSections: NavSection[] = [
     links: [
       { href: "/dashboard", name: "dashboard", icon: BiSolidDashboard },
       { href: "/notes", name: "notes", icon: BiSolidNotepad },
-      { href: "/tags", name: "tags", icon: BsFillTagFill },
+      { href: "/tag-list", name: "tags", icon: BsFillTagFill },
     ],
   },
   {

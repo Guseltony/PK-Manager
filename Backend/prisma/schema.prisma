@@ -41,9 +41,11 @@ model User {
   avatar   String?
 
   // 🔗 RELATIONS
-  notes   Note[]
-  tag     Tag[]
-  session Session[]
+  notes    Note[]
+  tag      Tag[]
+  session  Session[]
+  tasks    Task[]
+  dreams   Dream[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -72,6 +74,7 @@ model Note {
   userId     String
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   tags       NoteTag[]
+  tasks      Task[]
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 }
@@ -96,4 +99,81 @@ model NoteTag {
   tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@unique([noteId, tagId])
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  done
+}
+
+enum Priority {
+  low
+  medium
+  high
+  urgent
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  
+  status      TaskStatus @default(todo)
+  priority    Priority   @default(medium)
+  
+  dueDate     DateTime?
+  estimatedTime Int? // in minutes
+  
+  tags        String[]
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  noteId      String?
+  note        Note?    @relation(fields: [noteId], references: [id], onDelete: SetNull)
+  
+  dreamId     String?
+  dream       Dream?   @relation(fields: [dreamId], references: [id], onDelete: SetNull)
+  
+  aiScore     Float?
+  suggestedAt DateTime?
+  
+  completedAt DateTime?
+  
+  subtasks    Subtask[]
+  activities  ActivityLog[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Subtask {
+  id      String @id @default(uuid())
+  taskId  String
+  task    Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  title   String
+  status  TaskStatus @default(todo)
+}
+
+model Dream {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  progress    Float    @default(0)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  action    String   // created, updated, completed
+  timestamp DateTime @default(now())
 }

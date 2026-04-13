@@ -9,6 +9,7 @@ import tagRoutes from "./routes/tagsRoutes.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import userRoutes from "./routes/userRoutes.js";
+import tasksRoutes from "./routes/tasksRoutes.js";
 
 // conncet to the database
 connectDB();
@@ -34,6 +35,7 @@ app.use(cookieParser());
 app.use("/auth", authRoute);
 app.use("/note", authMiddleware, noteRoutes);
 app.use("/tag", authMiddleware, tagRoutes);
+app.use("/task", authMiddleware, tasksRoutes);
 // app.use("/user", authMiddleware, userRoutes);
 app.use("/user", userRoutes);
 

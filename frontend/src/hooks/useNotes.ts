@@ -3,6 +3,7 @@ import api from "../libs/api";
 import { Note, NewNote } from "../types/note";
 import { useNotesStore } from "../store/notesStore";
 import { useEffect } from "react";
+const EMPTY_ARRAY: unknown[] = [];
 
 interface BackendTag {
   tag: {
@@ -35,7 +36,12 @@ export function useNotes() {
   // Sync with Zustand
   useEffect(() => {
     if (fetchedNotes) {
-      setNotes(fetchedNotes);
+      const currentNotesJson = JSON.stringify(useNotesStore.getState().notes);
+      const newNotesJson = JSON.stringify(fetchedNotes);
+      
+      if (currentNotesJson !== newNotesJson) {
+        setNotes(fetchedNotes);
+      }
     }
   }, [fetchedNotes, setNotes]);
 
@@ -61,9 +67,10 @@ export function useNotes() {
   // Update Note
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Note> }) => {
+      const { tags, ...rest } = updates;
       const payload = {
-        ...updates,
-        ...(updates.tags ? { tagsArray: updates.tags.map(t => ({ name: t })) } : {}),
+        ...rest,
+        ...(tags ? { tagsArray: tags.map(t => ({ name: t })) } : {}),
       };
       const { data } = await api.put(`/note/update/${id}`, payload);
       return mapBackendNote(data.data as BackendNote);
@@ -86,7 +93,7 @@ export function useNotes() {
   });
 
   return {
-    notes: fetchedNotes || [],
+    notes: fetchedNotes || (EMPTY_ARRAY as Note[]),
     isLoading,
     error,
     createNote: createMutation.mutate,

@@ -6,7 +6,7 @@ export const metadata = {
   description: "Organize and explore your knowledge through tags.",
 };
 
-export default function TagsPage() {
+export default function TagListPage() {
   return (
     <div className="flex h-[calc(100vh-64px)] overflow-hidden rounded-3xl border border-white/5 bg-surface-base shadow-2xl">
       <TagList />

@@ -5,7 +5,7 @@ import { useNotesStore } from "../../store/notesStore";
 import { useNotes } from "../../hooks/useNotes";
 import { useTags } from "../../hooks/useTags";
 import { useDebounce } from "../../hooks/useDebounce";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -23,6 +23,7 @@ import {
 } from "react-icons/fi";
 import dayjs from "dayjs";
 import { Note } from "../../types/note";
+import ConfirmationModal from "../../components/ui/ConfirmationModal";
 
 export default function NoteEditor() {
   const { selectedNoteId, notes, isCreating } = useNotesStore();
@@ -226,12 +227,15 @@ function NoteEditorContent({ note }: { note: Note }) {
     "preview",
   );
   const { tags: allTags } = useTags();
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  const suggestions = allTags.filter(
-    (tag) =>
-      tag.name.toLowerCase().includes(newTag.toLowerCase()) &&
-      !note.tags.includes(tag.name)
-  );
+  const suggestions = useMemo(() => {
+    return allTags.filter(
+      (tag) =>
+        tag.name.toLowerCase().includes(newTag.toLowerCase()) &&
+        !note.tags.includes(tag.name),
+    );
+  }, [allTags, newTag, note.tags]);
 
   const debouncedContent = useDebounce(content, 1000);
   const debouncedTitle = useDebounce(title, 1000);
@@ -265,7 +269,8 @@ function NoteEditorContent({ note }: { note: Note }) {
 
     if (newTagsToAdd.length > 0) {
       const updatedTags = [...note.tags, ...newTagsToAdd];
-      updateNote(note.id, { tags: updatedTags });
+      const now = new Date().toISOString();
+      updateNote(note.id, { tags: updatedTags, updatedAt: now });
       syncWithBackend({
         id: note.id,
         updates: { tags: updatedTags },
@@ -277,7 +282,8 @@ function NoteEditorContent({ note }: { note: Note }) {
   const handleSelectSuggestion = (tagName: string) => {
     if (!note.tags.includes(tagName)) {
       const updatedTags = [...note.tags, tagName];
-      updateNote(note.id, { tags: updatedTags });
+      const now = new Date().toISOString();
+      updateNote(note.id, { tags: updatedTags, updatedAt: now });
       syncWithBackend({
         id: note.id,
         updates: { tags: updatedTags },
@@ -288,8 +294,10 @@ function NoteEditorContent({ note }: { note: Note }) {
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
+    if (viewMode === "preview") return; // Prevent removal in preview
     const updatedTags = note.tags.filter((t) => t !== tagToRemove);
-    updateNote(note.id, { tags: updatedTags });
+    const now = new Date().toISOString();
+    updateNote(note.id, { tags: updatedTags, updatedAt: now });
     syncWithBackend({
       id: note.id,
       updates: { tags: updatedTags },
@@ -338,7 +346,7 @@ function NoteEditorContent({ note }: { note: Note }) {
 
           <button
             className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 hover:text-red-400 transition-all"
-            onClick={() => deleteFromBackend(note.id)}
+            onClick={() => setShowDeleteConfirm(true)}
           >
             <FiTrash2 size={16} />
           </button>
@@ -350,65 +358,77 @@ function NoteEditorContent({ note }: { note: Note }) {
 
       {/* Title & Tags */}
       <div className="px-8 pt-8 flex flex-col gap-4">
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="NOTE TITLE"
-          className="text-4xl font-display font-bold bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/20 w-full uppercase tracking-tight"
-        />
+        {viewMode === "preview" ? (
+          <h1 className="text-4xl font-display font-bold text-text-main uppercase tracking-tight">
+            {title || "Untitled Note"}
+          </h1>
+        ) : (
+          <input
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="NOTE TITLE"
+            className="text-4xl font-display font-bold bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/20 w-full uppercase tracking-tight"
+          />
+        )}
         <div className="flex flex-wrap gap-2 items-center">
           {note.tags.map((tag: string) => (
             <span
               key={tag}
               onClick={() => handleRemoveTag(tag)}
-              className="text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded cursor-pointer hover:bg-brand-primary/20 transition-colors group"
-              title="Click to remove"
+              className={`text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded transition-colors group ${viewMode !== "preview" ? "cursor-pointer hover:bg-brand-primary/20" : ""}`}
+              title={viewMode !== "preview" ? "Click to remove" : ""}
             >
               #{tag}
-              <span className="ml-1 opacity-0 group-hover:opacity-100">
-                &times;
-              </span>
+              {viewMode !== "preview" && (
+                <span className="ml-1 opacity-0 group-hover:opacity-100">
+                  &times;
+                </span>
+              )}
             </span>
           ))}
 
-          {isAddingTag ? (
-            <div className="relative inline-block">
-              <form onSubmit={handleAddTag} className="inline-block">
-                <input
-                  autoFocus
-                  type="text"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onBlur={() => {
-                    setTimeout(() => setIsAddingTag(false), 200);
-                  }}
-                  placeholder="tag name..."
-                  className="text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded outline-none border border-brand-primary/30 w-32"
-                />
-              </form>
-              {newTag && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 mt-1 w-48 bg-surface-soft border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden py-1">
-                  {suggestions.slice(0, 5).map((tag) => (
-                    <button
-                      key={tag.id}
-                      onClick={() => handleSelectSuggestion(tag.name)}
-                      className="w-full text-left px-3 py-2 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-white/5 transition-colors"
-                    >
-                      #{tag.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            <button
-              onClick={() => setIsAddingTag(true)}
-              className="text-xs font-bold text-text-muted hover:text-text-main transition-colors"
-            >
-              + Add Tag
-            </button>
-          )}
+          {viewMode !== "preview" &&
+            (isAddingTag ? (
+              <div className="relative inline-block">
+                <form onSubmit={handleAddTag} className="inline-block">
+                  <input
+                    autoFocus
+                    type="text"
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    onBlur={() => {
+                      setTimeout(() => setIsAddingTag(false), 200);
+                    }}
+                    placeholder="tag name..."
+                    className="text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded outline-none border border-brand-primary/30 w-32"
+                  />
+                </form>
+                {suggestions.length > 0 && (
+                  <div className="absolute top-full left-0 mt-1 w-48 bg-surface-base border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden py-1">
+                    {suggestions.slice(0, 5).map((tag) => (
+                      <button
+                        key={tag.id}
+                        onMouseDown={(e) => {
+                          e.preventDefault(); // Prevent onBlur from closing input before click
+                          handleSelectSuggestion(tag.name);
+                        }}
+                        className="w-full text-left px-3 py-2 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-white/5 transition-colors"
+                      >
+                        #{tag.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <button
+                onClick={() => setIsAddingTag(true)}
+                className="text-xs font-bold text-text-muted hover:text-text-main transition-colors"
+              >
+                + Add Tag
+              </button>
+            ))}
         </div>
       </div>
 
@@ -470,6 +490,14 @@ function NoteEditorContent({ note }: { note: Note }) {
           <span>Linked in 2 notes</span>
         </div>
       </div>
+      <ConfirmationModal
+        isOpen={showDeleteConfirm}
+        onClose={() => setShowDeleteConfirm(false)}
+        onConfirm={() => deleteFromBackend(note.id)}
+        title="Delete Knowledge Node"
+        message={`Are you sure you want to delete "${note.title}"? This action is permanent and cannot be undone.`}
+        confirmText="Delete Note"
+      />
     </div>
   );
 }
