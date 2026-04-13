@@ -129,7 +129,7 @@ export function useTasks(activeFilter = "all") {
 }
 
 export function useTask(taskId: string | null) {
-  return useQuery({
+  return useQuery<Task | null>({
     queryKey: ["task", taskId],
     queryFn: async () => {
       if (!taskId) return null;

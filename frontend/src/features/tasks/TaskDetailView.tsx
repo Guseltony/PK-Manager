@@ -16,8 +16,11 @@ import {
 } from "react-icons/fi";
 import { useState } from "react";
 import dayjs from "dayjs";
+import { useTags } from "../../hooks/useTags";
+import { useNotesStore } from "../../store/notesStore";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import PromptModal from "../../components/ui/PromptModal";
+import { TaskStatus, Priority } from "../../types/task";
 
 interface TaskDetailViewProps {
   taskId: string;
@@ -43,19 +46,19 @@ export default function TaskDetailView({
   const [showSubtaskPrompt, setShowSubtaskPrompt] = useState(false);
   const [showTagPrompt, setShowTagPrompt] = useState(false);
 
-  const statuses: ("todo" | "in_progress" | "done")[] = ["todo", "in_progress", "done"];
-  const priorities: ("low" | "medium" | "high" | "urgent")[] = ["low", "medium", "high", "urgent"];
+  const statuses: TaskStatus[] = ["todo", "in_progress", "done"];
+  const priorities: Priority[] = ["low", "medium", "high", "urgent"];
 
   const handleStatusToggle = () => {
     if (!task) return;
-    const currentIndex = statuses.indexOf(task.status as (typeof statuses)[number]);
+    const currentIndex = statuses.indexOf(task.status);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
     updateTask({ id: task.id, updates: { status: nextStatus } });
   };
 
   const handlePriorityCycle = () => {
     if (!task) return;
-    const currentIndex = priorities.indexOf(task.priority as (typeof priorities)[number]);
+    const currentIndex = priorities.indexOf(task.priority);
     const nextPriority = priorities[(currentIndex + 1) % priorities.length];
     updateTask({ id: task.id, updates: { priority: nextPriority } });
   };
