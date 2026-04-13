@@ -48,14 +48,14 @@ export default function TaskDetailView({
 
   const handleStatusToggle = () => {
     if (!task) return;
-    const currentIndex = statuses.indexOf(task.status as any);
+    const currentIndex = statuses.indexOf(task.status as (typeof statuses)[number]);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
     updateTask({ id: task.id, updates: { status: nextStatus } });
   };
 
   const handlePriorityCycle = () => {
     if (!task) return;
-    const currentIndex = priorities.indexOf(task.priority as any);
+    const currentIndex = priorities.indexOf(task.priority as (typeof priorities)[number]);
     const nextPriority = priorities[(currentIndex + 1) % priorities.length];
     updateTask({ id: task.id, updates: { priority: nextPriority } });
   };

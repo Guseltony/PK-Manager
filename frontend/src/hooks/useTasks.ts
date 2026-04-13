@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../libs/api";
-import { Task, NewTask } from "../types/task";
+import { Task, NewTask, Subtask } from "../types/task";
 import { useTasksStore } from "../store/tasksStore";
 import { useEffect } from "react";
 
