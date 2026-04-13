@@ -30,8 +30,60 @@ export default function TaskDetailView({
 }: TaskDetailViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const { data: task, isLoading } = useTask(taskId);
+  const { 
+    updateTask, 
+    deleteTask, 
+    addSubtask, 
+    updateSubtask, 
+    deleteSubtask 
+  } = useTasks();
+  const { tags: allTags } = useTags();
+  
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showSubtaskPrompt, setShowSubtaskPrompt] = useState(false);
+  const [showTagPrompt, setShowTagPrompt] = useState(false);
+
+  const statuses: ("todo" | "in_progress" | "done")[] = ["todo", "in_progress", "done"];
+  const priorities: ("low" | "medium" | "high" | "urgent")[] = ["low", "medium", "high", "urgent"];
+
+  const handleStatusToggle = () => {
+    if (!task) return;
+    const currentIndex = statuses.indexOf(task.status as any);
+    const nextStatus = statuses[(currentIndex + 1) % statuses.length];
+    updateTask({ id: task.id, updates: { status: nextStatus } });
+  };
+
+  const handlePriorityCycle = () => {
+    if (!task) return;
+    const currentIndex = priorities.indexOf(task.priority as any);
+    const nextPriority = priorities[(currentIndex + 1) % priorities.length];
+    updateTask({ id: task.id, updates: { priority: nextPriority } });
+  };
+
+  const handleAddTag = (tagName: string) => {
+    if (!task) return;
+    if (!task.tags.includes(tagName)) {
+      updateTask({ id: task.id, updates: { tags: [...task.tags, tagName] } });
+    }
+  };
+
+  const handleRemoveTag = (tagName: string) => {
+    if (!task) return;
+    updateTask({ id: task.id, updates: { tags: task.tags.filter(t => t !== tagName) } });
+  };
+
+  const handleSubtaskToggle = (subtaskId: string, currentStatus: string) => {
+    if (!task) return;
+    const nextStatus = currentStatus === "done" ? "todo" : "done";
+    updateSubtask({ taskId, subtaskId, updates: { status: nextStatus } });
+  };
+
+  const handleSubtaskDelete = (subtaskId: string) => {
+    if (!task) return;
+    if (confirm("Delete this step?")) {
+      deleteSubtask({ taskId, subtaskId });
+    }
+  };
 
   const handleDelete = () => {
     deleteTask(taskId, {
@@ -41,6 +93,24 @@ export default function TaskDetailView({
 
   const handleAddSubtask = (title: string) => {
     addSubtask({ taskId, title });
+  };
+
+  const { notes } = useNotesStore();
+  const [showNotePrompt, setShowNotePrompt] = useState(false);
+
+  const handleLinkNote = (noteTitle: string) => {
+    if (!task) return;
+    const note = notes.find(n => n.title.toLowerCase() === noteTitle.toLowerCase());
+    if (note) {
+      updateTask({ id: task.id, updates: { noteId: note.id } });
+    } else {
+      alert("Note not found. Please select an existing note title.");
+    }
+  };
+
+  const handleUnlinkNote = () => {
+    if (!task) return;
+    updateTask({ id: task.id, updates: { noteId: null } });
   };
 
   if (isLoading)
@@ -94,15 +164,18 @@ export default function TaskDetailView({
         {/* Title Section */}
         <div className="mb-10">
           <div className="flex items-start gap-4 mb-4">
-            <div
-              className={`mt-1.5 shrink-0 ${task.status === "done" ? "text-brand-primary" : "text-text-muted"}`}
+            <button
+              onClick={handleStatusToggle}
+              className={`mt-1.5 shrink-0 transition-all active:scale-75 ${task.status === "done" ? "text-brand-primary" : "text-text-muted/40 hover:text-text-main"}`}
             >
               {task.status === "done" ? (
-                <FiCheckCircle size={24} />
+                <FiCheckCircle size={24} className="drop-shadow-[0_0_8px_rgba(99,102,241,0.4)]" />
+              ) : task.status === "in_progress" ? (
+                <FiActivity size={24} className="animate-pulse text-amber-400" />
               ) : (
                 <div className="w-6 h-6 rounded-full border-2 border-current opacity-30" />
               )}
-            </div>
+            </button>
             <h2
               className={`text-2xl font-display font-extrabold leading-tight ${task.status === "done" ? "text-text-muted/50 line-through" : "text-text-main"}`}
             >
@@ -114,12 +187,17 @@ export default function TaskDetailView({
             {task.tags?.map((tag) => (
               <span
                 key={tag}
-                className="flex items-center gap-1.5 text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-3 py-1.5 rounded-xl border border-brand-primary/20 uppercase tracking-tighter"
+                onClick={() => handleRemoveTag(tag)}
+                className="flex items-center gap-1.5 text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-3 py-1.5 rounded-xl border border-brand-primary/20 uppercase tracking-tighter cursor-pointer hover:bg-red-400/10 hover:text-red-400 hover:border-red-400/20 transition-all group"
               >
                 <FiTag size={10} /> {tag}
+                <span className="opacity-0 group-hover:opacity-100">&times;</span>
               </span>
             ))}
-            <button className="flex items-center gap-1.5 text-[10px] font-bold text-text-muted bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 hover:bg-white/10 hover:text-text-main transition-all uppercase tracking-tighter">
+            <button 
+              onClick={() => setShowTagPrompt(true)}
+              className="flex items-center gap-1.5 text-[10px] font-bold text-text-muted bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 hover:bg-white/10 hover:text-text-main transition-all uppercase tracking-tighter"
+            >
               <FiPlus size={10} /> Link Tag
             </button>
           </div>
@@ -151,9 +229,16 @@ export default function TaskDetailView({
               </p>
             )}
           </div>
-          <div className="p-4 rounded-2xl bg-surface-base/80 border border-white/5 group hover:border-brand-primary/30 transition-all duration-300">
+          <button 
+            onClick={handlePriorityCycle}
+            className="p-4 rounded-2xl bg-surface-base/80 border border-white/5 group hover:border-brand-primary/30 transition-all duration-300 text-left"
+          >
             <div className="flex items-center gap-2 mb-2">
-              <div className="p-1.5 rounded-lg bg-amber-400/10 text-amber-400">
+              <div className={`p-1.5 rounded-lg ${
+                task.priority === "urgent" ? "bg-brand-accent/10 text-brand-accent" : 
+                task.priority === "high" ? "bg-amber-400/10 text-amber-400" :
+                task.priority === "low" ? "bg-blue-400/10 text-blue-400" : "bg-white/10 text-text-muted"
+              }`}>
                 <FiFlag size={12} />
               </div>
               <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
@@ -176,9 +261,9 @@ export default function TaskDetailView({
               </p>
             </div>
             <p className="text-[10px] text-text-muted mt-1 uppercase font-semibold">
-              Strategic Weight
+              Click to cycle
             </p>
-          </div>
+          </button>
         </div>
 
         {/* Description Section */}
@@ -212,10 +297,11 @@ export default function TaskDetailView({
             {task.subtasks?.map((sub) => (
               <div
                 key={sub.id}
-                className="flex items-center gap-3 p-3 rounded-xl bg-surface-base/50 border border-white/5 group"
+                className="flex items-center gap-3 p-3 rounded-xl bg-surface-base/50 border border-white/5 group/sub"
               >
                 <button
-                  className={`shrink-0 ${sub.status === "done" ? "text-brand-primary" : "text-text-muted/40 group-hover:text-text-muted/70"}`}
+                  onClick={() => handleSubtaskToggle(sub.id, sub.status)}
+                  className={`shrink-0 transition-all active:scale-75 ${sub.status === "done" ? "text-brand-primary" : "text-text-muted/40 group-hover/sub:text-text-muted/70"}`}
                 >
                   {sub.status === "done" ? (
                     <FiCheckCircle size={16} />
@@ -224,10 +310,16 @@ export default function TaskDetailView({
                   )}
                 </button>
                 <span
-                  className={`text-sm ${sub.status === "done" ? "text-text-muted line-through" : "text-text-main font-medium"}`}
+                  className={`flex-1 text-sm ${sub.status === "done" ? "text-text-muted line-through" : "text-text-main font-medium"}`}
                 >
                   {sub.title}
                 </span>
+                <button 
+                  onClick={() => handleSubtaskDelete(sub.id)}
+                  className="opacity-0 group-hover/sub:opacity-100 p-1 text-text-muted hover:text-red-400 transition-all"
+                >
+                  <FiX size={14} />
+                </button>
               </div>
             ))}
             <button
@@ -252,7 +344,7 @@ export default function TaskDetailView({
           </div>
           <div className="space-y-3">
             {task.note ? (
-              <div className="group relative overflow-hidden flex items-center justify-between p-4 rounded-2xl bg-surface-base border border-brand-primary/20 hover:border-brand-primary/50 transition-all cursor-pointer">
+              <div className="group relative overflow-hidden flex items-center justify-between p-4 rounded-2xl bg-surface-base border border-brand-primary/20 hover:border-brand-primary/50 transition-all">
                 <div className="absolute inset-0 bg-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <div className="flex items-center gap-3 relative z-10">
                   <div className="w-8 h-8 rounded-lg bg-brand-primary/20 flex items-center justify-center text-brand-primary">
@@ -267,9 +359,19 @@ export default function TaskDetailView({
                     </p>
                   </div>
                 </div>
+                <button 
+                  onClick={handleUnlinkNote}
+                  className="relative z-10 p-2 text-text-muted hover:text-red-400 transition-colors"
+                  title="Unlink Note"
+                >
+                  <FiX size={16} />
+                </button>
               </div>
             ) : (
-              <button className="w-full flex flex-col items-center justify-center gap-2 p-6 rounded-3xl border border-dashed border-white/10 text-text-muted hover:text-brand-primary hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all group">
+              <button 
+                onClick={() => setShowNotePrompt(true)}
+                className="w-full flex flex-col items-center justify-center gap-2 p-6 rounded-3xl border border-dashed border-white/10 text-text-muted hover:text-brand-primary hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all group"
+              >
                 <FiLink
                   size={20}
                   className="group-hover:scale-110 transition-transform"
@@ -342,6 +444,26 @@ export default function TaskDetailView({
         title="New Execution Step"
         message="Define the next step for this objective."
         placeholder="e.g. Verify database migrations"
+      />
+
+      <PromptModal
+        isOpen={showTagPrompt}
+        onClose={() => setShowTagPrompt(false)}
+        onSubmit={handleAddTag}
+        title="Link Tag"
+        message="Add a classification tag to this task."
+        placeholder="e.g. Research, Design, API"
+        suggestions={allTags.map(t => t.name)}
+      />
+
+      <PromptModal
+        isOpen={showNotePrompt}
+        onClose={() => setShowNotePrompt(false)}
+        onSubmit={handleLinkNote}
+        title="Link Knowledge Node"
+        message="Connect this task to a relevant note in your library."
+        placeholder="Type note title..."
+        suggestions={notes.map(n => n.title)}
       />
     </div>
   );

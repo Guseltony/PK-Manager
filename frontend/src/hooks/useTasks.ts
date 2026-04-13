@@ -73,13 +73,43 @@ export function useTasks(activeFilter = "all") {
   // Subtask management
   const addSubtaskMutation = useMutation({
     mutationFn: async ({ taskId, title }: { taskId: string; title: string }) => {
-        const { data } = await api.post(`/task/${taskId}/subtasks`, { title });
-        return { taskId, subtask: data.data };
+      const { data } = await api.post(`/task/${taskId}/subtasks`, { title });
+      return { taskId, subtask: data.data };
     },
     onSuccess: ({ taskId }) => {
-        queryClient.invalidateQueries({ queryKey: ["task", taskId] });
-        queryClient.invalidateQueries({ queryKey: ["tasks"] });
-    }
+      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+
+  const updateSubtaskMutation = useMutation({
+    mutationFn: async ({
+      taskId,
+      subtaskId,
+      updates,
+    }: {
+      taskId: string;
+      subtaskId: string;
+      updates: any;
+    }) => {
+      const { data } = await api.put(`/task/${taskId}/subtasks/${subtaskId}`, updates);
+      return { taskId, subtask: data.data };
+    },
+    onSuccess: ({ taskId }) => {
+      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
+  });
+
+  const deleteSubtaskMutation = useMutation({
+    mutationFn: async ({ taskId, subtaskId }: { taskId: string; subtaskId: string }) => {
+      await api.delete(`/task/${taskId}/subtasks/${subtaskId}`);
+      return { taskId, subtaskId };
+    },
+    onSuccess: ({ taskId }) => {
+      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    },
   });
 
   return {
@@ -90,6 +120,8 @@ export function useTasks(activeFilter = "all") {
     updateTask: updateMutation.mutate,
     deleteTask: deleteMutation.mutate,
     addSubtask: addSubtaskMutation.mutate,
+    updateSubtask: updateSubtaskMutation.mutate,
+    deleteSubtask: deleteSubtaskMutation.mutate,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
