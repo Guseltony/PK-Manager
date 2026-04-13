@@ -90,7 +90,7 @@ export function useTasks(activeFilter = "all") {
     }: {
       taskId: string;
       subtaskId: string;
-      updates: any;
+      updates: Partial<Subtask>;
     }) => {
       const { data } = await api.put(`/task/${taskId}/subtasks/${subtaskId}`, updates);
       return { taskId, subtask: data.data };
