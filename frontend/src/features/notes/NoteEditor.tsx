@@ -35,7 +35,7 @@ export default function NoteEditor() {
 
   if (!selectedNote) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-surface-base text-center">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-surface-base text-center">
         <div className="w-24 h-24 rounded-full bg-brand-primary/5 flex items-center justify-center mb-6 border border-brand-primary/10">
           <FiEdit3 size={40} className="text-brand-primary/40" />
         </div>
@@ -118,6 +118,13 @@ function NewNoteForm() {
     <div className="flex-1 flex flex-col h-full bg-surface-base overflow-hidden">
       <div className="p-4 border-b border-white/5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
+          {/* Mobile Back Button */}
+          <button 
+            onClick={() => setIsCreating(false)}
+            className="md:hidden flex items-center justify-center p-2 rounded-xl text-text-muted hover:bg-white/5 transition-all"
+          >
+            <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="18" width="18" xmlns="http://www.w3.org/2000/svg"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          </button>
           <div className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-brand-primary/20 text-brand-primary">
             Drafting New Note
           </div>
@@ -139,14 +146,14 @@ function NewNoteForm() {
         </div>
       </div>
 
-      <div className="px-8 pt-8 flex flex-col gap-4">
+      <div className="px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 flex flex-col gap-4">
         <input
           autoFocus
           type="text"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Note Title"
-          className="text-4xl font-display font-bold bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/20 w-full"
+          className="text-2xl sm:text-4xl font-display font-bold bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/20 w-full"
         />
         <div className="flex flex-wrap gap-2 items-center">
           {tags.map((tag) => (
@@ -199,7 +206,7 @@ function NewNoteForm() {
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden mt-6 p-8 pt-0">
+      <div className="flex-1 flex overflow-hidden mt-6 p-4 sm:p-6 lg:p-8 pt-0">
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -311,14 +318,20 @@ function NoteEditorContent({ note }: { note: Note }) {
   return (
     <div className="flex-1 flex flex-col h-full bg-surface-base overflow-hidden">
       {/* Editor Header */}
-      <div className="p-4 border-b border-white/5 flex items-center justify-between gap-4">
+      <div className="p-4 border-b border-white/5 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
+          <button 
+            onClick={() => useNotesStore.getState().selectNote(null)}
+            className="md:hidden flex items-center justify-center p-2 -ml-2 rounded-xl text-text-muted hover:bg-white/5 transition-all"
+          >
+            <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="18" width="18" xmlns="http://www.w3.org/2000/svg"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          </button>
           <div
             className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${isUpdating ? "bg-brand-secondary/20 text-brand-secondary" : "bg-green-500/20 text-green-400"}`}
           >
             {isUpdating ? "Saving..." : "Saved"}
           </div>
-          <span className="text-[10px] text-text-muted/50 font-medium">
+          <span className="hidden sm:inline text-[10px] text-text-muted/50 font-medium">
             Edited {dayjs(note.updatedAt).format("MMM D, HH:mm")}
           </span>
         </div>
@@ -361,9 +374,9 @@ function NoteEditorContent({ note }: { note: Note }) {
       </div>
 
       {/* Title & Tags */}
-      <div className="px-8 pt-8 flex flex-col gap-4">
+      <div className="px-4 sm:px-6 lg:px-8 pt-6 sm:pt-8 flex flex-col gap-4">
         {viewMode === "preview" ? (
-          <h1 className="text-4xl font-display font-bold text-text-main uppercase tracking-tight">
+          <h1 className="text-2xl sm:text-4xl font-display font-bold text-text-main uppercase tracking-tight">
             {title || "Untitled Note"}
           </h1>
         ) : (
@@ -372,7 +385,7 @@ function NoteEditorContent({ note }: { note: Note }) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="NOTE TITLE"
-            className="text-4xl font-display font-bold bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/20 w-full uppercase tracking-tight"
+            className="text-2xl sm:text-4xl font-display font-bold bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/20 w-full uppercase tracking-tight"
           />
         )}
         <div className="flex flex-wrap gap-2 items-center">
@@ -437,7 +450,7 @@ function NoteEditorContent({ note }: { note: Note }) {
       </div>
 
       {/* Editor Body */}
-      <div className="flex-1 flex overflow-hidden mt-6 p-8 pt-0">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden mt-4 sm:mt-6 p-4 sm:p-6 lg:p-8 pt-0 gap-4">
         {(viewMode === "edit" || viewMode === "split") && (
           <textarea
             value={content}
@@ -449,7 +462,7 @@ function NoteEditorContent({ note }: { note: Note }) {
 
         {(viewMode === "preview" || viewMode === "split") && (
           <div
-            className={`flex-1 overflow-y-auto custom-scrollbar prose max-w-none ${viewMode === "preview" ? "px-12 py-8" : "px-4"}`}
+            className={`flex-1 overflow-y-auto custom-scrollbar prose max-w-none ${viewMode === "preview" ? "px-2 sm:px-8 lg:px-12 py-4 sm:py-8" : "px-0 sm:px-4"}`}
           >
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
@@ -480,7 +493,7 @@ function NoteEditorContent({ note }: { note: Note }) {
       </div>
 
       {/* Backlinks / Stats Footer */}
-      <div className="px-8 py-3 border-t border-white/5 flex items-center justify-between text-[11px] text-text-muted/40 font-medium">
+      <div className="px-4 sm:px-6 lg:px-8 py-3 border-t border-white/5 flex items-center justify-between text-[11px] text-text-muted/40 font-medium">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5">
             <FiFileText size={12} /> {content.length} characters

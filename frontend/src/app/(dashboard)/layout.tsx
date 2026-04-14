@@ -13,16 +13,15 @@ export default async function DashboardLayout({
 
   if (!authResult.authenticated) redirect("/sign-in");
 
-  console.log(authResult);
   return (
     <div className="flex min-h-screen bg-surface-base">
-      {/* Sidebar - Fixed width, sticky height */}
+      {/* Desktop Sidebar - hidden on mobile */}
       <SideBar />
 
-      {/* Main content - Scrollable area */}
-      <div className="flex flex-1 flex-col">
+      {/* Main content area */}
+      <div className="flex flex-1 flex-col min-w-0">
         <Header auth={authResult} />
-        
+
         <main className="flex-1 overflow-hidden">
           {children}
         </main>

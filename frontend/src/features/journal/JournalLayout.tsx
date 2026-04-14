@@ -49,8 +49,8 @@ export default function JournalLayout() {
     <div className="flex-1 flex flex-col h-full bg-[#FAFAFA] dark:bg-[#0D0D12]">
       
       {/* HEADER (Date and Mood) */}
-      <div className="w-full max-w-3xl mx-auto px-8 py-10 pb-0">
-        <header className="flex justify-between items-end border-b border-white/5 pb-4">
+      <div className="w-full max-w-3xl mx-auto px-4 sm:px-8 py-6 sm:py-10 pb-0 shrink-0">
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-white/5 pb-4 gap-4">
           <div>
             <span className="text-brand-primary uppercase tracking-[0.2em] font-bold text-[10px]">Today</span>
             <h1 className="text-3xl font-display font-medium text-text-main mt-1">
@@ -58,8 +58,8 @@ export default function JournalLayout() {
             </h1>
           </div>
 
-          <div className="flex flex-col items-end gap-2">
-            <div className="flex items-center gap-2 bg-white/5 p-1 rounded-full border border-white/5">
+          <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 w-full sm:w-auto justify-between sm:justify-start">
+            <div className="flex items-center gap-1 sm:gap-2 bg-white/5 p-1 rounded-full border border-white/5">
               <button onClick={() => handleMoodSelect("great")} className={`p-2 rounded-full transition-all ${mood === 'great' ? 'bg-amber-500/20 text-amber-500' : 'text-text-muted hover:bg-white/5'}`} title="Great"><FaRegSmileBeam size={18} /></button>
               <button onClick={() => handleMoodSelect("good")} className={`p-2 rounded-full transition-all ${mood === 'good' ? 'bg-emerald-500/20 text-emerald-500' : 'text-text-muted hover:bg-white/5'}`} title="Good"><RiEmotionHappyLine size={18} /></button>
               <button onClick={() => handleMoodSelect("neutral")} className={`p-2 rounded-full transition-all ${mood === 'neutral' ? 'bg-blue-500/20 text-blue-500' : 'text-text-muted hover:bg-white/5'}`} title="Neutral"><RiEmotionNormalLine size={18} /></button>
@@ -85,7 +85,7 @@ export default function JournalLayout() {
       </div>
 
       {/* WRITING AREA */}
-      <div className="flex-1 w-full max-w-3xl mx-auto px-8 pb-10 flex flex-col pt-4 overflow-hidden relative">
+      <div className="flex-1 w-full max-w-3xl mx-auto px-4 sm:px-8 pb-10 flex flex-col pt-4 overflow-hidden relative">
         <textarea
           autoFocus
           value={content}
@@ -106,7 +106,7 @@ export default function JournalLayout() {
 
       {/* TIMELINE SLIDEOVER */}
       {showTimeline && (
-        <div className="absolute top-0 right-0 w-80 h-full glass border-l border-white/5 z-40 flex flex-col shadow-2xl">
+        <div className="fixed sm:absolute top-0 right-0 w-full sm:w-80 h-full glass border-l border-white/5 z-40 flex flex-col shadow-2xl">
           <div className="p-6 border-b border-white/5 flex items-center justify-between">
             <h2 className="font-display font-bold text-text-main flex items-center gap-2"><FiCalendar /> PAST JOURNALS</h2>
             <button onClick={() => setShowTimeline(false)} className="text-text-muted hover:text-text-main"><FiX size={20} /></button>

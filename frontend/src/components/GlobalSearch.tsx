@@ -158,7 +158,7 @@ export default function GlobalSearch() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: -20 }}
               transition={{ duration: 0.15 }}
-              className="-translate-x-1/2 fixed top-24 left-1/2 w-full max-w-xl z-50 glass border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+              className="-translate-x-1/2 fixed top-4 sm:top-24 left-1/2 w-[calc(100%-2rem)] sm:w-full sm:max-w-xl z-50 glass border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
             >
               {/* Search Input */}
               <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5">

@@ -17,8 +17,10 @@ export default function TasksPageContent() {
       <TaskSidebar activeFilter={filter} onFilterChange={setFilter} />
 
       {/* Center Engine: Execution Layer */}
-      <div className="flex-1 flex flex-col border-x border-white/5 relative">
-        <TaskQuickAdd />
+      <div className={`flex-1 flex-col relative ${selectedTaskId ? "hidden lg:flex" : "flex"}`}>
+        <div className="px-4 py-4 md:px-0 md:py-0 border-b md:border-b-0 border-white/5">
+          <TaskQuickAdd />
+        </div>
         <div className="flex-1 overflow-y-auto custom-scrollbar">
           <TaskListView
             activeFilter={filter}

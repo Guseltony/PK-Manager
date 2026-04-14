@@ -38,7 +38,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
 
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar bg-surface-base">
-      <div className="max-w-7xl mx-auto p-8">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         {/* Navigation / Control */}
         <div className="flex items-center justify-between mb-12">
           <Link
@@ -104,7 +104,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
           </div>
 
           {/* Progress Orbital Card */}
-          <div className="glass p-8 rounded-[3rem] border border-white/5 flex flex-col items-center justify-center text-center relative overflow-hidden group">
+          <div className="glass p-6 sm:p-8 rounded-[3rem] border border-white/5 flex flex-col items-center justify-center text-center relative overflow-hidden group">
             <div className="absolute inset-0 bg-brand-primary/5 blur-3xl rounded-full scale-150 group-hover:bg-brand-primary/10 transition-colors" />
             <div className="relative z-10">
               <div className="mb-6 relative inline-block">

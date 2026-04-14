@@ -27,7 +27,7 @@ export default function TagNotes() {
 
   if (!tag) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-surface-base text-center">
+      <div className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 bg-surface-base text-center">
         <div className="w-24 h-24 rounded-full bg-brand-primary/5 flex items-center justify-center mb-6 border border-brand-primary/10">
           <FiTag size={40} className="text-brand-primary/40" />
         </div>
@@ -50,7 +50,7 @@ export default function TagNotes() {
   return (
     <div className="flex-1 flex flex-col h-full bg-surface-base overflow-hidden">
       {/* Header */}
-      <div className="p-8 pb-6 border-b border-white/5 bg-surface-base/50 backdrop-blur-sm">
+      <div className="p-4 sm:p-6 lg:p-8 pb-4 sm:pb-6 border-b border-white/5 bg-surface-base/50 backdrop-blur-sm">
         <div className="flex items-center justify-between gap-4">
           <div className="flex-1">
             {isEditing ? (
@@ -64,8 +64,14 @@ export default function TagNotes() {
                 />
               </form>
             ) : (
-              <div className="flex items-center gap-4">
-                <h1 className="text-4xl font-display font-bold text-text-main uppercase tracking-tight">#{tag.name}</h1>
+              <div className="flex items-center gap-2 sm:gap-4">
+                <button
+                  onClick={() => useTagsStore.getState().selectTag(null)}
+                  className="md:hidden p-2 -ml-2 text-text-muted hover:text-text-main hover:bg-white/5 rounded-lg transition-all"
+                >
+                  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="18" width="18" xmlns="http://www.w3.org/2000/svg"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                </button>
+                <h1 className="text-2xl sm:text-4xl font-display font-bold text-text-main uppercase tracking-tight line-clamp-1">#{tag.name}</h1>
                 <button 
                   onClick={() => { setEditName(tag.name); setIsEditing(true); }}
                   className="p-2 rounded-lg hover:bg-white/5 text-text-muted transition-all"
@@ -90,7 +96,7 @@ export default function TagNotes() {
       </div>
 
       {/* Notes List */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-8">
         {isLoadingNotes ? (
            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
              {[1, 2, 3].map((i) => (

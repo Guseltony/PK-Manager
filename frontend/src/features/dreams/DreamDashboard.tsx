@@ -33,7 +33,7 @@ export default function DreamDashboard() {
 
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar bg-surface-base">
-      <div className="max-w-7xl mx-auto p-8">
+      <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
         
         {/* Header Perspective */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
@@ -47,7 +47,7 @@ export default function DreamDashboard() {
           </div>
           <button 
             onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary/90 text-white px-6 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all shadow-xl shadow-brand-primary/20 hover:scale-[1.02] active:scale-[0.98]"
+            className="flex w-full sm:w-auto items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primary/90 text-white px-6 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all shadow-xl shadow-brand-primary/20 hover:scale-[1.02] active:scale-[0.98]"
           >
             <FiPlus size={16} /> New Ambition
           </button>

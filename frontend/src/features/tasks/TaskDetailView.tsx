@@ -192,7 +192,7 @@ export default function TaskDetailView({
 
   if (isLoading)
     return (
-      <div className="w-112.5 border-l border-white/5 bg-surface-soft p-8 space-y-6">
+      <div className="w-full md:w-96 lg:w-112.5 absolute md:relative inset-0 border-l border-white/5 bg-surface-soft p-4 sm:p-6 lg:p-8 space-y-6 z-20">
         <div className="h-8 w-32 bg-white/5 animate-pulse rounded-lg" />
         <div className="h-24 w-full bg-white/5 animate-pulse rounded-2xl" />
         <div className="h-48 w-full bg-white/5 animate-pulse rounded-2xl" />
@@ -201,13 +201,13 @@ export default function TaskDetailView({
 
   if (!task)
     return (
-      <div className="w-112.5 border-l border-white/5 bg-surface-soft p-8 flex items-center justify-center">
+      <div className="w-full md:w-96 lg:w-112.5 absolute md:relative inset-0 border-l border-white/5 bg-surface-soft p-4 sm:p-6 lg:p-8 flex items-center justify-center z-20">
         <p className="text-text-muted">Task context not found</p>
       </div>
     );
 
   return (
-    <div className="w-112.5 border-l border-white/5 bg-surface-soft flex flex-col h-full animate-in slide-in-from-right duration-500 ease-out z-20 shadow-2xl shadow-black/50">
+    <div className="w-full md:w-96 lg:w-112.5 absolute md:relative inset-0 border-l border-white/5 bg-surface-soft flex flex-col h-full animate-in slide-in-from-right duration-500 ease-out z-20 shadow-2xl shadow-black/50">
       {/* Header */}
       <div className="p-6 border-b border-white/10 flex items-center justify-between glass">
         <div className="flex items-center gap-2">
@@ -244,7 +244,7 @@ export default function TaskDetailView({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar">
         {/* Warning Toast */}
         <AnimatePresence>
           {showSubtaskWarning && (
@@ -260,7 +260,7 @@ export default function TaskDetailView({
                   <FiZap size={20} />
                 </div>
                 <div className="flex-1">
-                  <h5 className="text-sm font-black text-brand-accent uppercase tracking-[0.1em] mb-1">
+                  <h5 className="text-sm font-black text-brand-accent uppercase tracking-widest mb-1">
                     System Interlock Initialized
                   </h5>
                   <p className="text-xs text-brand-accent/80 font-bold leading-relaxed">

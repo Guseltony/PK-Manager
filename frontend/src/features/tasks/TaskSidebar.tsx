@@ -30,7 +30,7 @@ const smartLists = [
 
 export default function TaskSidebar({ activeFilter, onFilterChange }: TaskSidebarProps) {
   return (
-    <div className="w-64 flex flex-col p-4 bg-surface-soft border-r border-white/5 shrink-0">
+    <div className="hidden md:flex flex-col w-56 lg:w-64 p-4 bg-surface-soft border-r border-white/5 shrink-0">
       <div className="mb-8">
         <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted/50 px-2 mb-3">
           Status Filters

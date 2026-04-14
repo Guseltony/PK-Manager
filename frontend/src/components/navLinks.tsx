@@ -45,7 +45,7 @@ const navSections: NavSection[] = [
   },
 ];
 
-const NavLinks = () => {
+const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => {
   const pathname = usePathname();
 
   return (
@@ -66,6 +66,7 @@ const NavLinks = () => {
                 <Link
                   key={name}
                   href={href}
+                  onClick={onLinkClick}
                   className={`group relative flex cursor-pointer items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
                     isActive
                       ? "bg-brand-primary/10 text-brand-primary"

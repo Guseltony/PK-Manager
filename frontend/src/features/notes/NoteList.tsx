@@ -21,7 +21,7 @@ export default function NoteList() {
   };
 
   return (
-    <div className="flex flex-col h-full border-r border-white/5 bg-surface-soft w-80 shrink-0 overflow-hidden">
+    <div className="flex flex-col h-full md:border-r border-white/5 bg-surface-soft w-full shrink-0 overflow-hidden">
       <div className="p-4 bg-surface-base/30 border-b border-white/5">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-text-main">My Notes</h2>

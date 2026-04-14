@@ -125,9 +125,9 @@ export default function DashboardOverview() {
   ];
 
   return (
-    <div className="flex flex-col gap-8 max-w-7xl mx-auto p-8 h-full overflow-y-auto custom-scrollbar">
+    <div className="flex flex-col gap-6 lg:gap-8 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 h-full overflow-y-auto custom-scrollbar">
       {/* Header */}
-      <div className="flex items-end justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
         <div>
           <p className="text-brand-primary uppercase tracking-[0.2em] font-bold text-[10px] mb-1">
             {dayjs().format("dddd, MMMM D")}
@@ -137,16 +137,16 @@ export default function DashboardOverview() {
           </h1>
           <p className="text-text-muted mt-1 text-sm">Here&apos;s what&apos;s happening in your second brain today.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <NextLink
             href="/journal"
-            className="flex items-center gap-2 bg-white/5 hover:bg-white/10 border border-white/5 text-text-muted font-bold px-4 py-2.5 rounded-xl transition-all active:scale-[0.98] text-sm"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/5 text-text-muted font-bold px-4 py-2.5 rounded-xl transition-all active:scale-[0.98] text-sm"
           >
             <FiBookOpen /> Write
           </NextLink>
           <NextLink
             href="/tasks"
-            className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary/90 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-brand-primary/25 transition-all active:scale-[0.98] text-sm"
+            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primary/90 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-brand-primary/25 transition-all active:scale-[0.98] text-sm"
           >
             <FiPlus strokeWidth={3} /> New Task
           </NextLink>
