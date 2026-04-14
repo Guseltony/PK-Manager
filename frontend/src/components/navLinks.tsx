@@ -13,6 +13,7 @@ import {
   FiActivity,
 } from "react-icons/fi";
 import { NavLink } from "../type/type";
+import GlobalSearch from "./GlobalSearch";
 
 type NavSection = {
   label: string;
@@ -55,6 +56,10 @@ const NavLinks = () => {
 
   return (
     <nav className="flex flex-col gap-6">
+      {/* Global Search */}
+      <div className="px-1">
+        <GlobalSearch />
+      </div>
       {navSections.map(({ label, links }) => (
         <div key={label}>
           <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted/50 px-4 mb-1.5">

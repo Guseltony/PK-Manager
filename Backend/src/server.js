@@ -13,9 +13,13 @@ import tasksRoutes from "./routes/tasksRoutes.js";
 import dreamRoutes from "./routes/dreamRoutes.js";
 import ledgerRoutes from "./routes/ledgerRoutes.js";
 import journalRoutes from "./routes/journalRoutes.js";
+import { startLedgerCron } from "./jobs/ledgerCron.js";
 
-// conncet to the database
+// connect to the database
 connectDB();
+
+// Start scheduled jobs
+startLedgerCron();
 
 // setup our app
 

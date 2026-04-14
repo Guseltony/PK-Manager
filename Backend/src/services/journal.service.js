@@ -1,4 +1,5 @@
 import { prisma } from "../config/db.js";
+import { generateJournalInsights } from "./insights.service.js";
 
 /**
  * Gets the journal entry for a specific date (usually today).
@@ -70,6 +71,11 @@ export const updateJournalEntry = async (journalId, userId, data) => {
       update: { mood },
       create: { userId, date: entry.date, mood }
     });
+  }
+
+  // Trigger V3 insight engine (non-blocking)
+  if (content && content.trim().length > 50) {
+    generateJournalInsights(journalId, userId, content).catch(() => {});
   }
 
   return entry;

@@ -1,31 +1,29 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useJournal } from "../../hooks/useJournal";
+import { useJournal, useJournalTimeline } from "../../hooks/useJournal";
 import dayjs from "dayjs";
-import { FiCheck, FiSave } from "react-icons/fi";
+import { FiCheck, FiSave, FiList, FiX, FiCalendar } from "react-icons/fi";
 import { RiEmotionHappyLine, RiEmotionNormalLine, RiEmotionUnhappyLine } from "react-icons/ri";
 import { FaRegSmileBeam } from "react-icons/fa";
 
 export default function JournalLayout() {
-  const [currentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(new Date());
   const { entry, isLoading, updateEntry, isSaving } = useJournal(currentDate);
+  const { timeline, isLoading: loadingTimeline } = useJournalTimeline(30, 0);
+  
+  const [showTimeline, setShowTimeline] = useState(false);
 
-  const [content, setContent] = useState("");
-  const [mood, setMood] = useState<"great" | "good" | "neutral" | "bad" | undefined>(undefined);
+  const [localContent, setLocalContent] = useState<string | null>(null);
+  const [localMood, setLocalMood] = useState<"great" | "good" | "neutral" | "bad" | null>(null);
+  
+  const content = localContent !== null ? localContent : (entry?.content || "");
+  const mood = localMood !== null ? localMood : entry?.mood;
   
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Sync state with fetching
-  useEffect(() => {
-    if (entry) {
-      setContent(entry.content);
-      setMood(entry.mood);
-    }
-  }, [entry]);
-
   const handleContentChange = (val: string) => {
-    setContent(val);
+    setLocalContent(val);
     
     // Auto-save logic (debounce 1000ms)
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
@@ -35,7 +33,7 @@ export default function JournalLayout() {
   };
 
   const handleMoodSelect = (selectedMood: "great" | "good" | "neutral" | "bad") => {
-    setMood(selectedMood);
+    setLocalMood(selectedMood);
     if (entry) updateEntry({ id: entry.id, payload: { mood: selectedMood } });
   };
 
@@ -67,6 +65,12 @@ export default function JournalLayout() {
               <button onClick={() => handleMoodSelect("neutral")} className={`p-2 rounded-full transition-all ${mood === 'neutral' ? 'bg-blue-500/20 text-blue-500' : 'text-text-muted hover:bg-white/5'}`} title="Neutral"><RiEmotionNormalLine size={18} /></button>
               <button onClick={() => handleMoodSelect("bad")} className={`p-2 rounded-full transition-all ${mood === 'bad' ? 'bg-red-500/20 text-red-500' : 'text-text-muted hover:bg-white/5'}`} title="Bad"><RiEmotionUnhappyLine size={18} /></button>
             </div>
+            <button 
+              onClick={() => setShowTimeline(!showTimeline)} 
+              className={`p-2 transition-all rounded-xl border border-white/5 text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${showTimeline ? 'bg-brand-primary text-white' : 'bg-white/5 text-text-muted hover:text-text-main'}`}
+            >
+              <FiList /> History
+            </button>
           </div>
         </header>
 
@@ -94,11 +98,58 @@ export default function JournalLayout() {
         {!content && (
           <div className="absolute top-1/3 left-8 right-8 text-center pointer-events-none opacity-50 select-none flex flex-col gap-3">
              <p className="text-text-muted text-sm font-medium">What went well today?</p>
-             <p className="text-text-muted text-sm font-medium">What didn't go as planned?</p>
+             <p className="text-text-muted text-sm font-medium">What didn&apos;t go as planned?</p>
              <p className="text-text-muted text-sm font-medium">What did you learn?</p>
           </div>
         )}
       </div>
+
+      {/* TIMELINE SLIDEOVER */}
+      {showTimeline && (
+        <div className="absolute top-0 right-0 w-80 h-full glass border-l border-white/5 z-40 flex flex-col shadow-2xl">
+          <div className="p-6 border-b border-white/5 flex items-center justify-between">
+            <h2 className="font-display font-bold text-text-main flex items-center gap-2"><FiCalendar /> PAST JOURNALS</h2>
+            <button onClick={() => setShowTimeline(false)} className="text-text-muted hover:text-text-main"><FiX size={20} /></button>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar flex flex-col gap-2">
+            {loadingTimeline ? (
+              <p className="text-sm text-text-muted text-center pt-10">Loading history...</p>
+            ) : timeline.length === 0 ? (
+              <p className="text-sm text-text-muted text-center pt-10">No past entries yet.</p>
+            ) : (
+              timeline.map((pastEntry) => (
+                <div 
+                  key={pastEntry.id} 
+                  onClick={() => {
+                    setCurrentDate(new Date(pastEntry.date));
+                    setShowTimeline(false);
+                    setLocalContent(null);
+                    setLocalMood(null);
+                  }}
+                  className={`p-4 rounded-xl cursor-pointer transition-all border ${
+                    dayjs(currentDate).format("YYYY-MM-DD") === dayjs(pastEntry.date).format("YYYY-MM-DD") 
+                      ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary' 
+                      : 'bg-white/5 border-white/5 hover:bg-white/10 text-text-main'
+                  }`}
+                >
+                  <p className="font-bold text-sm mb-1">{dayjs(pastEntry.date).format("MMM D, YYYY")}</p>
+                  <p className="text-xs text-text-muted line-clamp-2 leading-relaxed">
+                    {pastEntry.content || "Empty entry..."}
+                  </p>
+                  {pastEntry.mood && (
+                    <div className="mt-2 flex items-center gap-1 opacity-70">
+                       {pastEntry.mood === 'great' && <span className="text-amber-500 text-[10px] uppercase font-bold tracking-widest leading-none">Great</span>}
+                       {pastEntry.mood === 'good' && <span className="text-emerald-500 text-[10px] uppercase font-bold tracking-widest leading-none">Good</span>}
+                       {pastEntry.mood === 'neutral' && <span className="text-blue-500 text-[10px] uppercase font-bold tracking-widest leading-none">Neutral</span>}
+                       {pastEntry.mood === 'bad' && <span className="text-red-500 text-[10px] uppercase font-bold tracking-widest leading-none">Bad</span>}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

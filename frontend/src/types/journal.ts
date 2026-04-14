@@ -1,3 +1,19 @@
+export interface JournalInsight {
+  id: string;
+  journalId: string;
+  message: string;
+  type: string;
+  createdAt: string;
+}
+
+export interface JournalTaskMention {
+  id: string;
+  journalId: string;
+  extractedText: string;
+  suggestedTask: boolean;
+  createdAt: string;
+}
+
 export interface JournalEntry {
   id: string;
   date: string;
@@ -7,8 +23,8 @@ export interface JournalEntry {
     high?: string;
     low?: string;
   };
-  insights: any[];
-  mentions: any[];
+  insights: JournalInsight[];
+  mentions: JournalTaskMention[];
   createdAt: string;
   updatedAt: string;
 }
