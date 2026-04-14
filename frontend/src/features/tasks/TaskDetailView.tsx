@@ -56,12 +56,13 @@ export default function TaskDetailView({
   const [isEditingDesc, setIsEditingDesc] = useState(false);
   const [showDurationPrompt, setShowDurationPrompt] = useState(false);
 
-  useEffect(() => {
-    if (task) {
-      setLocalPriority(task.priority);
-      setLocalDescription(task.description || "");
-    }
-  }, [task]);
+  const [prevTaskId, setPrevTaskId] = useState<string | null>(null);
+
+  if (task && task.id !== prevTaskId) {
+    setPrevTaskId(task.id);
+    setLocalPriority(task.priority);
+    setLocalDescription(task.description || "");
+  }
 
   const handleStatusToggle = () => {
     if (!task) return;
