@@ -1,4 +1,4 @@
-import LedgerDashboard from "@/features/ledger/LedgerDashboard";
+import LedgerDashboard from "@/src/features/ledger/LedgerDashboard";
 import { Metadata } from "next";
 
 export const metadata: Metadata = {

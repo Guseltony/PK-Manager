@@ -3,7 +3,7 @@
 import { useLedger } from "../../hooks/useLedger";
 import { useState } from "react";
 import { FiActivity, FiClock, FiDownload, FiFilter, FiList } from "react-icons/fi";
-import { format } from "date-fns";
+import dayjs from "dayjs";
 
 export default function LedgerDashboard() {
   const { logs, summaries, isLoading } = useLedger();
@@ -70,8 +70,10 @@ export default function LedgerDashboard() {
                   <tr>
                     <th className="p-4 pl-6">Completed Time</th>
                     <th className="p-4">Task Title</th>
+                    <th className="p-4">Goal (Dream)</th>
                     <th className="p-4">Priority</th>
                     <th className="p-4">Tags</th>
+                    <th className="p-4">Note Link</th>
                     <th className="p-4">Duration</th>
                   </tr>
                 </thead>
@@ -79,10 +81,18 @@ export default function LedgerDashboard() {
                   {logs.map((log) => (
                     <tr key={log.id} className="hover:bg-white/[0.02] transition-colors group">
                       <td className="p-4 pl-6 text-sm text-text-muted whitespace-nowrap">
-                        {format(new Date(log.completedAt), "MMM d, HH:mm")}
+                        {dayjs(log.completedAt).format("MMM D, HH:mm")}
                       </td>
                       <td className="p-4 font-bold text-text-main">
                         {log.title}
+                      </td>
+                      <td className="p-4 text-sm text-text-muted">
+                         {log.dream ? (
+                           <span className="flex flex-col">
+                             <span className="text-text-main font-medium">{log.dream.title}</span>
+                             {log.dream.category && <span className="text-[10px] uppercase opacity-70">{log.dream.category}</span>}
+                           </span>
+                         ) : '-'}
                       </td>
                       <td className="p-4">
                         <span className={`text-[10px] px-2 py-1 rounded-full border uppercase tracking-widest font-black ${
@@ -102,6 +112,9 @@ export default function LedgerDashboard() {
                             </span>
                           ))}
                         </div>
+                      </td>
+                      <td className="p-4 text-sm text-text-muted">
+                        {log.note ? <span className="hover:text-brand-primary cursor-pointer line-clamp-1">{log.note.title}</span> : '-'}
                       </td>
                       <td className="p-4 font-mono text-sm text-brand-accent">
                         {log.duration ? `${log.duration}m` : '-'}

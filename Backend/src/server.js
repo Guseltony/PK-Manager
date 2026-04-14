@@ -11,6 +11,7 @@ import cookieParser from "cookie-parser";
 import userRoutes from "./routes/userRoutes.js";
 import tasksRoutes from "./routes/tasksRoutes.js";
 import dreamRoutes from "./routes/dreamRoutes.js";
+import ledgerRoutes from "./routes/ledgerRoutes.js";
 
 // conncet to the database
 connectDB();
@@ -37,9 +38,9 @@ app.use("/auth", authRoute);
 app.use("/note", authMiddleware, noteRoutes);
 app.use("/tag", authMiddleware, tagRoutes);
 app.use("/task", authMiddleware, tasksRoutes);
-// app.use("/user", authMiddleware, userRoutes);
 app.use("/user", userRoutes);
 app.use("/dream", authMiddleware, dreamRoutes);
+app.use("/ledger", authMiddleware, ledgerRoutes);
 
 // port and listening
 

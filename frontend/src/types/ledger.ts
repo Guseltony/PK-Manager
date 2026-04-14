@@ -10,6 +10,8 @@ export interface TaskCompletionLog {
   noteId?: string;
   completedAt: string;
   createdAt: string;
+  dream?: { title: string; category?: string };
+  note?: { title: string };
 }
 
 export interface DailySummary {
