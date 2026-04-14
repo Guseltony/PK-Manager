@@ -46,6 +46,9 @@ model User {
   session  Session[]
   tasks    Task[]
   dreams   Dream[]
+  taskLogs TaskCompletionLog[]
+  dailySummaries DailySummary[]
+  productivityInsights ProductivityInsight[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -77,6 +80,7 @@ model Note {
   tasks      Task[]
   dreamId    String?
   dream      Dream?    @relation(fields: [dreamId], references: [id], onDelete: SetNull)
+  taskLogs   TaskCompletionLog[]
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 }
@@ -151,6 +155,7 @@ model Task {
   
   subtasks    Subtask[]
   activities  TaskActivity[]
+  taskLogs    TaskCompletionLog[]
   
   startDate   DateTime? @default(now())
   duration    Int?      @default(1) // in days
@@ -191,6 +196,7 @@ model Dream {
   milestones  DreamMilestone[]
   insights    DreamInsight[]
   activities  DreamActivity[]
+  taskLogs    TaskCompletionLog[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -235,4 +241,64 @@ model TaskActivity {
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   action    String   // created, updated, completed
   timestamp DateTime @default(now())
+}
+
+// ==========================================
+// 📊 TASK LEDGER SYSTEM (EXECUTION LOG)
+// ==========================================
+
+model TaskCompletionLog {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  taskId      String?  // nullable if task was deleted, but we keep the log
+  task        Task?    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  title       String
+  description String?
+  priority    Priority @default(medium)
+  
+  duration    Int?     // in minutes
+  tags        String[]
+  
+  goalId      String?
+  dream       Dream?   @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  noteId      String?
+  note        Note?    @relation(fields: [noteId], references: [id], onDelete: SetNull)
+
+  completedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([userId, completedAt])
+}
+
+model DailySummary {
+  id                String   @id @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  date              DateTime // Store as standardized midnight UTC date
+  
+  totalTasks        Int      @default(0)
+  completedTasks    Int      @default(0)
+  totalDuration     Int?     @default(0)
+  
+  productivityScore Float?   @default(0)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([userId, date])
+}
+
+model ProductivityInsight {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type        String   // pattern, warning, suggestion, achievement
+  message     String
+  
+  createdAt   DateTime @default(now())
 }

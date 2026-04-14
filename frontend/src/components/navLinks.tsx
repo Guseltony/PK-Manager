@@ -10,6 +10,7 @@ import {
   FiBook,
   FiCheckSquare,
   FiStar,
+  FiActivity,
 } from "react-icons/fi";
 import { NavLink } from "../type/type";
 
@@ -38,6 +39,7 @@ const navSections: NavSection[] = [
     label: "Execution",
     links: [
       { href: "/tasks", name: "tasks", icon: FiCheckSquare },
+      { href: "/ledger", name: "ledger", icon: FiActivity },
     ],
   },
   {
