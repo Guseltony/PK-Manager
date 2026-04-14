@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { FiSearch, FiFileText, FiCheckSquare, FiTarget, FiBookOpen, FiActivity } from "react-icons/fi";
@@ -32,7 +32,6 @@ export default function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [cursor, setCursor] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
   const { notes } = useNotes();
@@ -44,7 +43,14 @@ export default function GlobalSearch() {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "k") {
         e.preventDefault();
-        setOpen((prev) => !prev);
+        setOpen((prev) => {
+          if (!prev) {
+            // Reset when opening via keyboard
+            setQuery("");
+            setCursor(0);
+          }
+          return !prev;
+        });
       }
       if (e.key === "Escape") setOpen(false);
     };
@@ -52,35 +58,54 @@ export default function GlobalSearch() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-  useEffect(() => {
-    if (open) {
-      setQuery("");
-      setCursor(0);
-      setTimeout(() => inputRef.current?.focus(), 80);
-    }
-  }, [open]);
 
-  const results: SearchResult[] = useCallback(() => {
+  const results: SearchResult[] = useMemo(() => {
     if (!query.trim()) return [];
     const q = query.toLowerCase();
 
     const noteResults: SearchResult[] = (notes as Note[])
-      .filter((n) => n.title?.toLowerCase().includes(q) || n.tags?.some((t) => t.toLowerCase().includes(q)))
+      .filter(
+        (n) =>
+          n.title?.toLowerCase().includes(q) ||
+          n.tags?.some((t) => t.toLowerCase().includes(q)),
+      )
       .slice(0, 4)
-      .map((n) => ({ id: n.id, type: "note", title: n.title || "Untitled", subtitle: n.tags.join(", "), href: `/notes/${n.id}` }));
+      .map((n) => ({
+        id: n.id,
+        type: "note",
+        title: n.title || "Untitled",
+        subtitle: n.tags.join(", "),
+        href: `/notes/${n.id}`,
+      }));
 
     const taskResults: SearchResult[] = (tasks as Task[])
       .filter((t) => t.title?.toLowerCase().includes(q))
       .slice(0, 4)
-      .map((t) => ({ id: t.id, type: "task", title: t.title, subtitle: `${t.status} · ${t.priority}`, href: `/tasks` }));
+      .map((t) => ({
+        id: t.id,
+        type: "task",
+        title: t.title,
+        subtitle: `${t.status} · ${t.priority}`,
+        href: `/tasks`,
+      }));
 
     const dreamResults: SearchResult[] = (dreams as Dream[])
-      .filter((d) => d.title?.toLowerCase().includes(q) || d.category?.toLowerCase().includes(q))
+      .filter(
+        (d) =>
+          d.title?.toLowerCase().includes(q) ||
+          d.category?.toLowerCase().includes(q),
+      )
       .slice(0, 3)
-      .map((d) => ({ id: d.id, type: "dream", title: d.title, subtitle: d.category, href: `/dreams/${d.id}` }));
+      .map((d) => ({
+        id: d.id,
+        type: "dream",
+        title: d.title,
+        subtitle: d.category,
+        href: `/dreams/${d.id}`,
+      }));
 
     return [...noteResults, ...taskResults, ...dreamResults];
-  }, [query, notes, tasks, dreams])();
+  }, [query, notes, tasks, dreams]);
 
   // Navigate results with keyboard
   useEffect(() => {
@@ -101,12 +126,20 @@ export default function GlobalSearch() {
     <>
       {/* Trigger Button (visible in sidebar) */}
       <button
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          setOpen(true);
+          setQuery("");
+          setCursor(0);
+        }}
         className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-text-muted text-sm transition-all border border-white/5 group"
       >
         <FiSearch className="text-text-muted group-hover:text-brand-primary transition-colors" />
-        <span className="flex-1 text-left opacity-60 text-xs">Search everything...</span>
-        <kbd className="text-[10px] bg-white/10 border border-white/10 px-1.5 py-0.5 rounded font-mono opacity-50">⌘K</kbd>
+        <span className="flex-1 text-left opacity-60 text-xs">
+          Search everything...
+        </span>
+        <kbd className="text-[10px] bg-white/10 border border-white/10 px-1.5 py-0.5 rounded font-mono opacity-50">
+          ⌘K
+        </kbd>
       </button>
 
       {/* Modal */}
@@ -125,20 +158,26 @@ export default function GlobalSearch() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: -20 }}
               transition={{ duration: 0.15 }}
-              className="fixed top-24 left-1/2 -translate-x-1/2 w-full max-w-xl z-50 glass border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+              className="-translate-x-1/2 fixed top-24 left-1/2 w-full max-w-xl z-50 glass border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
             >
               {/* Search Input */}
               <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5">
                 <FiSearch className="text-text-muted flex-shrink-0" size={18} />
                 <input
-                  ref={inputRef}
+                  autoFocus
                   value={query}
-                  onChange={(e) => { setQuery(e.target.value); setCursor(0); }}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setCursor(0);
+                  }}
                   placeholder="Search notes, tasks, goals..."
                   className="flex-1 bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/40 text-base"
                 />
                 {query && (
-                  <button onClick={() => setQuery("")} className="text-text-muted hover:text-text-main text-xs border border-white/10 px-2 py-0.5 rounded">
+                  <button
+                    onClick={() => setQuery("")}
+                    className="text-text-muted hover:text-text-main text-xs border border-white/10 px-2 py-0.5 rounded"
+                  >
                     Clear
                   </button>
                 )}
@@ -148,7 +187,9 @@ export default function GlobalSearch() {
               <div className="max-h-80 overflow-y-auto custom-scrollbar">
                 {query.trim() === "" ? (
                   <div className="px-5 py-8 text-center">
-                    <p className="text-text-muted text-sm">Type to search across all your notes, tasks, and goals.</p>
+                    <p className="text-text-muted text-sm">
+                      Type to search across all your notes, tasks, and goals.
+                    </p>
                     <div className="flex justify-center gap-6 mt-4 text-[10px] text-text-muted/60 uppercase tracking-widest">
                       <span>↑↓ Navigate</span>
                       <span>↩ Open</span>
@@ -159,30 +200,45 @@ export default function GlobalSearch() {
                   <div className="px-5 py-8 text-center text-text-muted text-sm">
                     No results for &quot;{query}&quot;
                   </div>
-                ) : results.map((result, i) => {
-                  const config = typeConfig[result.type];
-                  const Icon = config.icon;
-                  return (
-                    <div
-                      key={result.id}
-                      onClick={() => { router.push(result.href); setOpen(false); }}
-                      className={`flex items-center gap-4 px-5 py-3.5 cursor-pointer transition-colors ${
-                        i === cursor ? "bg-white/10" : "hover:bg-white/5"
-                      }`}
-                    >
-                      <div className={`w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 ${config.color}`}>
-                        <Icon size={16} />
+                ) : (
+                  results.map((result, i) => {
+                    const config = typeConfig[result.type];
+                    const Icon = config.icon;
+                    return (
+                      <div
+                        key={result.id}
+                        onClick={() => {
+                          router.push(result.href);
+                          setOpen(false);
+                        }}
+                        className={`flex items-center gap-4 px-5 py-3.5 cursor-pointer transition-colors ${
+                          i === cursor ? "bg-white/10" : "hover:bg-white/5"
+                        }`}
+                      >
+                        <div
+                          className={`w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 ${config.color}`}
+                        >
+                          <Icon size={16} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-text-main truncate">
+                            {result.title}
+                          </p>
+                          {result.subtitle && (
+                            <p className="text-xs text-text-muted truncate">
+                              {result.subtitle}
+                            </p>
+                          )}
+                        </div>
+                        <span
+                          className={`text-[10px] uppercase tracking-widest font-bold ${config.color} opacity-60`}
+                        >
+                          {config.label}
+                        </span>
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-text-main truncate">{result.title}</p>
-                        {result.subtitle && <p className="text-xs text-text-muted truncate">{result.subtitle}</p>}
-                      </div>
-                      <span className={`text-[10px] uppercase tracking-widest font-bold ${config.color} opacity-60`}>
-                        {config.label}
-                      </span>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             </motion.div>
           </>

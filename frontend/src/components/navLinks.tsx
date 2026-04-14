@@ -5,13 +5,7 @@ import { usePathname } from "next/navigation";
 import { BiSolidDashboard, BiSolidNotepad } from "react-icons/bi";
 import { BsFillTagFill } from "react-icons/bs";
 import { IoMdArchive } from "react-icons/io";
-import {
-  FiTarget,
-  FiBook,
-  FiCheckSquare,
-  FiStar,
-  FiActivity,
-} from "react-icons/fi";
+import { FiBook, FiCheckSquare, FiStar, FiActivity } from "react-icons/fi";
 import { NavLink } from "../type/type";
 import GlobalSearch from "./GlobalSearch";
 

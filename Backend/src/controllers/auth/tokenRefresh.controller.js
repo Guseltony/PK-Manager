@@ -1,31 +1,36 @@
 import { buildAuthCookies, setAuthCookies } from "../../libs/cookie.option.js";
 import { refreshToken } from "../../services/refresh.service.js";
-import {
-  getAccessTokenCookieOptions,
-  getCsrfTokenCookieOptions,
-  getRefreshTokenCookieOptions,
-} from "../../utils/cookie.utils.js";
 import { fetchUsrIpandAgent } from "../../utils/userAgent.ip.js";
 
 export const refresh = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
 
-    console.log(":", token);
+    if (!token) {
+      return res.status(401).json({ error: "No refresh token present." });
+    }
 
     const { userAgent, ip } = await fetchUsrIpandAgent(req);
-
-    if (!token) {
-      throw new Error("cookies token missing");
-    }
 
     const refreshTokens = await refreshToken(token, userAgent, ip);
 
     if (!refreshTokens) {
-      res.status(400).json({
-        error: "Error encounteres when refreshing the token",
-      });
-      // throw new Error("Unable to access the session");
+      return res.status(401).json({ error: "Unable to access the session." });
+    }
+
+    // Handle explicit status cases from refresh service (reuse detection, expiry)
+    if (refreshTokens.status === "REUSE_DETECTED") {
+      res.clearCookie("refreshToken");
+      res.clearCookie("accessToken");
+      res.clearCookie("csrf");
+      return res.status(401).json({ error: "Token reuse detected. All sessions revoked." });
+    }
+
+    if (refreshTokens.status === "INVALID SESSION") {
+      res.clearCookie("refreshToken");
+      res.clearCookie("accessToken");
+      res.clearCookie("csrf");
+      return res.status(401).json({ error: "Session expired. Please sign in again." });
     }
 
     const {
@@ -43,27 +48,23 @@ export const refresh = async (req, res) => {
     });
 
     if (!cookiesToken) {
-      throw new Error("invalid");
+      return res.status(500).json({ error: "Failed to build auth cookies." });
     }
 
     await setAuthCookies(res, cookiesToken);
 
-    console.log("new access token send to the frontend:", newAccessToken);
-
-    // res.cookie("refreshToken", newRefreshToken, getRefreshTokenCookieOptions());
-
-    // res.cookie("accessToken", newAccessToken, getAccessTokenCookieOptions());
-
-    // res.cookie("csrf", newCsrfToken, getCsrfTokenCookieOptions());
-
-    res.status(200).json({
+    return res.status(200).json({
       status: "success",
-      message: "token refresh and rotated",
-      oldSession: oldSession,
+      message: "token refreshed and rotated",
+      oldSession,
       newSession,
       csrfToken: newCsrfToken,
     });
   } catch (error) {
-    throw new Error(error);
+    // ✅ Never throw — always return a proper HTTP error response
+    console.error("[TokenRefresh] Error:", error.message);
+    return res.status(401).json({
+      error: "Session expired or compromised. Please sign in again.",
+    });
   }
 };
