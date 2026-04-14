@@ -45,6 +45,54 @@ model User {
   tag      Tag[]
   session  Session[]
   tasks    Task[]
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// enum Roles {
+//   admin
+//   user
+// }
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+}
+
+model User {
+  id    String @id @default(uuid())
+  name  String @default("Anonymous")
+  email String @unique
+
+  // 🔐 AUTH
+  password String? // made optional (for Google users)
+  provider AuthProvider @default(EMAIL)
+  googleId String?      @unique
+
+  // ✅ VERIFICATION
+  emailVerified Boolean   @default(false)
+  verifiedAt    DateTime?
+
+  // 🧠 OPTIONAL PROFILE
+  username String?
+  avatar   String?
+
+  // 🔗 RELATIONS
+  notes    Note[]
+  tag      Tag[]
+  session  Session[]
+  tasks    Task[]
   dreams   Dream[]
 
   createdAt DateTime @default(now())
@@ -75,6 +123,8 @@ model Note {
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   tags       NoteTag[]
   tasks      Task[]
+  dreamId    String?
+  dream      Dream?    @relation(fields: [dreamId], references: [id], onDelete: SetNull)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 }
@@ -114,6 +164,12 @@ enum Priority {
   urgent
 }
 
+enum DreamStatus {
+  active
+  paused
+  completed
+}
+
 model Task {
   id          String   @id @default(uuid())
   title       String
@@ -142,7 +198,7 @@ model Task {
   completedAt DateTime?
   
   subtasks    Subtask[]
-  activities  ActivityLog[]
+  activities  TaskActivity[]
   
   startDate   DateTime? @default(now())
   duration    Int?      @default(1) // in days
@@ -165,15 +221,63 @@ model Dream {
   id          String   @id @default(uuid())
   title       String
   description String?
-  progress    Float    @default(0)
+  
+  status      DreamStatus @default(active)
+  category    String?
+  priority    Priority    @default(medium)
+  
+  targetDate  DateTime?
+  progress    Float       @default(0)
+  healthScore Float       @default(100)
+  aiScore     Float?
+  
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   tasks       Task[]
+  notes       Note[]
+  milestones  DreamMilestone[]
+  insights    DreamInsight[]
+  activities  DreamActivity[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+model DreamMilestone {
+  id          String   @id @default(uuid())
+  dreamId     String
+  dream       Dream    @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  completed   Boolean  @default(false)
+  weight      Float    @default(1)
+  targetDate  DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
-model ActivityLog {
+model DreamInsight {
+  id          String   @id @default(uuid())
+  dreamId     String
+  dream       Dream    @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  message     String
+  type        String   // warning, suggestion, progress, prediction
+  createdAt   DateTime @default(now())
+}
+
+model DreamActivity {
+  id          String   @id @default(uuid())
+  dreamId     String
+  dream       Dream    @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  action      String   // created, updated, progress_updated, milestone_completed
+  metadata    Json?
+  createdAt   DateTime @default(now())
+}
+
+model TaskActivity {
   id        String   @id @default(uuid())
   taskId    String
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)

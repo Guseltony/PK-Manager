@@ -28,17 +28,16 @@ const navSections: NavSection[] = [
     ],
   },
   {
-    label: "Productivity",
+    label: "Strategic",
     links: [
-      { href: "/tasks", name: "tasks", icon: FiCheckSquare },
-      { href: "/goals", name: "goals", icon: FiTarget },
+      { href: "/dreams", name: "dreams", icon: FiStar },
+      { href: "/journal", name: "journal", icon: FiBook },
     ],
   },
   {
-    label: "Reflect",
+    label: "Execution",
     links: [
-      { href: "/journal", name: "journal", icon: FiBook },
-      { href: "/dreams", name: "dreams", icon: FiStar },
+      { href: "/tasks", name: "tasks", icon: FiCheckSquare },
     ],
   },
   {

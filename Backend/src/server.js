@@ -10,6 +10,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import userRoutes from "./routes/userRoutes.js";
 import tasksRoutes from "./routes/tasksRoutes.js";
+import dreamRoutes from "./routes/dreamRoutes.js";
 
 // conncet to the database
 connectDB();
@@ -38,6 +39,7 @@ app.use("/tag", authMiddleware, tagRoutes);
 app.use("/task", authMiddleware, tasksRoutes);
 // app.use("/user", authMiddleware, userRoutes);
 app.use("/user", userRoutes);
+app.use("/dream", authMiddleware, dreamRoutes);
 
 // port and listening
 
