@@ -33,7 +33,8 @@ export const validateRequest = (schema, property = "body") => {
         .map((err) => err._errors)
         .flat();
 
-      console.log("Validation error:", flatErrors);
+      console.log("Validation error:", JSON.stringify(flatErrors, null, 2));
+      console.log("Request Body:", JSON.stringify(req[property], null, 2));
 
       return res.status(400).json({ message: flatErrors.join(", ") });
     }

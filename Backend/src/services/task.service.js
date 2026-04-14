@@ -1,7 +1,7 @@
 import { prisma } from "../config/db.js";
 
 export const taskCreation = async (data, userId) => {
-  const { title, description, status, priority, dueDate, startDate, duration, estimatedTime, tags, noteId, dreamId } = data;
+  const { title, description, status, priority, dueDate, tags, noteId, dreamId } = data;
   
   return await prisma.task.create({
     data: {
@@ -10,9 +10,6 @@ export const taskCreation = async (data, userId) => {
       status: status || "todo",
       priority: priority || "medium",
       dueDate: dueDate ? new Date(dueDate) : null,
-      startDate: startDate ? new Date(startDate) : new Date(),
-      duration: duration || 1,
-      estimatedTime,
       tags: tags || [],
       userId,
       noteId,
@@ -31,7 +28,7 @@ export const taskCreation = async (data, userId) => {
 };
 
 export const getUserTasks = async (userId, filters = {}) => {
-  const { status, priority, tag, dreamId, noteId, today, focus } = filters;
+  const { status, priority, tag, dreamId, noteId, today, upcoming, overdue, focus } = filters;
   
   const where = {
     userId,
@@ -43,35 +40,35 @@ export const getUserTasks = async (userId, filters = {}) => {
   if (dreamId) where.dreamId = dreamId;
   if (noteId) where.noteId = noteId;
 
+  const now = new Date();
+  const startOfToday = new Date(now.setHours(0, 0, 0, 0));
+  const endOfToday = new Date(now.setHours(23, 59, 59, 999));
+
   if (today) {
-    const now = new Date();
-    const startOfToday = new Date(now.setHours(0, 0, 0, 0));
-    const endOfToday = new Date(now.setHours(23, 59, 59, 999));
-    
-    // Task is "today" if it covers today's date range
     where.OR = [
-      // Spanning tasks: startDate <= todayEnd AND (Calculated End Date) >= todayStart
-      {
+      { dueDate: { gte: startOfToday, lte: endOfToday } },
+      { 
         AND: [
           { startDate: { lte: endOfToday } },
-          { 
-            // This is a bit complex for Prisma without a stored field, 
-            // but we can approximate or just check status
-            status: { not: "done" } 
-          }
+          { status: { not: "done" } }
         ]
-      },
-      // Traditional dueDate tasks
-      { dueDate: { gte: startOfToday, lte: endOfToday } }
+      }
+    ];
+  } else if (upcoming) {
+    where.AND = [
+      { dueDate: { gt: endOfToday } },
+      { status: { not: "done" } }
+    ];
+  } else if (overdue) {
+    where.AND = [
+      { dueDate: { lt: startOfToday } },
+      { status: { not: "done" } }
     ];
   }
 
-  if (focus) {
-    where.aiScore = { gte: 0.7 };
-  }
-
-  if (filters["high-priority"]) {
+  if (focus || filters["high-priority"]) {
     where.priority = { in: ["high", "urgent"] };
+    where.status = { not: "done" };
   }
 
   return await prisma.task.findMany({
@@ -86,7 +83,8 @@ export const getUserTasks = async (userId, filters = {}) => {
       },
     },
     orderBy: [
-      { aiScore: "desc" },
+      { priority: "desc" },
+      { dueDate: "asc" },
       { createdAt: "desc" },
     ],
   });

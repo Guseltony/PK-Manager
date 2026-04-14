@@ -26,26 +26,32 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // If 401 Unauthorized and not already retrying
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
+    if (error.response?.status === 401 && !originalRequest?._retry) {
+      if (originalRequest) originalRequest._retry = true;
       try {
-        // Use the base axios instance to avoid recursive loops
+        // Use a clean axios instance for refresh to avoid interceptor loops
         const { data } = await axios.post(`${BACKEND_URL}/auth/refresh`, {}, { withCredentials: true });
         
         if (data.csrfToken) {
           setManualCsrfToken(data.csrfToken);
         }
         
-        // Update headers on the original request
-        if (originalRequest.headers) {
-          originalRequest.headers["x-csrf-token"] = localStorage.getItem("csrf-token") || "";
-        }
+        const token = localStorage.getItem("csrf-token") || "";
         
-        // Retry the original request using the base axios instance
-        return axios(originalRequest);
+        // Re-issue the original request using the axios base instance for maximum stability
+        return axios({
+          method: originalRequest.method,
+          url: originalRequest.baseURL ? `${originalRequest.baseURL}${originalRequest.url}` : originalRequest.url,
+          data: originalRequest.data,
+          params: originalRequest.params,
+          headers: {
+            ...originalRequest.headers,
+            "x-csrf-token": token,
+          },
+          withCredentials: true,
+        });
       } catch (refreshError) {
         console.error("Token refresh failed:", refreshError);
-        // Optional: Redirect to login if refresh fails
         if (typeof window !== "undefined") {
           window.location.href = "/sign-in";
         }

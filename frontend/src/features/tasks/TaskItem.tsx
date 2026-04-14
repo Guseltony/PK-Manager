@@ -9,6 +9,8 @@ import {
   FiStar,
   FiFlag,
 } from "react-icons/fi";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTasks } from "../../hooks/useTasks";
 
 interface TaskItemProps {
@@ -27,10 +29,26 @@ const priorityColors = {
 export default function TaskItem({ task, isSelected, onClick }: TaskItemProps) {
   const { updateTask } = useTasks();
 
+  const [showWarning, setShowWarning] = useState(false);
+
   const handleToggleStatus = (e: React.MouseEvent) => {
     e.stopPropagation();
-    const newStatus = task.status === "done" ? "todo" : "done";
-    updateTask({ id: task.id, updates: { status: newStatus } });
+    if (isDone) {
+      updateTask({ id: task.id, updates: { status: "todo" } });
+      return;
+    }
+    
+    // Subtask check
+    if (task.subtasks && task.subtasks.length > 0) {
+      const incompleteSubtasks = task.subtasks.filter(s => s.status !== "done");
+      if (incompleteSubtasks.length > 0) {
+        setShowWarning(true);
+        setTimeout(() => setShowWarning(false), 3000);
+        return;
+      }
+    }
+
+    updateTask({ id: task.id, updates: { status: "done" } });
   };
 
   const isDone = task.status === "done";
@@ -42,8 +60,22 @@ export default function TaskItem({ task, isSelected, onClick }: TaskItemProps) {
         isSelected
           ? "bg-brand-primary/5 border-brand-primary/30 shadow-xl shadow-brand-primary/5 scale-[1.02] z-10"
           : "bg-surface-soft/50 border-white/5 hover:border-white/10 hover:bg-white/5 active:scale-[0.99]"
-      }`}
+      } ${showWarning ? "border-brand-accent/50 bg-brand-accent/5" : ""}`}
     >
+      <AnimatePresence>
+        {showWarning && (
+          <motion.div
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 20, opacity: 0 }}
+            className="absolute inset-0 bg-brand-accent/90 backdrop-blur-sm flex items-center justify-center z-50 px-4"
+          >
+            <p className="text-[10px] font-black text-white uppercase tracking-[0.2em] text-center">
+              Finish Subtasks First
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Selection Indicator */}
       {isSelected && (
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-brand-primary shadow-[0_0_15px_rgba(99,102,241,0.5)]" />

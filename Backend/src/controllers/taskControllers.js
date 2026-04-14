@@ -11,9 +11,12 @@ import {
 
 export const createNewTask = async (req, res) => {
   try {
+    console.log("DEBUG: createNewTask body:", JSON.stringify(req.body, null, 2));
+    console.log("DEBUG: createNewTask user:", req.user.id);
     const task = await taskCreation(req.body, req.user.id);
     res.status(201).json({ data: task });
   } catch (error) {
+    console.error("DEBUG: createNewTask error:", error);
     res.status(400).json({ error: error.message });
   }
 };

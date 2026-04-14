@@ -15,6 +15,8 @@ export function useTasks(activeFilter = "all") {
       const params: Record<string, string | boolean> = {};
       if (activeFilter === "completed") params.status = "done";
       else if (activeFilter === "today") params.today = true;
+      else if (activeFilter === "upcoming") params.upcoming = true;
+      else if (activeFilter === "overdue") params.overdue = true;
       else if (activeFilter === "focus") params.focus = true;
       else if (activeFilter === "high-priority") params["high-priority"] = true;
       else if (activeFilter !== "all") {

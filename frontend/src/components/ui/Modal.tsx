@@ -41,7 +41,7 @@ export default function Modal({
   return createPortal(
     <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
       <div
-        className="relative w-full max-w-md bg-surface-base border border-white/10 rounded-3xl shadow-2xl shadow-black/50 overflow-hidden animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
+        className="relative w-full max-w-md bg-surface-base border border-white/10 rounded-3xl shadow-2xl shadow-black/50 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

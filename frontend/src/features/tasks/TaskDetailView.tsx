@@ -42,13 +42,16 @@ export default function TaskDetailView({
     deleteTask, 
     addSubtask, 
     updateSubtask, 
-    deleteSubtask 
+    deleteSubtask,
+    isUpdating,
+    isDeleting
   } = useTasks();
   const { tags: allTags } = useTags();
   
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showSubtaskPrompt, setShowSubtaskPrompt] = useState(false);
   const [showTagPrompt, setShowTagPrompt] = useState(false);
+  const [showSubtaskWarning, setShowSubtaskWarning] = useState(false);
 
   const [localPriority, setLocalPriority] = useState<Priority | null>(null);
   const [isCycling, setIsCycling] = useState(false);
@@ -57,6 +60,8 @@ export default function TaskDetailView({
   const [showDurationPrompt, setShowDurationPrompt] = useState(false);
 
   const [prevTaskId, setPrevTaskId] = useState<string | null>(null);
+
+  const isCompleted = task?.status === "done";
 
   if (task && task.id !== prevTaskId) {
     setPrevTaskId(task.id);
@@ -68,11 +73,38 @@ export default function TaskDetailView({
     if (!task) return;
     const currentIndex = statuses.indexOf(task.status);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
+    
+    // Check for incomplete subtasks if trying to complete the task
+    if (nextStatus === "done" && task.subtasks && task.subtasks.length > 0) {
+      const incompleteSubtasks = task.subtasks.filter(s => s.status !== "done");
+      if (incompleteSubtasks.length > 0) {
+        setShowSubtaskWarning(true);
+        return;
+      }
+    }
+    
+    setShowSubtaskWarning(false);
     updateTask({ id: task.id, updates: { status: nextStatus } });
   };
 
+  const handleMarkDone = () => {
+    if (!task || isCompleted) return;
+    
+    // Check for incomplete subtasks
+    if (task.subtasks && task.subtasks.length > 0) {
+      const incompleteSubtasks = task.subtasks.filter(s => s.status !== "done");
+      if (incompleteSubtasks.length > 0) {
+        setShowSubtaskWarning(true);
+        return;
+      }
+    }
+    
+    setShowSubtaskWarning(false);
+    updateTask({ id: task.id, updates: { status: "done" } });
+  };
+
   const handlePriorityCycle = () => {
-    if (!task || !localPriority) return;
+    if (!task || !localPriority || isCompleted) return;
     setIsCycling(true);
     const currentIndex = priorities.indexOf(localPriority);
     const nextPriority = priorities[(currentIndex + 1) % priorities.length];
@@ -88,37 +120,39 @@ export default function TaskDetailView({
   };
 
   const handleAddTag = (tagName: string) => {
-    if (!task) return;
+    if (!task || isCompleted) return;
     if (!task.tags.includes(tagName)) {
       updateTask({ id: task.id, updates: { tags: [...task.tags, tagName] } });
     }
   };
 
   const handleRemoveTag = (tagName: string) => {
-    if (!task) return;
+    if (!task || isCompleted) return;
     updateTask({ id: task.id, updates: { tags: task.tags.filter(t => t !== tagName) } });
   };
 
   const handleSubtaskToggle = (subtaskId: string, currentStatus: string) => {
-    if (!task) return;
+    if (!task || isCompleted) return;
     const nextStatus = currentStatus === "done" ? "todo" : "done";
     updateSubtask({ taskId, subtaskId, updates: { status: nextStatus } });
   };
 
   const handleSubtaskDelete = (subtaskId: string) => {
-    if (!task) return;
+    if (!task || isCompleted) return;
     if (confirm("Delete this step?")) {
       deleteSubtask({ taskId, subtaskId });
     }
   };
 
   const handleDelete = () => {
+    if (isCompleted) return;
     deleteTask(taskId, {
       onSuccess: () => onClose(),
     });
   };
 
   const handleAddSubtask = (title: string) => {
+    if (isCompleted) return;
     addSubtask({ taskId, title });
   };
 
@@ -126,7 +160,7 @@ export default function TaskDetailView({
   const [showNotePrompt, setShowNotePrompt] = useState(false);
 
   const handleLinkNote = (noteTitle: string) => {
-    if (!task) return;
+    if (!task || isCompleted) return;
     const note = notes.find(n => n.title.toLowerCase() === noteTitle.toLowerCase());
     if (note) {
       updateTask({ id: task.id, updates: { noteId: note.id } });
@@ -136,12 +170,12 @@ export default function TaskDetailView({
   };
 
   const handleUnlinkNote = () => {
-    if (!task) return;
+    if (!task || isCompleted) return;
     updateTask({ id: task.id, updates: { noteId: null } });
   };
 
   const handleUpdateDescription = () => {
-    if (!task) return;
+    if (!task || isCompleted) return;
     if (localDescription !== task.description) {
       updateTask({ id: task.id, updates: { description: localDescription } });
     }
@@ -149,9 +183,9 @@ export default function TaskDetailView({
   };
 
   const handleUpdateDuration = (val: string) => {
-    if (!task) return;
+    if (!task || isCompleted) return;
     const dur = parseInt(val);
-    if (!isNaN(dur) && dur > 0) {
+    if (!isNaN(dur) && dur >= 0) {
       updateTask({ id: task.id, updates: { duration: dur } });
     }
   };
@@ -177,22 +211,29 @@ export default function TaskDetailView({
       {/* Header */}
       <div className="p-6 border-b border-white/10 flex items-center justify-between glass">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full bg-brand-primary animate-pulse" />
+          <div className={`w-2 h-2 rounded-full ${isUpdating ? 'bg-amber-400' : 'bg-brand-primary'} animate-pulse`} />
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted/60">
-            Execution Context
+            {isUpdating ? "Synchronizing..." : isDeleting ? "Terminating..." : "Execution Context"}
           </span>
         </div>
         <div className="flex items-center gap-1">
-          <button className="p-2 text-text-muted hover:text-text-main hover:bg-white/5 rounded-xl transition-all duration-200">
-            <FiEdit size={16} />
-          </button>
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="p-2 text-text-muted hover:text-brand-accent hover:bg-brand-accent/10 rounded-xl transition-all duration-200"
-          >
-            <FiTrash2 size={16} />
-          </button>
-          <div className="w-px h-6 bg-white/5 mx-1" />
+          {!isCompleted && (
+            <>
+              <button 
+                onClick={() => setIsEditingDesc(true)}
+                className="p-2 text-text-muted hover:text-text-main hover:bg-white/5 rounded-xl transition-all duration-200"
+              >
+                <FiEdit size={16} />
+              </button>
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="p-2 text-text-muted hover:text-brand-accent hover:bg-brand-accent/10 rounded-xl transition-all duration-200"
+              >
+                <FiTrash2 size={16} />
+              </button>
+              <div className="w-px h-6 bg-white/5 mx-1" />
+            </>
+          )}
           <button
             onClick={onClose}
             className="p-2 text-text-muted hover:text-text-main hover:bg-white/5 rounded-xl transition-all duration-200"
@@ -204,6 +245,41 @@ export default function TaskDetailView({
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+        {/* Warning Toast */}
+        <AnimatePresence>
+          {showSubtaskWarning && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="mb-8 p-6 rounded-3xl bg-brand-accent/10 border-2 border-brand-accent/30 shadow-2xl shadow-brand-accent/5 backdrop-blur-md relative overflow-hidden group"
+            >
+              <div className="absolute inset-0 bg-linear-to-br from-brand-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="flex items-start gap-4 relative z-10">
+                <div className="p-3 rounded-2xl bg-brand-accent/20 text-brand-accent shadow-lg shadow-brand-accent/20 animate-bounce">
+                  <FiZap size={20} />
+                </div>
+                <div className="flex-1">
+                  <h5 className="text-sm font-black text-brand-accent uppercase tracking-[0.1em] mb-1">
+                    System Interlock Initialized
+                  </h5>
+                  <p className="text-xs text-brand-accent/80 font-bold leading-relaxed">
+                    Objective completion is disabled. Prerequisite sub-layers must all reach 100% synchronization before final execution state can be committed.
+                  </p>
+                  <div className="mt-4 flex items-center gap-2">
+                    <button 
+                      onClick={() => setShowSubtaskWarning(false)}
+                      className="px-4 py-1.5 rounded-xl bg-brand-accent/20 text-[10px] font-bold text-brand-accent hover:bg-brand-accent/30 transition-all uppercase tracking-widest"
+                    >
+                      Acknowledge
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Title Section */}
         <div className="mb-10">
           <div className="flex items-start gap-4 mb-4">
@@ -230,19 +306,21 @@ export default function TaskDetailView({
             {task.tags?.map((tag) => (
               <span
                 key={tag}
-                onClick={() => handleRemoveTag(tag)}
-                className="flex items-center gap-1.5 text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-3 py-1.5 rounded-xl border border-brand-primary/20 uppercase tracking-tighter cursor-pointer hover:bg-red-400/10 hover:text-red-400 hover:border-red-400/20 transition-all group"
+                onClick={() => !isCompleted && handleRemoveTag(tag)}
+                className={`flex items-center gap-1.5 text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-3 py-1.5 rounded-xl border border-brand-primary/20 uppercase tracking-tighter transition-all group ${!isCompleted ? "cursor-pointer hover:bg-red-400/10 hover:text-red-400 hover:border-red-400/20" : ""}`}
               >
                 <FiTag size={10} /> {tag}
-                <span className="opacity-0 group-hover:opacity-100">&times;</span>
+                {!isCompleted && <span className="opacity-0 group-hover:opacity-100">&times;</span>}
               </span>
             ))}
-            <button 
-              onClick={() => setShowTagPrompt(true)}
-              className="flex items-center gap-1.5 text-[10px] font-bold text-text-muted bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 hover:bg-white/10 hover:text-text-main transition-all uppercase tracking-tighter"
-            >
-              <FiPlus size={10} /> Link Tag
-            </button>
+            {!isCompleted && (
+              <button 
+                onClick={() => setShowTagPrompt(true)}
+                className="flex items-center gap-1.5 text-[10px] font-bold text-text-muted bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 hover:bg-white/10 hover:text-text-main transition-all uppercase tracking-tighter"
+              >
+                <FiPlus size={10} /> Link Tag
+              </button>
+            )}
           </div>
         </div>
 
@@ -259,7 +337,7 @@ export default function TaskDetailView({
             </div>
             <p className="text-sm text-text-main font-bold">
               {task.dueDate ? (
-                dayjs(task.dueDate).format("MMM dd, yyyy")
+                dayjs(task.dueDate).format("MMM DD, YYYY")
               ) : (
                 <span className="text-text-muted font-medium italic opacity-40">
                   Not scheduled
@@ -274,7 +352,8 @@ export default function TaskDetailView({
           </div>
           <button 
             onClick={handlePriorityCycle}
-            className="p-4 rounded-2xl bg-surface-base/80 border border-white/5 group hover:border-brand-primary/30 transition-all duration-300 text-left relative overflow-hidden"
+            disabled={isCompleted}
+            className={`p-4 rounded-2xl bg-surface-base/80 border border-white/5 group transition-all duration-300 text-left relative overflow-hidden ${isCompleted ? "cursor-default" : "hover:border-brand-primary/30"}`}
           >
             <AnimatePresence mode="wait">
               {isCycling && (
@@ -325,8 +404,9 @@ export default function TaskDetailView({
           </button>
 
           <button 
-            onClick={() => setShowDurationPrompt(true)}
-            className="p-4 rounded-2xl bg-surface-base/80 border border-white/5 group hover:border-brand-primary/30 transition-all duration-300 text-left"
+            onClick={() => !isCompleted && setShowDurationPrompt(true)}
+            disabled={isCompleted}
+            className={`p-4 rounded-2xl bg-surface-base/80 border border-white/5 group transition-all duration-300 text-left ${isCompleted ? "cursor-default" : "hover:border-brand-primary/30"}`}
           >
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 rounded-lg bg-emerald-400/10 text-emerald-400">
@@ -338,7 +418,7 @@ export default function TaskDetailView({
             </div>
             <div className="flex items-center gap-2">
               <p className="text-sm font-extrabold text-text-main uppercase tracking-tight">
-                {task.duration || 1} {task.duration === 1 ? 'Day' : 'Days'}
+                {task.duration || 0} {task.duration === 1 ? 'Day' : 'Days'}
               </p>
             </div>
             <p className="text-[10px] text-text-muted mt-1 uppercase font-semibold">
@@ -360,7 +440,7 @@ export default function TaskDetailView({
                   Objective Details
                 </h4>
               </div>
-              {!isEditingDesc && (
+              {!isEditingDesc && !isCompleted && (
                 <button 
                   onClick={() => setIsEditingDesc(true)}
                   className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted transition-all"
@@ -381,8 +461,8 @@ export default function TaskDetailView({
               />
             ) : (
               <div 
-                onClick={() => setIsEditingDesc(true)}
-                className="text-sm text-text-muted leading-relaxed prose prose-invert font-medium cursor-text"
+                onClick={() => !isCompleted && setIsEditingDesc(true)}
+                className={`text-sm text-text-muted leading-relaxed prose prose-invert font-medium ${isCompleted ? "cursor-default" : "cursor-text"}`}
               >
                 {task.description ||
                   "The intelligence engine is awaiting further context for this objective. Define the scope to enable deeper execution linking."}
@@ -407,7 +487,8 @@ export default function TaskDetailView({
               >
                 <button
                   onClick={() => handleSubtaskToggle(sub.id, sub.status)}
-                  className={`shrink-0 transition-all active:scale-75 ${sub.status === "done" ? "text-brand-primary" : "text-text-muted/40 group-hover/sub:text-text-muted/70"}`}
+                  disabled={isCompleted}
+                  className={`shrink-0 transition-all active:scale-75 ${sub.status === "done" ? "text-brand-primary" : "text-text-muted/40 group-hover/sub:text-text-muted/70"} ${isCompleted ? "cursor-default opacity-50" : ""}`}
                 >
                   {sub.status === "done" ? (
                     <FiCheckCircle size={16} />
@@ -420,23 +501,27 @@ export default function TaskDetailView({
                 >
                   {sub.title}
                 </span>
-                <button 
-                  onClick={() => handleSubtaskDelete(sub.id)}
-                  className="opacity-0 group-hover/sub:opacity-100 p-1 text-text-muted hover:text-red-400 transition-all"
-                >
-                  <FiX size={14} />
-                </button>
+                {!isCompleted && (
+                  <button 
+                    onClick={() => handleSubtaskDelete(sub.id)}
+                    className="opacity-0 group-hover/sub:opacity-100 p-1 text-text-muted hover:text-red-400 transition-all"
+                  >
+                    <FiX size={14} />
+                  </button>
+                )}
               </div>
             ))}
-            <button
-              onClick={() => setShowSubtaskPrompt(true)}
-              className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-white/10 text-text-muted hover:text-text-main hover:border-white/20 transition-all"
-            >
-              <FiPlus size={16} />
-              <span className="text-xs font-semibold uppercase tracking-widest">
-                Add Subtask
-              </span>
-            </button>
+            {!isCompleted && (
+              <button
+                onClick={() => setShowSubtaskPrompt(true)}
+                className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-white/10 text-text-muted hover:text-text-main hover:border-white/20 transition-all"
+              >
+                <FiPlus size={16} />
+                <span className="text-xs font-semibold uppercase tracking-widest">
+                  Add Subtask
+                </span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -456,8 +541,8 @@ export default function TaskDetailView({
                   <div className="w-8 h-8 rounded-lg bg-brand-primary/20 flex items-center justify-center text-brand-primary">
                     <FiLink size={14} />
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-text-main leading-none mb-1">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-text-main leading-tight mb-1 truncate">
                       {task.note.title}
                     </p>
                     <p className="text-[10px] text-brand-primary font-bold uppercase tracking-tighter">
@@ -465,27 +550,35 @@ export default function TaskDetailView({
                     </p>
                   </div>
                 </div>
-                <button 
-                  onClick={handleUnlinkNote}
-                  className="relative z-10 p-2 text-text-muted hover:text-red-400 transition-colors"
-                  title="Unlink Note"
-                >
-                  <FiX size={16} />
-                </button>
+                {!isCompleted && (
+                  <button 
+                    onClick={handleUnlinkNote}
+                    className="relative z-10 p-2 text-text-muted hover:text-red-400 transition-colors"
+                    title="Unlink Note"
+                  >
+                    <FiX size={16} />
+                  </button>
+                )}
               </div>
             ) : (
-              <button 
-                onClick={() => setShowNotePrompt(true)}
-                className="w-full flex flex-col items-center justify-center gap-2 p-6 rounded-3xl border border-dashed border-white/10 text-text-muted hover:text-brand-primary hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all group"
-              >
-                <FiLink
-                  size={20}
-                  className="group-hover:scale-110 transition-transform"
-                />
-                <p className="text-[10px] font-bold uppercase tracking-widest">
-                  Connect to Library
+              !isCompleted ? (
+                <button 
+                  onClick={() => setShowNotePrompt(true)}
+                  className="w-full flex flex-col items-center justify-center gap-2 p-6 rounded-3xl border border-dashed border-white/10 text-text-muted hover:text-brand-primary hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all group"
+                >
+                  <FiLink
+                    size={20}
+                    className="group-hover:scale-110 transition-transform"
+                  />
+                  <p className="text-[10px] font-bold uppercase tracking-widest">
+                    Connect to Library
+                  </p>
+                </button>
+              ) : (
+                <p className="text-[10px] text-text-muted italic opacity-40 text-center py-4">
+                  No linked knowledge nodes
                 </p>
-              </button>
+              )
             )}
           </div>
         </div>
@@ -529,8 +622,22 @@ export default function TaskDetailView({
 
       {/* Footer Actions */}
       <div className="p-6 border-t border-white/5 glass">
-        <button className="w-full py-3 rounded-2xl bg-brand-primary text-white text-xs font-bold uppercase tracking-widest hover:bg-brand-primary/90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-brand-primary/20">
-          Update Execution State
+        <button 
+          onClick={handleMarkDone}
+          disabled={isCompleted || isUpdating}
+          className={`w-full py-4 rounded-2xl text-white text-xs font-bold uppercase tracking-[0.2em] transition-all shadow-2xl ${isCompleted ? "bg-emerald-500/20 text-emerald-500 shadow-none cursor-default border border-emerald-500/30" : "bg-brand-primary hover:bg-brand-primary/90 hover:scale-[1.02] active:scale-[0.98] shadow-brand-primary/30"}`}
+        >
+          {isCompleted ? (
+            <span className="flex items-center justify-center gap-2">
+              <FiCheckCircle size={14} /> Objective Finalized
+            </span>
+          ) : isUpdating ? (
+            <span className="flex items-center justify-center gap-2">
+              <FiActivity size={14} className="animate-spin" /> Committing State...
+            </span>
+          ) : (
+            "Mark as Completed"
+          )}
         </button>
       </div>
 
@@ -579,7 +686,7 @@ export default function TaskDetailView({
         title="Execution Span"
         message="How many days should this objective span? This determines its visibility in your workflow."
         placeholder="e.g. 3"
-        defaultValue={task.duration?.toString() || "1"}
+        defaultValue={task.duration?.toString() || "0"}
       />
     </div>
   );

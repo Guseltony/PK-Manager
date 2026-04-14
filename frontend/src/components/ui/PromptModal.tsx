@@ -66,7 +66,7 @@ export default function PromptModal({
               className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-text-main outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all"
             />
             {isFocused && suggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-surface-base border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden py-1 max-h-60 overflow-y-auto backdrop-blur-xl">
+              <div className="absolute top-full left-0 right-0 mt-2 bg-surface-base border border-white/10 rounded-2xl shadow-2xl z-[100] overflow-hidden py-1 max-h-60 overflow-y-auto backdrop-blur-xl">
                 {filteredSuggestions.length > 0 ? (
                   filteredSuggestions.map((suggestion) => (
                     <button
@@ -77,10 +77,13 @@ export default function PromptModal({
                         onSubmit(suggestion);
                         onClose();
                       }}
-                      className="w-full text-left px-4 py-3 text-xs font-bold text-text-muted hover:text-brand-primary hover:bg-brand-primary/10 transition-all flex items-center justify-between group"
+                      className="w-full text-left px-4 py-3 text-xs font-bold text-text-muted hover:text-brand-primary hover:bg-brand-primary/10 transition-all flex items-center justify-between group border-b border-white/5 last:border-none"
                     >
-                      {suggestion}
-                      <FiPlus size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <span className="truncate flex-1 mr-2">{suggestion}</span>
+                      <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                         <span className="text-[10px] uppercase tracking-tighter text-brand-primary/60">Connect</span>
+                         <FiPlus size={12} className="text-brand-primary" />
+                      </div>
                     </button>
                   ))
                 ) : (
