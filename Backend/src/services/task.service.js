@@ -133,7 +133,10 @@ export const updateTask = async (taskId, userId, data) => {
       completedAt: finalCompletedAt ? new Date(finalCompletedAt) : finalCompletedAt,
       activities: {
         create: {
-          action: status === "done" ? "completed" : "updated",
+          action: status === "done" ? "completed" : 
+                  title ? `Renamed to: ${title}` : 
+                  status ? `Status changed to: ${status}` : 
+                  priority ? `Priority set to: ${priority}` : "updated",
         },
       },
     },
@@ -157,13 +160,22 @@ export const addSubtask = async (taskId, userId, title) => {
   const task = await prisma.task.findFirst({ where: { id: taskId, userId } });
   if (!task) throw new Error("Task not found or access denied");
 
-  return await prisma.subtask.create({
+  const subtask = await prisma.subtask.create({
     data: {
       taskId,
       title,
       status: "todo",
     },
   });
+
+  await prisma.taskActivity.create({
+    data: {
+      taskId,
+      action: `Subtask created: ${title}`,
+    }
+  });
+
+  return subtask;
 };
 
 export const updateSubtask = async (subtaskId, taskId, userId, data) => {
@@ -171,17 +183,35 @@ export const updateSubtask = async (subtaskId, taskId, userId, data) => {
   const task = await prisma.task.findFirst({ where: { id: taskId, userId } });
   if (!task) throw new Error("Task not found or access denied");
 
-  return await prisma.subtask.update({
+  const subtask = await prisma.subtask.update({
     where: { id: subtaskId, taskId },
     data,
   });
+
+  await prisma.taskActivity.create({
+    data: {
+      taskId,
+      action: data.status === "done" ? `Subtask completed: ${subtask.title}` : `Subtask updated: ${subtask.title}`,
+    }
+  });
+
+  return subtask;
 };
 
 export const deleteSubtask = async (subtaskId, taskId, userId) => {
   const task = await prisma.task.findFirst({ where: { id: taskId, userId } });
   if (!task) throw new Error("Task not found or access denied");
 
-  return await prisma.subtask.delete({
+  const subtask = await prisma.subtask.delete({
     where: { id: subtaskId, taskId },
   });
+
+  await prisma.taskActivity.create({
+    data: {
+      taskId,
+      action: `Subtask removed: ${subtask.title}`,
+    }
+  });
+
+  return subtask;
 };

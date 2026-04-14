@@ -13,12 +13,14 @@ import {
   FiActivity,
   FiCheckCircle,
   FiZap,
+  FiArrowLeft,
 } from "react-icons/fi";
 import { useState, useEffect, useRef } from "react";
 import dayjs from "dayjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTags } from "../../hooks/useTags";
 import { useNotesStore } from "../../store/notesStore";
+import { useTasksStore } from "../../store/tasksStore";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import PromptModal from "../../components/ui/PromptModal";
 import { TaskStatus, Priority } from "../../types/task";
@@ -37,14 +39,17 @@ export default function TaskDetailView({
 }: TaskDetailViewProps) {
   const [isEditing, setIsEditing] = useState(false);
   const { data: task, isLoading } = useTask(taskId);
-  const { 
-    updateTask, 
-    deleteTask, 
-    addSubtask, 
-    updateSubtask, 
+  const {
+    updateTask,
+    deleteTask,
+    addSubtask,
+    updateSubtask,
     deleteSubtask,
     isUpdating,
-    isDeleting
+    isDeleting,
+    isAddingSubtask,
+    isUpdatingSubtask,
+    isDeletingSubtask,
   } = useTasks();
   const { tags: allTags } = useTags();
   
@@ -211,15 +216,28 @@ export default function TaskDetailView({
       {/* Header */}
       <div className="p-6 border-b border-white/10 flex items-center justify-between glass">
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${isUpdating ? 'bg-amber-400' : 'bg-brand-primary'} animate-pulse`} />
+          <button
+            onClick={() => useTasksStore.getState().setSelectedTaskId(null)}
+            className="-ml-2 p-2 text-text-muted hover:text-text-main hover:bg-white/5 rounded-xl transition-all"
+            title="Back to list"
+          >
+            <FiArrowLeft size={18} />
+          </button>
+          <div
+            className={`w-2 h-2 rounded-full ${isUpdating ? "bg-amber-400" : "bg-brand-primary"} animate-pulse`}
+          />
           <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted/60">
-            {isUpdating ? "Synchronizing..." : isDeleting ? "Terminating..." : "Execution Context"}
+            {isUpdating
+              ? "Synchronizing..."
+              : isDeleting
+                ? "Terminating..."
+                : "Execution Context"}
           </span>
         </div>
         <div className="flex items-center gap-1">
           {!isCompleted && (
             <>
-              <button 
+              <button
                 onClick={() => setIsEditingDesc(true)}
                 className="p-2 text-text-muted hover:text-text-main hover:bg-white/5 rounded-xl transition-all duration-200"
               >
@@ -264,10 +282,12 @@ export default function TaskDetailView({
                     System Interlock Initialized
                   </h5>
                   <p className="text-xs text-brand-accent/80 font-bold leading-relaxed">
-                    Objective completion is disabled. Prerequisite sub-layers must all reach 100% synchronization before final execution state can be committed.
+                    Objective completion is disabled. Prerequisite sub-layers
+                    must all reach 100% synchronization before final execution
+                    state can be committed.
                   </p>
                   <div className="mt-4 flex items-center gap-2">
-                    <button 
+                    <button
                       onClick={() => setShowSubtaskWarning(false)}
                       className="px-4 py-1.5 rounded-xl bg-brand-accent/20 text-[10px] font-bold text-brand-accent hover:bg-brand-accent/30 transition-all uppercase tracking-widest"
                     >
@@ -288,9 +308,15 @@ export default function TaskDetailView({
               className={`mt-1.5 shrink-0 transition-all active:scale-75 ${task.status === "done" ? "text-brand-primary" : "text-text-muted/40 hover:text-text-main"}`}
             >
               {task.status === "done" ? (
-                <FiCheckCircle size={24} className="drop-shadow-[0_0_8px_rgba(99,102,241,0.4)]" />
+                <FiCheckCircle
+                  size={24}
+                  className="drop-shadow-[0_0_8px_rgba(99,102,241,0.4)]"
+                />
               ) : task.status === "in_progress" ? (
-                <FiActivity size={24} className="animate-pulse text-amber-400" />
+                <FiActivity
+                  size={24}
+                  className="animate-pulse text-amber-400"
+                />
               ) : (
                 <div className="w-6 h-6 rounded-full border-2 border-current opacity-30" />
               )}
@@ -310,11 +336,15 @@ export default function TaskDetailView({
                 className={`flex items-center gap-1.5 text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-3 py-1.5 rounded-xl border border-brand-primary/20 uppercase tracking-tighter transition-all group ${!isCompleted ? "cursor-pointer hover:bg-red-400/10 hover:text-red-400 hover:border-red-400/20" : ""}`}
               >
                 <FiTag size={10} /> {tag}
-                {!isCompleted && <span className="opacity-0 group-hover:opacity-100">&times;</span>}
+                {!isCompleted && (
+                  <span className="opacity-0 group-hover:opacity-100">
+                    &times;
+                  </span>
+                )}
               </span>
             ))}
             {!isCompleted && (
-              <button 
+              <button
                 onClick={() => setShowTagPrompt(true)}
                 className="flex items-center gap-1.5 text-[10px] font-bold text-text-muted bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 hover:bg-white/10 hover:text-text-main transition-all uppercase tracking-tighter"
               >
@@ -350,30 +380,39 @@ export default function TaskDetailView({
               </p>
             )}
           </div>
-          <button 
+          <button
             onClick={handlePriorityCycle}
             disabled={isCompleted}
             className={`p-4 rounded-2xl bg-surface-base/80 border border-white/5 group transition-all duration-300 text-left relative overflow-hidden ${isCompleted ? "cursor-default" : "hover:border-brand-primary/30"}`}
           >
             <AnimatePresence mode="wait">
               {isCycling && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   className="absolute inset-0 bg-brand-primary/5 flex items-center justify-center backdrop-blur-[2px]"
                 >
-                  <FiActivity className="animate-spin text-brand-primary" size={16} />
+                  <FiActivity
+                    className="animate-spin text-brand-primary"
+                    size={16}
+                  />
                 </motion.div>
               )}
             </AnimatePresence>
-            
+
             <div className="flex items-center gap-2 mb-2">
-              <div className={`p-1.5 rounded-lg ${
-                localPriority === "urgent" ? "bg-brand-accent/10 text-brand-accent" : 
-                localPriority === "high" ? "bg-amber-400/10 text-amber-400" :
-                localPriority === "low" ? "bg-blue-400/10 text-blue-400" : "bg-white/10 text-text-muted"
-              }`}>
+              <div
+                className={`p-1.5 rounded-lg ${
+                  localPriority === "urgent"
+                    ? "bg-brand-accent/10 text-brand-accent"
+                    : localPriority === "high"
+                      ? "bg-amber-400/10 text-amber-400"
+                      : localPriority === "low"
+                        ? "bg-blue-400/10 text-blue-400"
+                        : "bg-white/10 text-text-muted"
+                }`}
+              >
                 <FiFlag size={12} />
               </div>
               <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
@@ -403,7 +442,7 @@ export default function TaskDetailView({
             </p>
           </button>
 
-          <button 
+          <button
             onClick={() => !isCompleted && setShowDurationPrompt(true)}
             disabled={isCompleted}
             className={`p-4 rounded-2xl bg-surface-base/80 border border-white/5 group transition-all duration-300 text-left ${isCompleted ? "cursor-default" : "hover:border-brand-primary/30"}`}
@@ -418,7 +457,7 @@ export default function TaskDetailView({
             </div>
             <div className="flex items-center gap-2">
               <p className="text-sm font-extrabold text-text-main uppercase tracking-tight">
-                {task.duration || 0} {task.duration === 1 ? 'Day' : 'Days'}
+                {task.duration || 0} {task.duration === 1 ? "Day" : "Days"}
               </p>
             </div>
             <p className="text-[10px] text-text-muted mt-1 uppercase font-semibold">
@@ -434,14 +473,14 @@ export default function TaskDetailView({
           </div>
           <div className="relative z-10 w-full">
             <div className="flex items-center justify-between mb-4">
-               <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <FiActivity size={14} className="text-brand-primary" />
                 <h4 className="text-[10px] font-bold text-text-main uppercase tracking-[0.2em]">
                   Objective Details
                 </h4>
               </div>
               {!isEditingDesc && !isCompleted && (
-                <button 
+                <button
                   onClick={() => setIsEditingDesc(true)}
                   className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted transition-all"
                 >
@@ -449,7 +488,7 @@ export default function TaskDetailView({
                 </button>
               )}
             </div>
-            
+
             {isEditingDesc ? (
               <textarea
                 autoFocus
@@ -460,7 +499,7 @@ export default function TaskDetailView({
                 placeholder="Describe the desired outcome..."
               />
             ) : (
-              <div 
+              <div
                 onClick={() => !isCompleted && setIsEditingDesc(true)}
                 className={`text-sm text-text-muted leading-relaxed prose prose-invert font-medium ${isCompleted ? "cursor-default" : "cursor-text"}`}
               >
@@ -487,10 +526,12 @@ export default function TaskDetailView({
               >
                 <button
                   onClick={() => handleSubtaskToggle(sub.id, sub.status)}
-                  disabled={isCompleted}
-                  className={`shrink-0 transition-all active:scale-75 ${sub.status === "done" ? "text-brand-primary" : "text-text-muted/40 group-hover/sub:text-text-muted/70"} ${isCompleted ? "cursor-default opacity-50" : ""}`}
+                  disabled={isCompleted || isUpdatingSubtask}
+                  className={`shrink-0 transition-all active:scale-75 ${sub.status === "done" ? "text-brand-primary" : "text-text-muted/40 group-hover/sub:text-text-muted/70"} ${isCompleted || isUpdatingSubtask ? "cursor-wait opacity-50" : ""}`}
                 >
-                  {sub.status === "done" ? (
+                  {isUpdatingSubtask ? (
+                    <FiActivity size={16} className="animate-spin" />
+                  ) : sub.status === "done" ? (
                     <FiCheckCircle size={16} />
                   ) : (
                     <div className="w-4 h-4 rounded-full border border-current" />
@@ -502,7 +543,7 @@ export default function TaskDetailView({
                   {sub.title}
                 </span>
                 {!isCompleted && (
-                  <button 
+                  <button
                     onClick={() => handleSubtaskDelete(sub.id)}
                     className="opacity-0 group-hover/sub:opacity-100 p-1 text-text-muted hover:text-red-400 transition-all"
                   >
@@ -511,6 +552,12 @@ export default function TaskDetailView({
                 )}
               </div>
             ))}
+            {isAddingSubtask && (
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 animate-pulse">
+                <div className="w-4 h-4 rounded-full border border-white/20" />
+                <div className="h-4 w-32 bg-white/10 rounded-md" />
+              </div>
+            )}
             {!isCompleted && (
               <button
                 onClick={() => setShowSubtaskPrompt(true)}
@@ -551,7 +598,7 @@ export default function TaskDetailView({
                   </div>
                 </div>
                 {!isCompleted && (
-                  <button 
+                  <button
                     onClick={handleUnlinkNote}
                     className="relative z-10 p-2 text-text-muted hover:text-red-400 transition-colors"
                     title="Unlink Note"
@@ -560,30 +607,28 @@ export default function TaskDetailView({
                   </button>
                 )}
               </div>
-            ) : (
-              !isCompleted ? (
-                <button 
-                  onClick={() => setShowNotePrompt(true)}
-                  className="w-full flex flex-col items-center justify-center gap-2 p-6 rounded-3xl border border-dashed border-white/10 text-text-muted hover:text-brand-primary hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all group"
-                >
-                  <FiLink
-                    size={20}
-                    className="group-hover:scale-110 transition-transform"
-                  />
-                  <p className="text-[10px] font-bold uppercase tracking-widest">
-                    Connect to Library
-                  </p>
-                </button>
-              ) : (
-                <p className="text-[10px] text-text-muted italic opacity-40 text-center py-4">
-                  No linked knowledge nodes
+            ) : !isCompleted ? (
+              <button
+                onClick={() => setShowNotePrompt(true)}
+                className="w-full flex flex-col items-center justify-center gap-2 p-6 rounded-3xl border border-dashed border-white/10 text-text-muted hover:text-brand-primary hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all group"
+              >
+                <FiLink
+                  size={20}
+                  className="group-hover:scale-110 transition-transform"
+                />
+                <p className="text-[10px] font-bold uppercase tracking-widest">
+                  Connect to Library
                 </p>
-              )
+              </button>
+            ) : (
+              <p className="text-[10px] text-text-muted italic opacity-40 text-center py-4">
+                No linked knowledge nodes
+              </p>
             )}
           </div>
         </div>
 
-        {/* Activity Timeline */}
+        {/* Execution History (Activity Timeline) */}
         <div>
           <div className="flex items-center justify-between mb-6">
             <h4 className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">
@@ -592,29 +637,42 @@ export default function TaskDetailView({
             <div className="h-px flex-1 bg-white/5 ml-4" />
           </div>
           <div className="space-y-6 border-l border-white/10 ml-3 pl-8 relative">
-            {task.activities?.map((activity, idx) => (
-              <div key={idx} className="relative group/item">
-                <div className="absolute -left-9.25 top-1 w-4 h-4 rounded-full bg-surface-soft border border-white/10 flex items-center justify-center z-10 group-hover/item:border-brand-primary transition-colors">
-                  <div
-                    className={`w-1.5 h-1.5 rounded-full ${activity.action === "created" ? "bg-blue-400" : activity.action === "completed" ? "bg-brand-primary" : "bg-amber-400"}`}
-                  />
+            {task.activities?.length ? (
+              task.activities.map((activity, idx) => (
+                <div key={idx} className="relative group/item">
+                  <div className="absolute -left-9.25 top-1 w-4 h-4 rounded-full bg-surface-soft border border-white/10 flex items-center justify-center z-10 group-hover/item:border-brand-primary transition-colors">
+                    <div
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        activity.action === "created" 
+                          ? "bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.5)]" 
+                          : activity.action === "completed" 
+                          ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" 
+                          : "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]"
+                      }`}
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-3 mb-0.5">
+                      <p className="text-xs font-bold text-text-main tracking-tight">
+                        {activity.action}
+                      </p>
+                      <div className="h-px w-2 bg-white/10" />
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/5 text-text-muted/60 font-mono uppercase tracking-tighter">
+                        Log Entry
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-text-muted font-medium opacity-60">
+                      {dayjs(activity.timestamp).format("dddd, MMM DD · HH:mm:ss")}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-text-main capitalize mb-0.5 tracking-tight">
-                    {activity.action}
-                  </p>
-                  <p className="text-[10px] text-text-muted font-medium opacity-60">
-                    {dayjs(activity.timestamp).format(
-                      "dddd, MMM DD · HH:mm:ss",
-                    )}
-                  </p>
-                </div>
+              ))
+            ) : (
+              <div className="py-4 text-center sm:text-left">
+                <p className="text-[10px] text-text-muted italic opacity-40">
+                  Initial execution log pending...
+                </p>
               </div>
-            ))}
-            {(!task.activities || task.activities.length === 0) && (
-              <p className="text-[10px] text-text-muted italic opacity-40">
-                Initial execution log pending...
-              </p>
             )}
           </div>
         </div>
@@ -622,7 +680,7 @@ export default function TaskDetailView({
 
       {/* Footer Actions */}
       <div className="p-6 border-t border-white/5 glass">
-        <button 
+        <button
           onClick={handleMarkDone}
           disabled={isCompleted || isUpdating}
           className={`w-full py-4 rounded-2xl text-white text-xs font-bold uppercase tracking-[0.2em] transition-all shadow-2xl ${isCompleted ? "bg-emerald-500/20 text-emerald-500 shadow-none cursor-default border border-emerald-500/30" : "bg-brand-primary hover:bg-brand-primary/90 hover:scale-[1.02] active:scale-[0.98] shadow-brand-primary/30"}`}
@@ -633,7 +691,8 @@ export default function TaskDetailView({
             </span>
           ) : isUpdating ? (
             <span className="flex items-center justify-center gap-2">
-              <FiActivity size={14} className="animate-spin" /> Committing State...
+              <FiActivity size={14} className="animate-spin" /> Committing
+              State...
             </span>
           ) : (
             "Mark as Completed"
@@ -641,7 +700,7 @@ export default function TaskDetailView({
         </button>
       </div>
 
-      <ConfirmationModal 
+      <ConfirmationModal
         isOpen={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
         onConfirm={handleDelete}
@@ -650,7 +709,7 @@ export default function TaskDetailView({
         confirmText="Confirm Deletion"
       />
 
-      <PromptModal 
+      <PromptModal
         isOpen={showSubtaskPrompt}
         onClose={() => setShowSubtaskPrompt(false)}
         onSubmit={handleAddSubtask}
@@ -666,7 +725,7 @@ export default function TaskDetailView({
         title="Link Tag"
         message="Add a classification tag to this task."
         placeholder="e.g. Research, Design, API"
-        suggestions={allTags.map(t => t.name)}
+        suggestions={allTags.map((t) => t.name)}
       />
 
       <PromptModal
@@ -676,7 +735,7 @@ export default function TaskDetailView({
         title="Link Knowledge Node"
         message="Connect this task to a relevant note in your library."
         placeholder="Type note title..."
-        suggestions={notes.map(n => n.title)}
+        suggestions={notes.map((n) => n.title)}
       />
 
       <PromptModal

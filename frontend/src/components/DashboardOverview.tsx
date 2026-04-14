@@ -28,7 +28,7 @@ interface DashboardStatProps {
 
 function StatCard({ icon: Icon, label, value, trend, color, bg }: DashboardStatProps) {
   return (
-    <div className="bg-surface-soft border border-white/5 rounded-2xl p-5 hover:border-white/10 transition-all group">
+    <div className="bg-surface-soft border border-white/5 rounded-xl p-5 hover:border-white/10 transition-all group">
       <div className="flex items-center justify-between mb-4">
         <div className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center`}>
           <Icon className={`text-xl ${color}`} />
@@ -168,9 +168,9 @@ export default function DashboardOverview() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left: Recent Notes */}
+        {/* Left: Recent Notes & Goals */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="bg-surface-soft border border-white/5 rounded-3xl p-6">
+          <div className="bg-surface-soft border border-white/5 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-text-main flex items-center gap-3">
                 <FiClock className="text-brand-primary" />
@@ -180,7 +180,7 @@ export default function DashboardOverview() {
                 View All <FiChevronRight className="group-hover:translate-x-0.5 transition-transform" />
               </NextLink>
             </div>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-row sm:flex-col overflow-x-auto sm:overflow-x-visible gap-4 pb-4 sm:pb-0 custom-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
               {loadingNotes ? (
                 <p className="text-text-muted text-sm text-center py-4">Loading notes...</p>
               ) : recentNotes.length === 0 ? (
@@ -189,7 +189,7 @@ export default function DashboardOverview() {
                 <NextLink
                   href={`/notes/${note.id}`}
                   key={note.id}
-                  className="p-4 rounded-2xl bg-surface-base border border-white/5 hover:border-white/10 transition-all flex items-center justify-between group cursor-pointer"
+                  className="p-4 rounded-xl bg-surface-base border border-white/5 hover:border-white/10 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between group cursor-pointer min-w-[240px] sm:min-w-0 flex-shrink-0"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
@@ -215,7 +215,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Active Dreams */}
-          <div className="bg-surface-soft border border-white/5 rounded-3xl p-6">
+          <div className="bg-surface-soft border border-white/5 rounded-xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-text-main flex items-center gap-3">
                 <FiActivity className="text-emerald-400" />
@@ -250,7 +250,7 @@ export default function DashboardOverview() {
 
         {/* Right: Today's Tasks */}
         <div className="flex flex-col gap-6">
-          <div className="bg-surface-soft border border-white/5 rounded-3xl p-6">
+          <div className="bg-surface-soft border border-white/5 rounded-xl p-6">
             <h2 className="text-lg font-bold text-text-main mb-6 flex items-center gap-3">
               <FiCheckSquare className="text-brand-secondary" />
               Due Today
@@ -284,7 +284,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Journal Quick Peek */}
-          <div className="bg-surface-soft border border-white/5 rounded-3xl p-6">
+          <div className="bg-surface-soft border border-white/5 rounded-xl p-6">
             <h2 className="text-lg font-bold text-text-main mb-4 flex items-center gap-3">
               <FiBookOpen className="text-amber-400" />
               Today&apos;s Journal

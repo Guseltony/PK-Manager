@@ -6,8 +6,16 @@ import { generateJournalInsights } from "./insights.service.js";
  * If none exists, it optionally creates an empty one.
  */
 export const getJournalEntryByDate = async (userId, dateString) => {
-  const dateStr = dateString ? new Date(dateString) : new Date();
-  const startOfDay = new Date(dateStr.setHours(0, 0, 0, 0));
+  // Standardize the date to the start of the UTC day to avoid timezone shifts
+  // We use a safe date range or consistent midnight UTC approach
+  const requestedDate = dateString ? new Date(dateString) : new Date();
+  
+  // Validating date to prevent "Invalid Date" errors
+  if (isNaN(requestedDate.getTime())) {
+    throw new Error("Invalid date formatted provided");
+  }
+
+  const startOfDay = new Date(Date.UTC(requestedDate.getUTCFullYear(), requestedDate.getUTCMonth(), requestedDate.getUTCDate()));
   
   let entry = await prisma.journalEntry.findFirst({
     where: {
@@ -85,10 +93,13 @@ export const updateJournalEntry = async (journalId, userId, data) => {
  * Fetch timeline entries (past X days)
  */
 export const getJournalTimeline = async (userId, limit = 10, skip = 0) => {
+  const takeVal = parseInt(limit);
+  const skipVal = parseInt(skip);
+  
   return await prisma.journalEntry.findMany({
     where: { userId },
     orderBy: { date: "desc" },
-    take: parseInt(limit),
-    skip: parseInt(skip),
+    take: isNaN(takeVal) ? 10 : takeVal,
+    skip: isNaN(skipVal) ? 0 : skipVal,
   });
 };

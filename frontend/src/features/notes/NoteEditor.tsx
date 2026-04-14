@@ -20,6 +20,7 @@ import {
   FiFileText,
   FiSave,
   FiX,
+  FiArrowLeft,
 } from "react-icons/fi";
 import dayjs from "dayjs";
 import { Note } from "../../types/note";
@@ -324,7 +325,7 @@ function NoteEditorContent({ note }: { note: Note }) {
             onClick={() => useNotesStore.getState().selectNote(null)}
             className="md:hidden flex items-center justify-center p-2 -ml-2 rounded-xl text-text-muted hover:bg-white/5 transition-all"
           >
-            <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="18" width="18" xmlns="http://www.w3.org/2000/svg"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+            <FiArrowLeft size={18} />
           </button>
           <div
             className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${isUpdating ? "bg-brand-secondary/20 text-brand-secondary" : "bg-green-500/20 text-green-400"}`}

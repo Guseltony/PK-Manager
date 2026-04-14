@@ -49,19 +49,15 @@ const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => {
   const pathname = usePathname();
 
   return (
-    <nav className="flex flex-col gap-6">
-      {/* Global Search */}
-      <div className="px-1">
-        <GlobalSearch />
-      </div>
-      {navSections.map(({ label, links }) => (
-        <div key={label}>
-          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted/50 px-4 mb-1.5">
+    <nav className="flex flex-col gap-8">
+      {navSections.length > 0 ? navSections.map(({ label, links }) => (
+        <div key={label} className="flex flex-col gap-2">
+          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/50 px-4 mb-1">
             {label}
           </p>
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-1">
             {links.map(({ href, name, icon: Icon }) => {
-              const isActive = pathname === href || pathname.startsWith(`${href}/`);
+              const isActive = pathname === href || pathname?.startsWith(`${href}/`);
               return (
                 <Link
                   key={name}
@@ -69,19 +65,19 @@ const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => {
                   onClick={onLinkClick}
                   className={`group relative flex cursor-pointer items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? "bg-brand-primary/10 text-brand-primary"
+                      ? "bg-brand-primary/20 text-white"
                       : "text-text-muted hover:bg-white/5 hover:text-text-main"
                   }`}
                 >
                   <Icon
-                    size={18}
-                    className={`shrink-0 transition-transform duration-200 group-hover:scale-110 ${
+                    size={22}
+                    className={`shrink-0 transition-all duration-200 ${
                       isActive
-                        ? "text-brand-primary"
+                        ? "text-brand-primary scale-110"
                         : "text-text-muted group-hover:text-text-main"
                     }`}
                   />
-                  <span className="text-sm font-medium capitalize tracking-wide">
+                  <span className={`text-sm font-bold capitalize tracking-wide ${isActive ? 'text-white' : 'text-text-muted'}`}>
                     {name}
                   </span>
                   {isActive && (
@@ -92,7 +88,17 @@ const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => {
             })}
           </div>
         </div>
-      ))}
+      )) : (
+        <div className="p-4 text-white text-xs opacity-50 italic">
+          No navigation links available
+        </div>
+      )}
+
+      {/* Global Search at bottom of list for mobile ease of use, or kept separate */}
+      <div className="px-1 pt-4 border-t border-white/5">
+        <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted/40 px-4 mb-3">COMMAND PALETTE</p>
+        <GlobalSearch />
+      </div>
     </nav>
   );
 };

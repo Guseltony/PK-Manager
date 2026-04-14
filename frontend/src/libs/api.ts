@@ -1,9 +1,26 @@
 import { BACKEND_URL } from "../constants/constants";
 
+type ApiOptions = RequestInit & { 
+  params?: Record<string, string | number | boolean | undefined>;
+  _retry?: boolean;
+};
+
 // Robust fetch-based API client to avoid Axios 'adapterFn' errors in Next.js 16+
-const apiFetch = async (url: string, options: RequestInit & { _retry?: boolean } = {}) => {
-  const fullUrl = url.startsWith("http") ? url : `${BACKEND_URL}${url}`;
+const apiFetch = async (url: string, options: ApiOptions = {}) => {
+  let fullUrl = url.startsWith("http") ? url : `${BACKEND_URL}${url}`;
   
+  // Append query params if they exist
+  if (options.params) {
+    const searchParams = new URLSearchParams();
+    Object.entries(options.params).forEach(([key, value]) => {
+      if (value !== undefined) searchParams.append(key, String(value));
+    });
+    const queryString = searchParams.toString();
+    if (queryString) {
+      fullUrl += (fullUrl.includes("?") ? "&" : "?") + queryString;
+    }
+  }
+
   const headers = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string> || {}),
@@ -55,11 +72,11 @@ const apiFetch = async (url: string, options: RequestInit & { _retry?: boolean }
 };
 
 const api = {
-  get: <T>(url: string, config?: RequestInit) => apiFetch(url, { ...config, method: "GET" }) as Promise<{ data: T }>,
-  post: <T>(url: string, data?: unknown, config?: RequestInit) => apiFetch(url, { ...config, method: "POST", body: JSON.stringify(data) }) as Promise<{ data: T }>,
-  put: <T>(url: string, data?: unknown, config?: RequestInit) => apiFetch(url, { ...config, method: "PUT", body: JSON.stringify(data) }) as Promise<{ data: T }>,
-  delete: <T>(url: string, config?: RequestInit) => apiFetch(url, { ...config, method: "DELETE" }) as Promise<{ data: T }>,
-  request: <T>(config: RequestInit & { url: string }) => apiFetch(config.url, config as RequestInit) as Promise<{ data: T }>,
+  get: <T>(url: string, config?: ApiOptions) => apiFetch(url, { ...config, method: "GET" }) as Promise<{ data: T }>,
+  post: <T>(url: string, data?: unknown, config?: ApiOptions) => apiFetch(url, { ...config, method: "POST", body: JSON.stringify(data) }) as Promise<{ data: T }>,
+  put: <T>(url: string, data?: unknown, config?: ApiOptions) => apiFetch(url, { ...config, method: "PUT", body: JSON.stringify(data) }) as Promise<{ data: T }>,
+  delete: <T>(url: string, config?: ApiOptions) => apiFetch(url, { ...config, method: "DELETE" }) as Promise<{ data: T }>,
+  request: <T>(config: ApiOptions & { url: string }) => apiFetch(config.url, config) as Promise<{ data: T }>,
 };
 
 export const setManualCsrfToken = (token: string) => {

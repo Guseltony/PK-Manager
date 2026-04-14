@@ -58,10 +58,10 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
           <div className="lg:col-span-2 space-y-6">
             <div>
               <div className="flex items-center gap-3 mb-4">
-                <span className="px-3 py-1 rounded-full border border-brand-primary/30 bg-brand-primary/5 text-brand-primary text-[10px] font-black uppercase tracking-widest">
+                <span className="px-3 py-1 rounded-xl border border-brand-primary/30 bg-brand-primary/5 text-brand-primary text-[10px] font-black uppercase tracking-widest">
                   {dream.category || "Inception"}
                 </span>
-                <span className="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-text-muted text-[10px] font-black uppercase tracking-widest">
+                <span className="px-3 py-1 rounded-xl border border-white/10 bg-white/5 text-text-muted text-[10px] font-black uppercase tracking-widest">
                   {dream.priority} PRIORITY
                 </span>
               </div>
@@ -157,7 +157,8 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
         </div>
 
         {/* Dynamic Navigation */}
-        <div className="flex items-center gap-2 mb-8 bg-white/5 p-1.5 rounded-2xl w-fit border border-white/5">
+        {/* Dynamic Navigation */}
+        <div className="flex items-center gap-2 mb-8 bg-white/5 p-1.5 rounded-xl w-full sm:w-fit border border-white/5 overflow-x-auto custom-scrollbar">
           <TabButton
             id="execution"
             label="Execution"
@@ -212,7 +213,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                     {dream.tasks.map((task) => (
                       <div
                         key={task.id}
-                        className="p-5 rounded-2xl border border-white/5 bg-white/5 flex items-center gap-4 hover:border-white/10 transition-all group overflow-hidden relative"
+                        className="p-5 rounded-xl border border-white/5 bg-white/5 flex items-center gap-4 hover:border-white/10 transition-all group overflow-hidden relative"
                       >
                         <div
                           className={`absolute top-0 left-0 bottom-0 w-1 transition-all ${task.status === "done" ? "bg-emerald-500" : "bg-amber-500"}`}
@@ -240,7 +241,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                     ))}
                   </div>
                 ) : (
-                  <div className="py-20 text-center glass rounded-[2.5rem] border border-dashed border-white/10">
+                  <div className="py-20 text-center glass rounded-xl border border-dashed border-white/10">
                     <p className="text-text-muted text-sm italic">
                       No tasks currently linked to this mission orbit.
                     </p>

@@ -47,16 +47,48 @@ export function useTasks(activeFilter = "all") {
     },
   });
 
-  // Update Task
+  // Update Task (Optimistic)
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Task> }) => {
       const { data } = await api.put<{ data: Task }>(`/task/update/${id}`, updates);
       return data.data;
     },
-    onSuccess: (data) => {
-      updateInStore(data.id, data);
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["task", data.id] });
+    onMutate: async ({ id, updates }) => {
+      await queryClient.cancelQueries({ queryKey: ["tasks"] });
+      await queryClient.cancelQueries({ queryKey: ["task", id] });
+
+      const previousTask = queryClient.getQueryData<Task>(["task", id]);
+      const previousTasks = queryClient.getQueryData<Task[]>(["tasks", activeFilter]);
+
+      if (previousTask) {
+        queryClient.setQueryData<Task>(["task", id], (old) => {
+          if (!old) return undefined;
+          return {
+            ...old,
+            ...updates,
+            // Keep activities during update - they'll be refreshed on success
+            activities: old.activities 
+          };
+        });
+      }
+      if (previousTasks) {
+        queryClient.setQueryData<Task[]>(["tasks", activeFilter], (old) =>
+          old?.map((t) => (t.id === id ? { ...t, ...updates } : t))
+        );
+      }
+
+      return { previousTask, previousTasks };
+    },
+    onError: (err, { id }, context) => {
+      if (context?.previousTask) queryClient.setQueryData(["task", id], context.previousTask);
+      if (context?.previousTasks) queryClient.setQueryData(["tasks", activeFilter], context.previousTasks);
+    },
+    onSettled: (data) => {
+      if (data) {
+        updateInStore(data.id, data);
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        queryClient.invalidateQueries({ queryKey: ["task", data.id] });
+      }
     },
   });
 
@@ -72,15 +104,39 @@ export function useTasks(activeFilter = "all") {
     },
   });
 
-  // Subtask management
+  // Subtask management (Optimistic)
   const addSubtaskMutation = useMutation({
     mutationFn: async ({ taskId, title }: { taskId: string; title: string }) => {
-      const { data } = await api.post(`/task/${taskId}/subtasks`, { title });
+      const { data } = await api.post<{ data: Subtask }>(`/task/${taskId}/subtasks`, { title });
       return { taskId, subtask: data.data };
     },
-    onSuccess: ({ taskId }) => {
-      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    onMutate: async ({ taskId, title }) => {
+      await queryClient.cancelQueries({ queryKey: ["task", taskId] });
+      const previousTask = queryClient.getQueryData<Task>(["task", taskId]);
+
+      if (previousTask) {
+        queryClient.setQueryData<Task>(["task", taskId], (old) => {
+          if (!old) return undefined;
+          return {
+            ...old,
+            subtasks: [
+              ...(old.subtasks || []),
+              { id: "temp-id", title, status: "todo", taskId },
+            ],
+          };
+        });
+      }
+
+      return { previousTask };
+    },
+    onError: (err, { taskId }, context) => {
+      if (context?.previousTask) queryClient.setQueryData(["task", taskId], context.previousTask);
+    },
+    onSettled: (data) => {
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ["task", data.taskId] });
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      }
     },
   });
 
@@ -94,12 +150,35 @@ export function useTasks(activeFilter = "all") {
       subtaskId: string;
       updates: Partial<Subtask>;
     }) => {
-      const { data } = await api.put(`/task/${taskId}/subtasks/${subtaskId}`, updates);
+      const { data } = await api.put<{ data: Subtask }>(`/task/${taskId}/subtasks/${subtaskId}`, updates);
       return { taskId, subtask: data.data };
     },
-    onSuccess: ({ taskId }) => {
-      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    onMutate: async ({ taskId, subtaskId, updates }) => {
+      await queryClient.cancelQueries({ queryKey: ["task", taskId] });
+      const previousTask = queryClient.getQueryData<Task>(["task", taskId]);
+
+      if (previousTask) {
+        queryClient.setQueryData<Task>(["task", taskId], (old) => {
+          if (!old) return undefined;
+          return {
+            ...old,
+            subtasks: old.subtasks?.map((s) =>
+              s.id === subtaskId ? { ...s, ...updates } : s
+            ),
+          };
+        });
+      }
+
+      return { previousTask };
+    },
+    onError: (err, { taskId }, context) => {
+      if (context?.previousTask) queryClient.setQueryData(["task", taskId], context.previousTask);
+    },
+    onSettled: (data) => {
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ["task", data.taskId] });
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      }
     },
   });
 
@@ -108,9 +187,30 @@ export function useTasks(activeFilter = "all") {
       await api.delete(`/task/${taskId}/subtasks/${subtaskId}`);
       return { taskId, subtaskId };
     },
-    onSuccess: ({ taskId }) => {
-      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
-      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+    onMutate: async ({ taskId, subtaskId }) => {
+      await queryClient.cancelQueries({ queryKey: ["task", taskId] });
+      const previousTask = queryClient.getQueryData<Task>(["task", taskId]);
+
+      if (previousTask) {
+        queryClient.setQueryData<Task>(["task", taskId], (old) => {
+          if (!old) return undefined;
+          return {
+            ...old,
+            subtasks: old.subtasks?.filter((s) => s.id !== subtaskId),
+          };
+        });
+      }
+
+      return { previousTask };
+    },
+    onError: (err, { taskId }, context) => {
+      if (context?.previousTask) queryClient.setQueryData(["task", taskId], context.previousTask);
+    },
+    onSettled: (data) => {
+      if (data) {
+        queryClient.invalidateQueries({ queryKey: ["task", data.taskId] });
+        queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      }
     },
   });
 
@@ -127,6 +227,9 @@ export function useTasks(activeFilter = "all") {
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
+    isAddingSubtask: addSubtaskMutation.isPending,
+    isUpdatingSubtask: updateSubtaskMutation.isPending,
+    isDeletingSubtask: deleteSubtaskMutation.isPending,
   };
 }
 

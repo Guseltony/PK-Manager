@@ -63,9 +63,9 @@ export default function GlobalSearch() {
     if (!query.trim()) return [];
     const q = query.toLowerCase();
 
-    const noteResults: SearchResult[] = (notes as Note[])
+    const noteResults: SearchResult[] = (notes || [])
       .filter(
-        (n) =>
+        (n: Note) =>
           n.title?.toLowerCase().includes(q) ||
           n.tags?.some((t) => t.toLowerCase().includes(q)),
       )
@@ -78,8 +78,8 @@ export default function GlobalSearch() {
         href: `/notes/${n.id}`,
       }));
 
-    const taskResults: SearchResult[] = (tasks as Task[])
-      .filter((t) => t.title?.toLowerCase().includes(q))
+    const taskResults: SearchResult[] = (tasks || [])
+      .filter((t: Task) => t.title?.toLowerCase().includes(q))
       .slice(0, 4)
       .map((t) => ({
         id: t.id,
@@ -89,9 +89,9 @@ export default function GlobalSearch() {
         href: `/tasks`,
       }));
 
-    const dreamResults: SearchResult[] = (dreams as Dream[])
+    const dreamResults: SearchResult[] = (dreams || [])
       .filter(
-        (d) =>
+        (d: Dream) =>
           d.title?.toLowerCase().includes(q) ||
           d.category?.toLowerCase().includes(q),
       )

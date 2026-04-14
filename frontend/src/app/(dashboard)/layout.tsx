@@ -1,6 +1,6 @@
 import AuthGate from "@/src/components/AuthGate";
 import Header from "@/src/components/Header";
-import SideBar from "@/src/components/SideBar";
+import SideBar, { MobileSidebarDrawer } from "@/src/components/SideBar";
 import { auth } from "@/src/libs/auth";
 import { redirect } from "next/navigation";
 
@@ -15,6 +15,7 @@ export default async function DashboardLayout({
 
   return (
     <div className="flex min-h-screen bg-surface-base">
+      <MobileSidebarDrawer />
       {/* Desktop Sidebar - hidden on mobile */}
       <SideBar />
 

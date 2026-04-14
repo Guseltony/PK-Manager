@@ -5,7 +5,7 @@ import { useTagsStore } from "../../store/tagsStore";
 import { useNotesStore } from "../../store/notesStore";
 import { useTags } from "../../hooks/useTags";
 import { useNotes } from "../../hooks/useNotes";
-import { FiTrash2, FiEdit3, FiFileText, FiTag } from "react-icons/fi";
+import { FiTrash2, FiEdit3, FiFileText, FiTag, FiArrowLeft } from "react-icons/fi";
 import NoteItem from "../notes/NoteItem";
 import { useState, useMemo } from "react";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
@@ -67,9 +67,9 @@ export default function TagNotes() {
               <div className="flex items-center gap-2 sm:gap-4">
                 <button
                   onClick={() => useTagsStore.getState().selectTag(null)}
-                  className="md:hidden p-2 -ml-2 text-text-muted hover:text-text-main hover:bg-white/5 rounded-lg transition-all"
+                  className="md:hidden p-2 -ml-2 text-text-muted hover:text-text-main hover:bg-white/5 rounded-xl transition-all"
                 >
-                  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="18" width="18" xmlns="http://www.w3.org/2000/svg"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                  <FiArrowLeft size={18} />
                 </button>
                 <h1 className="text-2xl sm:text-4xl font-display font-bold text-text-main uppercase tracking-tight line-clamp-1">#{tag.name}</h1>
                 <button 

@@ -5,16 +5,15 @@ import { FaRegUser } from "react-icons/fa";
 import { IoIosNotifications } from "react-icons/io";
 import SignOut from "../utils/SignOut";
 import { AuthResult } from "../libs/auth";
-import { MobileSidebar } from "./SideBar";
+import { MobileSidebarTrigger } from "./SideBar";
 
 const Header = ({ auth }: { auth: AuthResult }) => {
   const { authenticated, user } = auth;
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-white/5 bg-surface-base/80 px-4 md:px-6 backdrop-blur-md gap-4">
-      {/* Mobile menu trigger — only visible on small screens */}
       <div className="flex items-center gap-3 lg:hidden">
-        <MobileSidebar />
+        <MobileSidebarTrigger />
         <span className="text-sm font-display font-bold text-text-main lg:hidden">
           PKM <span className="text-brand-primary">Manager</span>
         </span>
