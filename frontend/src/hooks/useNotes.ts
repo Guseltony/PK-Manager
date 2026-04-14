@@ -28,8 +28,8 @@ export function useNotes() {
   const { data: fetchedNotes, isLoading, error } = useQuery<Note[]>({
     queryKey: ["notes"],
     queryFn: async () => {
-      const { data } = await api.get("/note/get");
-      return (data.data as BackendNote[]).map(mapBackendNote);
+      const { data } = await api.get<{ data: BackendNote[] }>("/note/get");
+      return data.data.map(mapBackendNote);
     },
     refetchOnWindowFocus: false, // Prevent flicker while editing
     staleTime: 30000,           // Keep data fresh longer
@@ -57,8 +57,8 @@ export function useNotes() {
         title: newNote.title || "New Note",
         content: newNote.content || "Start writing...",
       };
-      const { data } = await api.post("/note/create", payload);
-      return mapBackendNote(data.data as BackendNote);
+      const { data } = await api.post<{ data: BackendNote }>("/note/create", payload);
+      return mapBackendNote(data.data);
     },
     onSuccess: (data) => {
       addNote(data);
@@ -74,8 +74,8 @@ export function useNotes() {
         ...rest,
         ...(tags ? { tagsArray: tags.map(t => ({ name: t })) } : {}),
       };
-      const { data } = await api.put(`/note/update/${id}`, payload);
-      return mapBackendNote(data.data as BackendNote);
+      const { data } = await api.put<{ data: BackendNote }>(`/note/update/${id}`, payload);
+      return mapBackendNote(data.data);
     },
     onSuccess: (data) => {
       updateNote(data.id, data);

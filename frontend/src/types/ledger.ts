@@ -3,6 +3,7 @@ export interface TaskCompletionLog {
   taskId?: string;
   title: string;
   description?: string;
+  status: string;
   priority: "low" | "medium" | "high" | "urgent";
   duration?: number;
   tags: string[];

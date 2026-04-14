@@ -258,6 +258,7 @@ model TaskCompletionLog {
   title       String
   description String?
   priority    Priority @default(medium)
+  status      String   @default("done")
   
   duration    Int?     // in minutes
   tags        String[]

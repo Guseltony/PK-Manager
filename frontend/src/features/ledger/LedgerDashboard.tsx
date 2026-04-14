@@ -70,6 +70,7 @@ export default function LedgerDashboard() {
                   <tr>
                     <th className="p-4 pl-6">Completed Time</th>
                     <th className="p-4">Task Title</th>
+                    <th className="p-4 text-center">Status</th>
                     <th className="p-4">Goal (Dream)</th>
                     <th className="p-4">Priority</th>
                     <th className="p-4">Tags</th>
@@ -85,6 +86,13 @@ export default function LedgerDashboard() {
                       </td>
                       <td className="p-4 font-bold text-text-main">
                         {log.title}
+                      </td>
+                      <td className="p-4 text-center">
+                        {log.status === "done" ? (
+                          <span className="text-emerald-500" title="Completed">✅</span>
+                        ) : (
+                          <span className="text-red-500" title={`Logged as ${log.status}`}>❌</span>
+                        )}
                       </td>
                       <td className="p-4 text-sm text-text-muted">
                          {log.dream ? (

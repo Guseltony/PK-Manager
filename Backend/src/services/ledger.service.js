@@ -2,11 +2,17 @@ import { prisma } from "../config/db.js";
 
 // Generates logs for tasks that were completed BEFORE the ledger system was added
 export const syncHistoricalTasks = async (userId) => {
+  const now = new Date();
+  const startOfToday = new Date(now.setHours(0, 0, 0, 0));
+
   const completedTasks = await prisma.task.findMany({
     where: {
       userId,
-      status: "done",
-      taskLogs: { none: {} } // only tasks that aren't logged yet
+      taskLogs: { none: {} }, // only tasks that aren't logged yet
+      OR: [
+        { status: "done" },
+        { dueDate: { lt: startOfToday } } // if 24 hours have passed and it's overdue, sync it to the ledger anyway
+      ]
     }
   });
 
@@ -18,6 +24,7 @@ export const syncHistoricalTasks = async (userId) => {
     title: task.title,
     description: task.description,
     priority: task.priority,
+    status: task.status, // Pass real task status
     duration: task.duration || 30, // fallback estimate
     tags: task.tags || [],
     goalId: task.dreamId,
@@ -81,7 +88,7 @@ export const getDailySummaries = async (userId) => {
   });
 
   // Ensure score caps
-  const summaries = Object.values(dailyMap).map((sum: any) => ({
+  const summaries = Object.values(dailyMap).map((sum) => ({
     ...sum,
     productivityScore: Math.min(sum.productivityScore, 100)
   }));
