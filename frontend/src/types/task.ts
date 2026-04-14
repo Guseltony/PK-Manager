@@ -30,6 +30,8 @@ export interface Task {
   aiScore: number | null;
   suggestedAt: string | null;
   completedAt: string | null;
+  startDate: string | null;
+  duration: number | null;
   createdAt: string;
   updatedAt: string;
   subtasks?: Subtask[];

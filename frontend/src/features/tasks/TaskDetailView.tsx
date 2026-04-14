@@ -14,8 +14,9 @@ import {
   FiCheckCircle,
   FiZap,
 } from "react-icons/fi";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import dayjs from "dayjs";
+import { motion, AnimatePresence } from "framer-motion";
 import { useTags } from "../../hooks/useTags";
 import { useNotesStore } from "../../store/notesStore";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
@@ -26,6 +27,9 @@ interface TaskDetailViewProps {
   taskId: string;
   onClose: () => void;
 }
+
+const statuses: TaskStatus[] = ["todo", "in_progress", "done"];
+const priorities: Priority[] = ["low", "medium", "high", "urgent"];
 
 export default function TaskDetailView({
   taskId,
@@ -46,8 +50,18 @@ export default function TaskDetailView({
   const [showSubtaskPrompt, setShowSubtaskPrompt] = useState(false);
   const [showTagPrompt, setShowTagPrompt] = useState(false);
 
-  const statuses: TaskStatus[] = ["todo", "in_progress", "done"];
-  const priorities: Priority[] = ["low", "medium", "high", "urgent"];
+  const [localPriority, setLocalPriority] = useState<Priority | null>(null);
+  const [isCycling, setIsCycling] = useState(false);
+  const [localDescription, setLocalDescription] = useState("");
+  const [isEditingDesc, setIsEditingDesc] = useState(false);
+  const [showDurationPrompt, setShowDurationPrompt] = useState(false);
+
+  useEffect(() => {
+    if (task) {
+      setLocalPriority(task.priority);
+      setLocalDescription(task.description || "");
+    }
+  }, [task]);
 
   const handleStatusToggle = () => {
     if (!task) return;
@@ -57,10 +71,19 @@ export default function TaskDetailView({
   };
 
   const handlePriorityCycle = () => {
-    if (!task) return;
-    const currentIndex = priorities.indexOf(task.priority);
+    if (!task || !localPriority) return;
+    setIsCycling(true);
+    const currentIndex = priorities.indexOf(localPriority);
     const nextPriority = priorities[(currentIndex + 1) % priorities.length];
-    updateTask({ id: task.id, updates: { priority: nextPriority } });
+    
+    // Fast local update
+    setLocalPriority(nextPriority);
+    
+    // Mutation in background
+    updateTask(
+      { id: task.id, updates: { priority: nextPriority } },
+      { onSettled: () => setIsCycling(false) }
+    );
   };
 
   const handleAddTag = (tagName: string) => {
@@ -114,6 +137,22 @@ export default function TaskDetailView({
   const handleUnlinkNote = () => {
     if (!task) return;
     updateTask({ id: task.id, updates: { noteId: null } });
+  };
+
+  const handleUpdateDescription = () => {
+    if (!task) return;
+    if (localDescription !== task.description) {
+      updateTask({ id: task.id, updates: { description: localDescription } });
+    }
+    setIsEditingDesc(false);
+  };
+
+  const handleUpdateDuration = (val: string) => {
+    if (!task) return;
+    const dur = parseInt(val);
+    if (!isNaN(dur) && dur > 0) {
+      updateTask({ id: task.id, updates: { duration: dur } });
+    }
   };
 
   if (isLoading)
@@ -234,13 +273,26 @@ export default function TaskDetailView({
           </div>
           <button 
             onClick={handlePriorityCycle}
-            className="p-4 rounded-2xl bg-surface-base/80 border border-white/5 group hover:border-brand-primary/30 transition-all duration-300 text-left"
+            className="p-4 rounded-2xl bg-surface-base/80 border border-white/5 group hover:border-brand-primary/30 transition-all duration-300 text-left relative overflow-hidden"
           >
+            <AnimatePresence mode="wait">
+              {isCycling && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-brand-primary/5 flex items-center justify-center backdrop-blur-[2px]"
+                >
+                  <FiActivity className="animate-spin text-brand-primary" size={16} />
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
             <div className="flex items-center gap-2 mb-2">
               <div className={`p-1.5 rounded-lg ${
-                task.priority === "urgent" ? "bg-brand-accent/10 text-brand-accent" : 
-                task.priority === "high" ? "bg-amber-400/10 text-amber-400" :
-                task.priority === "low" ? "bg-blue-400/10 text-blue-400" : "bg-white/10 text-text-muted"
+                localPriority === "urgent" ? "bg-brand-accent/10 text-brand-accent" : 
+                localPriority === "high" ? "bg-amber-400/10 text-amber-400" :
+                localPriority === "low" ? "bg-blue-400/10 text-blue-400" : "bg-white/10 text-text-muted"
               }`}>
                 <FiFlag size={12} />
               </div>
@@ -249,22 +301,47 @@ export default function TaskDetailView({
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <p
+              <motion.p
+                key={localPriority}
+                initial={{ y: 10, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
                 className={`text-sm font-extrabold uppercase tracking-tight ${
-                  task.priority === "urgent"
+                  localPriority === "urgent"
                     ? "text-brand-accent"
-                    : task.priority === "high"
+                    : localPriority === "high"
                       ? "text-amber-400"
-                      : task.priority === "low"
+                      : localPriority === "low"
                         ? "text-blue-400"
                         : "text-text-main"
                 }`}
               >
-                {task.priority || "Medium"}
+                {localPriority || "Medium"}
+              </motion.p>
+            </div>
+            <p className="text-[10px] text-text-muted mt-1 uppercase font-semibold">
+              Force Multiplier
+            </p>
+          </button>
+
+          <button 
+            onClick={() => setShowDurationPrompt(true)}
+            className="p-4 rounded-2xl bg-surface-base/80 border border-white/5 group hover:border-brand-primary/30 transition-all duration-300 text-left"
+          >
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-1.5 rounded-lg bg-emerald-400/10 text-emerald-400">
+                <FiZap size={12} />
+              </div>
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                Duration
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-extrabold text-text-main uppercase tracking-tight">
+                {task.duration || 1} {task.duration === 1 ? 'Day' : 'Days'}
               </p>
             </div>
             <p className="text-[10px] text-text-muted mt-1 uppercase font-semibold">
-              Click to cycle
+              Execution Span
             </p>
           </button>
         </div>
@@ -274,17 +351,42 @@ export default function TaskDetailView({
           <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
             <FiZap size={64} className="text-brand-primary" />
           </div>
-          <div className="relative z-10">
-            <div className="flex items-center gap-2 mb-4">
-              <FiActivity size={14} className="text-brand-primary" />
-              <h4 className="text-[10px] font-bold text-text-main uppercase tracking-[0.2em]">
-                Objective Details
-              </h4>
+          <div className="relative z-10 w-full">
+            <div className="flex items-center justify-between mb-4">
+               <div className="flex items-center gap-2">
+                <FiActivity size={14} className="text-brand-primary" />
+                <h4 className="text-[10px] font-bold text-text-main uppercase tracking-[0.2em]">
+                  Objective Details
+                </h4>
+              </div>
+              {!isEditingDesc && (
+                <button 
+                  onClick={() => setIsEditingDesc(true)}
+                  className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted transition-all"
+                >
+                  <FiEdit size={12} />
+                </button>
+              )}
             </div>
-            <div className="text-sm text-text-muted leading-relaxed prose prose-invert font-medium">
-              {task.description ||
-                "The intelligence engine is awaiting further context for this objective. Define the scope to enable deeper execution linking."}
-            </div>
+            
+            {isEditingDesc ? (
+              <textarea
+                autoFocus
+                value={localDescription}
+                onChange={(e) => setLocalDescription(e.target.value)}
+                onBlur={handleUpdateDescription}
+                className="w-full bg-transparent text-sm text-text-main leading-relaxed outline-none border-none resize-none min-h-24 custom-scrollbar"
+                placeholder="Describe the desired outcome..."
+              />
+            ) : (
+              <div 
+                onClick={() => setIsEditingDesc(true)}
+                className="text-sm text-text-muted leading-relaxed prose prose-invert font-medium cursor-text"
+              >
+                {task.description ||
+                  "The intelligence engine is awaiting further context for this objective. Define the scope to enable deeper execution linking."}
+              </div>
+            )}
           </div>
         </div>
 
@@ -467,6 +569,16 @@ export default function TaskDetailView({
         message="Connect this task to a relevant note in your library."
         placeholder="Type note title..."
         suggestions={notes.map(n => n.title)}
+      />
+
+      <PromptModal
+        isOpen={showDurationPrompt}
+        onClose={() => setShowDurationPrompt(false)}
+        onSubmit={handleUpdateDuration}
+        title="Execution Span"
+        message="How many days should this objective span? This determines its visibility in your workflow."
+        placeholder="e.g. 3"
+        defaultValue={task.duration?.toString() || "1"}
       />
     </div>
   );

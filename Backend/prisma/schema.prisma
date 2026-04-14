@@ -144,6 +144,9 @@ model Task {
   subtasks    Subtask[]
   activities  ActivityLog[]
   
+  startDate   DateTime? @default(now())
+  duration    Int?      @default(1) // in days
+  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

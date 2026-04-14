@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Modal from "./Modal";
+import { FiPlus } from "react-icons/fi";
 
 interface PromptModalProps {
   isOpen: boolean;
@@ -34,8 +35,10 @@ export default function PromptModal({
     }
   }
 
+  const [isFocused, setIsFocused] = useState(false);
+
   const filteredSuggestions = suggestions.filter((s) =>
-    s.toLowerCase().includes(value.toLowerCase()) && s.toLowerCase() !== value.toLowerCase()
+    s.toLowerCase().includes(value.toLowerCase())
   );
 
   const handleSubmit = (e?: React.FormEvent) => {
@@ -57,24 +60,36 @@ export default function PromptModal({
               type="text"
               value={value}
               onChange={(e) => setValue(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setTimeout(() => setIsFocused(false), 200)}
               placeholder={placeholder}
               className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 px-4 text-text-main outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all"
             />
-            {value && filteredSuggestions.length > 0 && (
-              <div className="absolute top-full left-0 right-0 mt-2 bg-surface-soft border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden py-1 max-h-40 overflow-y-auto">
-                {filteredSuggestions.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => {
-                      onSubmit(suggestion);
-                      onClose();
-                    }}
-                    className="w-full text-left px-4 py-2 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-white/5 transition-colors"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
+            {isFocused && suggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-2 bg-surface-base border border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden py-1 max-h-60 overflow-y-auto backdrop-blur-xl">
+                {filteredSuggestions.length > 0 ? (
+                  filteredSuggestions.map((suggestion) => (
+                    <button
+                      key={suggestion}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault(); // Prevent blur
+                        onSubmit(suggestion);
+                        onClose();
+                      }}
+                      className="w-full text-left px-4 py-3 text-xs font-bold text-text-muted hover:text-brand-primary hover:bg-brand-primary/10 transition-all flex items-center justify-between group"
+                    >
+                      {suggestion}
+                      <FiPlus size={12} className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </button>
+                  ))
+                ) : (
+                  <div className="px-4 py-4 text-center">
+                    <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest opacity-40">
+                      No matches found
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

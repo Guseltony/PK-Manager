@@ -1,7 +1,7 @@
 import { prisma } from "../config/db.js";
 
 export const taskCreation = async (data, userId) => {
-  const { title, description, status, priority, dueDate, estimatedTime, tags, noteId, dreamId } = data;
+  const { title, description, status, priority, dueDate, startDate, duration, estimatedTime, tags, noteId, dreamId } = data;
   
   return await prisma.task.create({
     data: {
@@ -10,6 +10,8 @@ export const taskCreation = async (data, userId) => {
       status: status || "todo",
       priority: priority || "medium",
       dueDate: dueDate ? new Date(dueDate) : null,
+      startDate: startDate ? new Date(startDate) : new Date(),
+      duration: duration || 1,
       estimatedTime,
       tags: tags || [],
       userId,
@@ -42,11 +44,26 @@ export const getUserTasks = async (userId, filters = {}) => {
   if (noteId) where.noteId = noteId;
 
   if (today) {
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    const end = new Date();
-    end.setHours(23, 59, 59, 999);
-    where.dueDate = { gte: start, lte: end };
+    const now = new Date();
+    const startOfToday = new Date(now.setHours(0, 0, 0, 0));
+    const endOfToday = new Date(now.setHours(23, 59, 59, 999));
+    
+    // Task is "today" if it covers today's date range
+    where.OR = [
+      // Spanning tasks: startDate <= todayEnd AND (Calculated End Date) >= todayStart
+      {
+        AND: [
+          { startDate: { lte: endOfToday } },
+          { 
+            // This is a bit complex for Prisma without a stored field, 
+            // but we can approximate or just check status
+            status: { not: "done" } 
+          }
+        ]
+      },
+      // Traditional dueDate tasks
+      { dueDate: { gte: startOfToday, lte: endOfToday } }
+    ];
   }
 
   if (focus) {
@@ -90,7 +107,7 @@ export const getTask = async (taskId, userId) => {
 };
 
 export const updateTask = async (taskId, userId, data) => {
-  const { title, description, status, priority, dueDate, estimatedTime, tags, noteId, dreamId, aiScore, completedAt } = data;
+  const { title, description, status, priority, dueDate, startDate, duration, estimatedTime, tags, noteId, dreamId, aiScore, completedAt } = data;
   
   // If status is changing to done, set completedAt if not provided
   let finalCompletedAt = completedAt;
@@ -108,6 +125,8 @@ export const updateTask = async (taskId, userId, data) => {
       status,
       priority,
       dueDate: dueDate ? new Date(dueDate) : dueDate,
+      startDate: startDate ? new Date(startDate) : startDate,
+      duration,
       estimatedTime,
       tags,
       noteId,
