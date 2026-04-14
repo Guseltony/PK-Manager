@@ -3,12 +3,19 @@
 import { useState } from "react";
 import { FiPlus, FiCheckCircle, FiCircle, FiX } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { Milestone } from "../../hooks/useDreams";
 
-export default function MilestoneList({ milestones, onAdd, onToggle }) {
+interface MilestoneListProps {
+  milestones: Milestone[];
+  onAdd: (milestone: Partial<Milestone>) => void;
+  onToggle: (id: string) => void;
+}
+
+export default function MilestoneList({ milestones, onAdd, onToggle }: MilestoneListProps) {
   const [showAdd, setShowAdd] = useState(false);
   const [newTitle, setNewTitle] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTitle.trim()) return;
     onAdd({ title: newTitle });

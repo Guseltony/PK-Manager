@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../libs/api";
+import { Task } from "../types/task";
 
 export interface Milestone {
   id: string;
@@ -8,6 +9,26 @@ export interface Milestone {
   completed: boolean;
   weight: number;
   targetDate?: string;
+}
+
+export interface DreamInsight {
+  id: string;
+  message: string;
+  type: "warning" | "suggestion" | "progress" | "prediction";
+  createdAt: string;
+}
+
+export interface DreamActivity {
+  id: string;
+  action: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface DreamNote {
+  id: string;
+  title: string;
+  updatedAt: string;
 }
 
 export interface Dream {
@@ -21,14 +42,16 @@ export interface Dream {
   progress: number;
   healthScore: number;
   aiScore?: number;
-  tasks?: any[];
-  notes?: any[];
+  tasks?: Task[];
+  notes?: DreamNote[];
   milestones?: Milestone[];
-  insights?: any[];
-  activities?: any[];
+  insights?: DreamInsight[];
+  activities?: DreamActivity[];
   createdAt: string;
   updatedAt: string;
 }
+
+const EMPTY_ARRAY: unknown[] = [];
 
 export function useDreams() {
   const queryClient = useQueryClient();
@@ -36,12 +59,20 @@ export function useDreams() {
   const { data: dreams, isLoading, error } = useQuery<Dream[]>({
     queryKey: ["dreams"],
     queryFn: async () => {
-      const { data } = await api.get<{ data: Dream[] }>("/dream/all");
-      return data.data;
+      try {
+        console.log("DEBUG: Fetching all dreams...");
+        const response = await api.get<{ data: Dream[] }>("/dream/all");
+        console.log("DEBUG: Fetching dreams success:", response.data);
+        return response.data.data;
+      } catch (err) {
+        const error = err as { response?: { data?: unknown }; message?: string };
+        console.error("DEBUG: Fetching dreams error:", error.response?.data || error.message);
+        throw err;
+      }
     },
   });
 
-  const createDream = useMutation({
+  const createDreamMutation = useMutation({
     mutationFn: async (newDream: Partial<Dream>) => {
       const { data } = await api.post<{ data: Dream }>("/dream/create", newDream);
       return data.data;
@@ -52,10 +83,11 @@ export function useDreams() {
   });
 
   return {
-    dreams: dreams || [],
+    dreams: dreams || (EMPTY_ARRAY as Dream[]),
     isLoading,
     error,
-    createDream,
+    createDream: createDreamMutation.mutate,
+    isCreating: createDreamMutation.isPending,
   };
 }
 
@@ -72,7 +104,7 @@ export function useDream(id: string | null) {
     enabled: !!id,
   });
 
-  const updateDream = useMutation({
+  const updateMutation = useMutation({
     mutationFn: async (updates: Partial<Dream>) => {
       const { data } = await api.put<{ data: Dream }>(`/dream/update/${id}`, updates);
       return data.data;
@@ -83,7 +115,7 @@ export function useDream(id: string | null) {
     },
   });
 
-  const addMilestone = useMutation({
+  const addMilestoneMutation = useMutation({
     mutationFn: async (milestone: Partial<Milestone>) => {
       const { data } = await api.post<{ data: Milestone }>(`/dream/${id}/milestones`, milestone);
       return data.data;
@@ -93,7 +125,7 @@ export function useDream(id: string | null) {
     },
   });
 
-  const toggleMilestone = useMutation({
+  const toggleMilestoneMutation = useMutation({
     mutationFn: async (milestoneId: string) => {
       const { data } = await api.put<{ data: Milestone }>(`/dream/${id}/milestones/${milestoneId}`);
       return data.data;
@@ -107,8 +139,10 @@ export function useDream(id: string | null) {
     dream,
     isLoading,
     error,
-    updateDream,
-    addMilestone,
-    toggleMilestone,
+    updateDream: updateMutation.mutate,
+    addMilestone: addMilestoneMutation.mutate,
+    toggleMilestone: toggleMilestoneMutation.mutate,
+    isUpdating: updateMutation.isPending,
+    isAddingMilestone: addMilestoneMutation.isPending,
   };
 }

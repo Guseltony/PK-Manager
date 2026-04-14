@@ -3,10 +3,17 @@
 import { motion } from "framer-motion";
 import { FiCalendar, FiActivity, FiLayers, FiChevronRight } from "react-icons/fi";
 import Link from "next/link";
+import { Dream } from "../../hooks/useDreams";
 
-export default function DreamCard({ dream }) {
+interface DreamCardProps {
+  dream: Dream;
+}
+
+export default function DreamCard({ dream }: DreamCardProps) {
   const isUrgent = dream.priority === "urgent";
   const isHigh = dream.priority === "high";
+  const isMedium = dream.priority === "medium";
+  const isLow = dream.priority === "low";
 
   return (
     <motion.div
@@ -15,7 +22,10 @@ export default function DreamCard({ dream }) {
     >
       {/* Background Accent */}
       <div className={`absolute top-0 right-0 w-32 h-32 blur-[100px] opacity-20 -mr-10 -mt-10 transition-colors duration-500 ${
-        isUrgent ? "bg-red-500" : isHigh ? "bg-amber-500" : "bg-brand-primary"
+        isUrgent ? "bg-red-500" : 
+        isHigh ? "bg-amber-500" : 
+        isMedium ? "bg-emerald-500" : 
+        "bg-blue-500"
       }`} />
 
       {/* Header */}
@@ -23,7 +33,8 @@ export default function DreamCard({ dream }) {
         <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${
           isUrgent ? "border-red-500/30 text-red-500 bg-red-500/5" :
           isHigh ? "border-amber-500/30 text-amber-500 bg-amber-500/5" :
-          "border-white/10 text-text-muted bg-white/5"
+          isMedium ? "border-emerald-500/30 text-emerald-500 bg-emerald-500/5" :
+          "border-blue-500/30 text-blue-400 bg-blue-500/5"
         }`}>
           {dream.priority}
         </span>

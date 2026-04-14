@@ -13,7 +13,7 @@ export function useTags() {
   const { data: fetchedTags, isLoading, error } = useQuery<Tag[]>({
     queryKey: ["tags"],
     queryFn: async () => {
-      const { data } = await api.get("/tag/get");
+      const { data } = await api.get<{ data: Tag[] }>("/tag/get");
       return data.data || [];
     },
   });
@@ -34,7 +34,7 @@ export function useTags() {
   // Create Tag
   const createMutation = useMutation({
     mutationFn: async (newTag: NewTag) => {
-      const { data } = await api.post("/tag/create", newTag);
+      const { data } = await api.post<{ data: Tag }>("/tag/create", newTag);
       return data.data;
     },
     onSuccess: (data) => {
@@ -46,7 +46,7 @@ export function useTags() {
   // Update Tag
   const updateMutation = useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Tag> }) => {
-      const { data } = await api.put(`/tag/update/${id}`, updates);
+      const { data } = await api.put<{ data: Tag }>(`/tag/update/${id}`, updates);
       return data.data;
     },
     onSuccess: (data) => {

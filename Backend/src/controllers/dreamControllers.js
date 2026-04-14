@@ -18,9 +18,11 @@ export const createNewDream = async (req, res) => {
 
 export const allUserDreams = async (req, res) => {
   try {
+    console.log("DEBUG: allUserDreams user:", req.user?.id);
     const dreams = await getUserDreams(req.user.id);
     res.status(200).json({ data: dreams });
   } catch (error) {
+    console.error("DEBUG: allUserDreams error:", error);
     res.status(400).json({ error: error.message });
   }
 };

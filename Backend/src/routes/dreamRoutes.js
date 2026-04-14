@@ -15,7 +15,7 @@ import { idParamSchema } from "../validators/idParams.schema.js";
 const dreamRoutes = express.Router();
 
 // All routes require authentication
-dreamRoutes.use(authMiddleware);
+// dreamRoutes.use(authMiddleware);
 
 dreamRoutes.post("/create", validateRequest(createDreamSchema, "body"), createNewDream);
 dreamRoutes.get("/all", allUserDreams);

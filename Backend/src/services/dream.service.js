@@ -26,18 +26,26 @@ export const dreamCreation = async (data, userId) => {
 };
 
 export const getUserDreams = async (userId) => {
-  return await prisma.dream.findMany({
-    where: { userId },
-    include: {
-      tasks: {
-        select: { id: true, status: true }
+  try {
+    console.log("DEBUG: Service getUserDreams for:", userId);
+    const dreams = await prisma.dream.findMany({
+      where: { userId },
+      include: {
+        tasks: {
+          select: { id: true, status: true }
+        },
+        milestones: {
+          select: { id: true, completed: true }
+        },
       },
-      milestones: {
-        select: { id: true, completed: true }
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
+      orderBy: { createdAt: "desc" },
+    });
+    console.log("DEBUG: Service getUserDreams count:", dreams.length);
+    return dreams;
+  } catch (error) {
+    console.error("DEBUG: Service getUserDreams error:", error);
+    throw error;
+  }
 };
 
 export const getDream = async (dreamId, userId) => {
