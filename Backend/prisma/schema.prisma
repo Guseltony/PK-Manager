@@ -52,6 +52,9 @@ model User {
   journalEntries JournalEntry[]
   journalInsights JournalInsight[]
   journalMoodLogs JournalMoodLog[]
+  focusSessions FocusSession[]
+  focusAnalytics FocusAnalytics[]
+  taskFocusMeta TaskFocusMeta[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -159,6 +162,7 @@ model Task {
   subtasks    Subtask[]
   activities  TaskActivity[]
   taskLogs    TaskCompletionLog[]
+  focusMeta   TaskFocusMeta?
   
   startDate   DateTime? @default(now())
   duration    Int?      @default(1) // in days
@@ -366,5 +370,49 @@ model JournalMoodLog {
   date      DateTime
   mood      String   // great, good, neutral, bad
   
+  @@unique([userId, date])
+}
+
+model FocusSession {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt        DateTime @default(now())
+  endedAt          DateTime?
+  selectedTaskIds  String[]
+  completedTaskIds String[]
+  skippedTaskIds   String[]
+  completedCount   Int      @default(0)
+
+  @@index([userId, startedAt])
+}
+
+model TaskFocusMeta {
+  id                   String   @id @default(uuid())
+  userId               String
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId               String   @unique
+  task                 Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  aiScore              Float?
+  skipCount            Int      @default(0)
+  completedInFocusCount Int     @default(0)
+  lastSkippedAt        DateTime?
+  focusSelectedAt      DateTime?
+  lastCompletedAt      DateTime?
+
+  @@index([userId, lastSkippedAt])
+}
+
+model FocusAnalytics {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date           DateTime
+  sessions       Int      @default(0)
+  tasksCompleted Int      @default(0)
+  totalFocusTime Int      @default(0)
+  avgFocusScore  Float?
+  updatedAt      DateTime @updatedAt
+
   @@unique([userId, date])
 }

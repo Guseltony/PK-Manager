@@ -14,6 +14,7 @@ import dreamRoutes from "./routes/dreamRoutes.js";
 import ledgerRoutes from "./routes/ledgerRoutes.js";
 import journalRoutes from "./routes/journalRoutes.js";
 import { startLedgerCron } from "./jobs/ledgerCron.js";
+import focusRoutes from "./routes/focusRoutes.js";
 
 // connect to the database
 connectDB();
@@ -47,6 +48,7 @@ app.use("/user", userRoutes);
 app.use("/dream", authMiddleware, dreamRoutes);
 app.use("/ledger", authMiddleware, ledgerRoutes);
 app.use("/journal", authMiddleware, journalRoutes);
+app.use("/focus", authMiddleware, focusRoutes);
 
 // port and listening
 
