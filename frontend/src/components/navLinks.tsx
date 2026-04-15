@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { BiSolidDashboard, BiSolidNotepad } from "react-icons/bi";
 import { BsFillTagFill } from "react-icons/bs";
 import { IoMdArchive } from "react-icons/io";
-import { FiBook, FiCheckSquare, FiStar, FiActivity } from "react-icons/fi";
+import { FiBook, FiCheckSquare, FiStar, FiActivity, FiZap } from "react-icons/fi";
 import { NavLink } from "../type/type";
 import GlobalSearch from "./GlobalSearch";
 
@@ -34,6 +34,7 @@ const navSections: NavSection[] = [
     label: "Execution",
     links: [
       { href: "/tasks", name: "tasks", icon: FiCheckSquare },
+      { href: "/focus", name: "focus", icon: FiZap },
       { href: "/ledger", name: "ledger", icon: FiActivity },
     ],
   },
