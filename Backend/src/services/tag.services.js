@@ -1,4 +1,3 @@
-import { application } from "express";
 import { prisma } from "../libs/prisma.js";
 import {
   allTagResponseSchema,
@@ -116,11 +115,64 @@ const getAllTag = async (user_id) => {
 };
 
 const getTag = async (tag_id, user_id) => {
-  // check if the tag exists
   const tagExist = await prisma.tag.findUnique({
     where: {
       id: tag_id,
       userId: user_id,
+    },
+    include: {
+      notes: { 
+        include: { 
+          note: {
+            include: {
+              tags: {
+                include: {
+                  tag: true
+                }
+              }
+            }
+          } 
+        } 
+      },
+      tasks: { 
+        include: { 
+          task: {
+            include: {
+              tags: {
+                include: {
+                  tag: true
+                }
+              }
+            }
+          } 
+        } 
+      },
+      dreams: { 
+        include: { 
+          dream: {
+            include: {
+              tags: {
+                include: {
+                  tag: true
+                }
+              }
+            }
+          } 
+        } 
+      },
+      journals: { 
+        include: { 
+          journalEntry: {
+            include: {
+              tags: {
+                include: {
+                  tag: true
+                }
+              }
+            }
+          } 
+        } 
+      },
     },
   });
 
@@ -128,12 +180,17 @@ const getTag = async (tag_id, user_id) => {
     throw new Error("Tag not found");
   }
 
-  const validateTag = tagResponseSchema.parse({
+  // Flatten the response for the frontend
+  const data = {
     ...tagExist,
+    notes: tagExist.notes.map((n) => n.note),
+    tasks: tagExist.tasks.map((t) => t.task),
+    dreams: tagExist.dreams.map((d) => d.dream),
+    journals: tagExist.journals.map((j) => j.journalEntry),
     createdAt: tagExist.createdAt.toISOString(),
-  });
+  };
 
-  console.log("validate successfully");
+  const validateTag = tagResponseSchema.parse(data);
 
   return validateTag;
 };

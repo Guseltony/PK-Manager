@@ -1,4 +1,5 @@
 import { prisma } from "../config/db.js";
+import { syncTags, tagInclude } from "../utils/tagHelper.js";
 
 export const dreamCreation = async (data, userId) => {
   const { title, description, category, priority, targetDate } = data;
@@ -11,6 +12,7 @@ export const dreamCreation = async (data, userId) => {
       priority: priority || "medium",
       targetDate: targetDate ? new Date(targetDate) : null,
       userId,
+      tags: syncTags(data.tags, userId),
       activities: {
         create: {
           action: "created",
@@ -18,6 +20,7 @@ export const dreamCreation = async (data, userId) => {
       },
     },
     include: {
+      ...tagInclude(),
       milestones: true,
       tasks: true,
       notes: true,
@@ -31,6 +34,7 @@ export const getUserDreams = async (userId) => {
     const dreams = await prisma.dream.findMany({
       where: { userId },
       include: {
+        ...tagInclude(),
         tasks: {
           select: { id: true, status: true }
         },
@@ -52,6 +56,7 @@ export const getDream = async (dreamId, userId) => {
   const dream = await prisma.dream.findFirst({
     where: { id: dreamId, userId },
     include: {
+      ...tagInclude(),
       tasks: true,
       notes: {
         select: { id: true, title: true, updatedAt: true }
@@ -96,6 +101,10 @@ export const updateDream = async (dreamId, userId, updates) => {
       category,
       priority,
       targetDate: targetDate ? new Date(targetDate) : undefined,
+      tags: updates.tags ? syncTags(updates.tags, userId) : undefined,
+    },
+    include: {
+      ...tagInclude(),
     },
   });
 };

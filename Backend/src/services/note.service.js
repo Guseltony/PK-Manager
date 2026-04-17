@@ -4,6 +4,7 @@ import {
   allNoteResponseSchema,
   noteResponseSchema,
 } from "../validators/note.schema.js";
+import { syncTags, tagInclude } from "../utils/tagHelper.js";
 
 const noteCreation = async ({ title, content, tagsArray }, user_id) => {
   if (!title || !content) {
@@ -47,77 +48,13 @@ const noteCreation = async ({ title, content, tagsArray }, user_id) => {
     data: {
       title,
       content,
-      // connecting relations schema
       user: {
         connect: { id: user_id },
       },
-      tags: {
-        create: tagsArray?.map((tag) => ({
-          tag: {
-            connectOrCreate: {
-              where: {
-                name_userId: {
-                  name: tag.name,
-                  userId: user_id,
-                },
-              },
-              create: {
-                name: tag.name,
-                color: tag.color,
-                user: {
-                  connect: { id: user_id },
-                },
-              },
-            },
-          },
-        })),
-
-        // tags: {
-        //   connectOrCreate: tagsArray?.map((tag) => ({
-        //     where: {
-        //       name_userId: {
-        //         name: tag.name,
-        //         userId: user_id,
-        //       },
-        //     },
-        //     create: {
-        //       name: tag.name,
-        //       color: tag.color,
-        //       user: {
-        //         connect: { id: user_id },
-        //       },
-        //     },
-        //   })),
-        // },
-
-        // tags: {
-        //   connect: tagsObj?.map((tag) => ({
-        //     name_userId: {
-        //       name: tag.name,
-        //       userId: tag.userId,
-        //     },
-        //   })),
-        //   // connect: {
-        //   //   name_userId: {
-        //   //     name: tag.name,
-        //   //     userId: tag.userId,
-        //   //   },
-        //   // },
-        // },
-        // or  userId: user_id,
-      },
+      tags: syncTags(tagsArray, user_id),
     },
     include: {
-      tags: {
-        select: {
-          tag: {
-            select: {
-              name: true,
-              color: true,
-            },
-          },
-        },
-      },
+      ...tagInclude(),
     },
   });
 
@@ -138,41 +75,8 @@ const getUserNotes = async (user_id) => {
   const userNotes = await prisma.note.findMany({
     where: { userId: user_id },
     include: {
-      tags: {
-        select: {
-          tag: {
-            select: {
-              name: true,
-              color: true,
-            },
-          },
-        },
-        // omit: {
-        //   id: true,
-        //   noteId: true,
-        //   tagId: true
-        // },
-        // include: {
-        //   tag: {
-        //     select: {
-        //       name: true,
-        //       color: true,
-        //     },
-        //   },
-        // },
-      },
+      ...tagInclude(),
     },
-    // include: {
-    //   tags: true,
-    // },
-    // include: {
-    //   tags: {
-    //     select: {
-    //       name: true,
-    //       color: true,
-    //     },
-    //   },
-    // },
   });
 
   const validateNotes = allNoteResponseSchema.parse(userNotes);
@@ -187,16 +91,7 @@ const getNote = async (note_id, user_id) => {
       userId: user_id,
     },
     include: {
-      tags: {
-        select: {
-          tag: {
-            select: {
-              name: true,
-              color: true,
-            },
-          },
-        },
-      },
+      ...tagInclude(),
     },
   });
 
@@ -222,43 +117,11 @@ const updateUserNote = async ({ title, content, tagsArray }, note_id, user_id) =
     },
     data: {
       ...noteObj,
-      updatedAt: new Date(), // Force timestamp update
-      ...(tagsArray && {
-        tags: {
-          deleteMany: {},
-          create: tagsArray.map((tag) => ({
-            tag: {
-              connectOrCreate: {
-                where: {
-                  name_userId: {
-                    name: tag.name,
-                    userId: user_id,
-                  },
-                },
-                create: {
-                  name: tag.name,
-                  color: tag.color,
-                  user: {
-                    connect: { id: user_id },
-                  },
-                },
-              },
-            },
-          })),
-        },
-      }),
+      updatedAt: new Date(),
+      tags: tagsArray ? syncTags(tagsArray, user_id) : undefined,
     },
     include: {
-      tags: {
-        select: {
-          tag: {
-            select: {
-              name: true,
-              color: true,
-            },
-          },
-        },
-      },
+      ...tagInclude(),
     },
   });
 

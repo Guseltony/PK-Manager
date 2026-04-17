@@ -1,5 +1,6 @@
 import { prisma } from "../config/db.js";
 import { generateJournalInsights } from "./insights.service.js";
+import { syncTags, tagInclude } from "../utils/tagHelper.js";
 
 /**
  * Gets the journal entry for a specific date (usually today).
@@ -23,6 +24,7 @@ export const getJournalEntryByDate = async (userId, dateString) => {
       date: startOfDay,
     },
     include: {
+      ...tagInclude(),
       insights: true,
       mentions: true,
     }
@@ -36,6 +38,7 @@ export const getJournalEntryByDate = async (userId, dateString) => {
         content: "",
       },
       include: {
+        ...tagInclude(),
         insights: true,
         mentions: true,
       }
@@ -60,8 +63,10 @@ export const updateJournalEntry = async (journalId, userId, data) => {
       content,
       mood,
       highlights,
+      tags: data.tags ? syncTags(data.tags, userId) : undefined,
     },
     include: {
+      ...tagInclude(),
       insights: true,
       mentions: true,
     }
@@ -98,6 +103,9 @@ export const getJournalTimeline = async (userId, limit = 10, skip = 0) => {
   
   return await prisma.journalEntry.findMany({
     where: { userId },
+    include: {
+      ...tagInclude(),
+    },
     orderBy: { date: "desc" },
     take: isNaN(takeVal) ? 10 : takeVal,
     skip: isNaN(skipVal) ? 0 : skipVal,

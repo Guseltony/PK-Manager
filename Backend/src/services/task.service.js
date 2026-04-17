@@ -1,4 +1,5 @@
 import { prisma } from "../config/db.js";
+import { syncTags, tagInclude } from "../utils/tagHelper.js";
 
 export const taskCreation = async (data, userId) => {
   const { title, description, status, priority, dueDate, tags, noteId, dreamId } = data;
@@ -10,7 +11,7 @@ export const taskCreation = async (data, userId) => {
       status: status || "todo",
       priority: priority || "medium",
       dueDate: dueDate ? new Date(dueDate) : null,
-      tags: tags || [],
+      tags: syncTags(tags, userId),
       userId,
       noteId,
       dreamId,
@@ -21,6 +22,7 @@ export const taskCreation = async (data, userId) => {
       },
     },
     include: {
+      ...tagInclude(),
       subtasks: true,
       activities: true,
     },
@@ -36,7 +38,15 @@ export const getUserTasks = async (userId, filters = {}) => {
 
   if (status) where.status = status;
   if (priority) where.priority = priority;
-  if (tag) where.tags = { has: tag };
+  if (tag) {
+    where.tags = {
+      some: {
+        tag: {
+          name: tag.toLowerCase(),
+        },
+      },
+    };
+  }
   if (dreamId) where.dreamId = dreamId;
   if (noteId) where.noteId = noteId;
 
@@ -74,6 +84,7 @@ export const getUserTasks = async (userId, filters = {}) => {
   return await prisma.task.findMany({
     where,
     include: {
+      ...tagInclude(),
       subtasks: true,
       note: {
         select: { id: true, title: true }
@@ -94,6 +105,7 @@ export const getTask = async (taskId, userId) => {
   return await prisma.task.findFirst({
     where: { id: taskId, userId },
     include: {
+      ...tagInclude(),
       subtasks: true,
       activities: {
         orderBy: { timestamp: "desc" }
@@ -126,7 +138,7 @@ export const updateTask = async (taskId, userId, data) => {
       startDate: startDate ? new Date(startDate) : startDate,
       duration,
       estimatedTime,
-      tags,
+      tags: tags ? syncTags(tags, userId) : undefined,
       noteId,
       dreamId,
       aiScore,
@@ -141,6 +153,7 @@ export const updateTask = async (taskId, userId, data) => {
       },
     },
     include: {
+      ...tagInclude(),
       subtasks: true,
       activities: true,
     },
