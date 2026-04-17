@@ -55,6 +55,7 @@ model User {
   focusSessions FocusSession[]
   focusAnalytics FocusAnalytics[]
   taskFocusMeta TaskFocusMeta[]
+  ideas         Idea[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -97,7 +98,13 @@ model Tag {
   color     String?
   userId    String
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
   notes     NoteTag[]
+  tasks     TaskTag[]
+  dreams    DreamTag[]
+  journals  JournalTag[]
+  ideas     IdeaTag[]
+  
   createdAt DateTime  @default(now())
 
   @@unique([name, userId])
@@ -111,6 +118,36 @@ model NoteTag {
   tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
 
   @@unique([noteId, tagId])
+}
+
+model TaskTag {
+  id     String @id @default(uuid())
+  taskId String
+  tagId  String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, tagId])
+}
+
+model DreamTag {
+  id      String @id @default(uuid())
+  dreamId String
+  tagId   String
+  dream   Dream  @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([dreamId, tagId])
+}
+
+model JournalTag {
+  id             String @id @default(uuid())
+  journalEntryId String
+  tagId          String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  tag            Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([journalEntryId, tagId])
 }
 
 enum TaskStatus {
@@ -132,6 +169,12 @@ enum DreamStatus {
   completed
 }
 
+enum IdeaStatus {
+  raw
+  in_progress
+  converted
+}
+
 model Task {
   id          String   @id @default(uuid())
   title       String
@@ -143,7 +186,7 @@ model Task {
   dueDate     DateTime?
   estimatedTime Int? // in minutes
   
-  tags        String[]
+  tags        TaskTag[]
   
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -204,6 +247,7 @@ model Dream {
   insights    DreamInsight[]
   activities  DreamActivity[]
   taskLogs    TaskCompletionLog[]
+  tags        DreamTag[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -329,6 +373,7 @@ model JournalEntry {
 
   insights    JournalInsight[]
   mentions    JournalTaskMention[]
+  tags        JournalTag[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -415,4 +460,37 @@ model FocusAnalytics {
   updatedAt      DateTime @updatedAt
 
   @@unique([userId, date])
+}
+
+model Idea {
+  id        String   @id @default(uuid())
+  content   String
+  status    IdeaStatus @default(raw)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags      IdeaTag[]
+  links     IdeaLink[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model IdeaTag {
+  id      String @id @default(uuid())
+  ideaId  String
+  tagId   String
+  idea    Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([ideaId, tagId])
+}
+
+model IdeaLink {
+  id         String   @id @default(uuid())
+  ideaId     String
+  idea       Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  entityType String   // note, task, dream
+  entityId   String
+  createdAt  DateTime @default(now())
 }
