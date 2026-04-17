@@ -1,3 +1,5 @@
+import { Tag } from "./tag";
+
 export interface JournalInsight {
   id: string;
   journalId: string;
@@ -25,6 +27,7 @@ export interface JournalEntry {
   };
   insights: JournalInsight[];
   mentions: JournalTaskMention[];
+  tags: { tag: Tag }[];
   createdAt: string;
   updatedAt: string;
 }

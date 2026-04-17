@@ -80,3 +80,15 @@ export function useTags() {
     isUpdating: updateMutation.isPending,
   };
 }
+
+export function useTagDetail(tagId: string | null) {
+  return useQuery<Tag>({
+    queryKey: ["tag", tagId],
+    queryFn: async () => {
+      if (!tagId) throw new Error("Tag ID is required");
+      const { data } = await api.get<{ data: Tag }>(`/tag/a/${tagId}`);
+      return data.data;
+    },
+    enabled: !!tagId,
+  });
+}

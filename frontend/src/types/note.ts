@@ -1,8 +1,10 @@
+import { Tag } from "./tag";
+
 export interface Note {
   id: string;
   title: string;
   content: string;
-  tags: string[];
+  tags: { tag: Tag }[];
   category?: string;
   isFavorite?: boolean;
   isArchived?: boolean;
@@ -11,4 +13,6 @@ export interface Note {
   userId: string;
 }
 
-export type NewNote = Omit<Note, 'id' | 'createdAt' | 'updatedAt' | 'userId'>;
+export type NewNote = Omit<Note, 'id' | 'createdAt' | 'updatedAt' | 'userId' | 'tags'> & {
+  tags: { tag: Partial<Tag> }[];
+};

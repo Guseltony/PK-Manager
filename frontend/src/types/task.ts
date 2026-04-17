@@ -1,3 +1,5 @@
+import { Tag } from "./tag";
+
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
 
@@ -23,7 +25,7 @@ export interface Task {
   priority: Priority;
   dueDate: string | null;
   estimatedTime: number | null;
-  tags: string[];
+  tags: { tag: Tag }[];
   userId: string;
   noteId: string | null;
   dreamId: string | null;
@@ -40,4 +42,6 @@ export interface Task {
   dream?: { id: string; title: string };
 }
 
-export type NewTask = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'userId' | 'subtasks' | 'activities' | 'note' | 'dream' | 'aiScore' | 'suggestedAt' | 'completedAt'>;
+export type NewTask = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'userId' | 'subtasks' | 'activities' | 'note' | 'dream' | 'aiScore' | 'suggestedAt' | 'completedAt' | 'tags'> & {
+  tags: { tag: Partial<Tag> }[];
+};

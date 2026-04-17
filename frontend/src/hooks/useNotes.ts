@@ -1,14 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../libs/api";
 import { Note, NewNote } from "../types/note";
+import { Tag } from "../types/tag";
 import { useNotesStore } from "../store/notesStore";
 import { useEffect } from "react";
 const EMPTY_ARRAY: unknown[] = [];
 
 interface BackendTag {
-  tag: {
-    name: string;
-  };
+  tag: Tag;
 }
 
 interface BackendNote extends Omit<Note, "tags"> {
@@ -17,7 +16,8 @@ interface BackendNote extends Omit<Note, "tags"> {
 
 const mapBackendNote = (note: BackendNote): Note => ({
   ...note,
-  tags: note.tags?.map((t) => t.tag?.name).filter(Boolean) as string[] || [],
+  // Ensure tags is always an array
+  tags: note.tags || [],
 });
 
 export function useNotes() {
@@ -53,7 +53,8 @@ export function useNotes() {
       // Backend expects tagsArray as [{ name, color }]
       const payload = {
         ...newNote,
-        tagsArray: newNote.tags.map(t => ({ name: t })),
+        // Map the relational tag objects back to names for the backend tagHelper
+        tagsArray: newNote.tags.map(t => ({ name: t.tag.name })),
         title: newNote.title || "New Note",
         content: newNote.content || "Start writing...",
       };
@@ -68,11 +69,12 @@ export function useNotes() {
 
   // Update Note
   const updateMutation = useMutation({
-    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Note> }) => {
+    mutationFn: async ({ id, updates }: { id: string; updates: Partial<Omit<Note, 'tags'>> & { tags?: { tag: Partial<Tag> }[] } }) => {
       const { tags, ...rest } = updates;
       const payload = {
         ...rest,
-        ...(tags ? { tagsArray: tags.map(t => ({ name: t })) } : {}),
+        // Convert relational tags back to names for backend ingestion
+        ...(tags ? { tagsArray: tags.map(({ tag }) => ({ name: tag.name })) } : {}),
       };
       const { data } = await api.put<{ data: BackendNote }>(`/note/update/${id}`, payload);
       return mapBackendNote(data.data);

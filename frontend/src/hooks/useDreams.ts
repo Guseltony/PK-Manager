@@ -1,55 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../libs/api";
-import { Task } from "../types/task";
-
-export interface Milestone {
-  id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  weight: number;
-  targetDate?: string;
-}
-
-export interface DreamInsight {
-  id: string;
-  message: string;
-  type: "warning" | "suggestion" | "progress" | "prediction";
-  createdAt: string;
-}
-
-export interface DreamActivity {
-  id: string;
-  action: string;
-  metadata?: Record<string, unknown>;
-  createdAt: string;
-}
-
-export interface DreamNote {
-  id: string;
-  title: string;
-  updatedAt: string;
-}
-
-export interface Dream {
-  id: string;
-  title: string;
-  description?: string;
-  status: "active" | "paused" | "completed";
-  category?: string;
-  priority: "low" | "medium" | "high" | "urgent";
-  targetDate?: string;
-  progress: number;
-  healthScore: number;
-  aiScore?: number;
-  tasks?: Task[];
-  notes?: DreamNote[];
-  milestones?: Milestone[];
-  insights?: DreamInsight[];
-  activities?: DreamActivity[];
-  createdAt: string;
-  updatedAt: string;
-}
+import { 
+  Dream, 
+  Milestone, 
+} from "../types/dream";
 
 const EMPTY_ARRAY: unknown[] = [];
 

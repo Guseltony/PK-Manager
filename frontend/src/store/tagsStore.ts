@@ -4,10 +4,12 @@ import { Tag } from "../types/tag";
 interface TagsState {
   tags: Tag[];
   selectedTagId: string | null;
+  globalTagFilter: string | null;  // New: Current tag name being filtered globally
   searchQuery: string;
   
   setTags: (tags: Tag[]) => void;
   selectTag: (id: string | null) => void;
+  setGlobalTagFilter: (tagName: string | null) => void; // New
   setSearchQuery: (query: string) => void;
   
   addTag: (tag: Tag) => void;
@@ -18,10 +20,12 @@ interface TagsState {
 export const useTagsStore = create<TagsState>((set) => ({
   tags: [],
   selectedTagId: null,
+  globalTagFilter: null,
   searchQuery: "",
   
   setTags: (tags) => set({ tags }),
   selectTag: (id) => set({ selectedTagId: id }),
+  setGlobalTagFilter: (tagName) => set({ globalTagFilter: tagName }),
   setSearchQuery: (query) => set({ searchQuery: query }),
   
   addTag: (tag) => set((state) => ({ 

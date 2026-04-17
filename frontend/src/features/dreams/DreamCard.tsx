@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { FiCalendar, FiActivity, FiLayers, FiChevronRight } from "react-icons/fi";
 import Link from "next/link";
-import { Dream } from "../../hooks/useDreams";
+import { Dream } from "../../types/dream";
 
 interface DreamCardProps {
   dream: Dream;
