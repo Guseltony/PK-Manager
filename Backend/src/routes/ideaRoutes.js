@@ -1,6 +1,6 @@
 import express from "express";
 import * as ideaControllers from "../controllers/ideaControllers.js";
-import { protect } from "../middlewares/authMiddlewares.js";
+import { authMiddleware as protect } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
