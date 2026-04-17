@@ -15,16 +15,15 @@ export const updateTagSchema = z
   });
 
 export const tagResponseSchema = z.object({
-  id: z.uuid(),
+  id: z.string().uuid(),
   name: z.string(),
   color: z.string().nullable().optional(),
-  userId: z.uuid(),
-  createdAt: z.iso.datetime(),
-  // updatedAt: z.datetime(), // optional if you include
-  // createdAt: z.preprocess((arg) => {
-  //   if (arg instanceof Date) return arg.toISOString();
-  //   return arg;
-  // }, z.string().datetime()),
+  userId: z.string().uuid(),
+  createdAt: z.string().datetime().optional(),
+  notes: z.array(z.any()).optional(),
+  tasks: z.array(z.any()).optional(),
+  dreams: z.array(z.any()).optional(),
+  journals: z.array(z.any()).optional(),
 });
 
 export const allTagResponseSchema = z.array(tagResponseSchema);
