@@ -3,7 +3,6 @@
 import { Task } from "@/src/types/task";
 import dayjs from "dayjs";
 import {
-  FiCircle,
   FiCheckCircle,
   FiClock,
   FiStar,
@@ -15,8 +14,8 @@ import { useTasks } from "../../hooks/useTasks";
 
 interface TaskItemProps {
   task: Task;
-  isSelected: boolean;
-  onClick: () => void;
+  isSelected?: boolean;
+  onClick?: () => void;
 }
 
 const priorityColors = {

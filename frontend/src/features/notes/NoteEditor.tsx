@@ -24,6 +24,7 @@ import {
 } from "react-icons/fi";
 import dayjs from "dayjs";
 import { Note } from "../../types/note";
+import { Tag } from "../../types/tag";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 
 export default function NoteEditor() {
@@ -62,15 +63,15 @@ function NewNoteForm() {
   const { createNote, isCreating: isSaving } = useNotes();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
+  const [tags, setTags] = useState<{ tag: Partial<Tag> }[]>([]);
   const [newTag, setNewTag] = useState("");
   const [isAddingTag, setIsAddingTag] = useState(false);
   const { tags: allTags } = useTags();
 
   const suggestions = allTags.filter(
-    (tag) =>
-      tag.name.toLowerCase().includes(newTag.toLowerCase()) &&
-      !tags.includes(tag.name)
+    (t) =>
+      t.name.toLowerCase().includes(newTag.toLowerCase()) &&
+      !tags.some(existing => existing.tag.name === t.name)
   );
 
   const handleSave = async () => {
@@ -97,19 +98,17 @@ function NewNoteForm() {
     const newTags = newTag
       .split(",")
       .map((t) => t.trim())
-      .filter((t) => t !== "" && !tags.includes(t));
+      .filter((t) => t !== "" && !tags.some(existing => existing.tag.name === t));
 
     if (newTags.length > 0) {
-      setTags([...tags, ...newTags]);
+      setTags([...tags, ...newTags.map(name => ({ tag: { name } }))]);
     }
     setNewTag("");
-    // We don't necessarily close it here so they can add more, 
-    // unless it was a blur event (handled in onBlur)
   };
 
   const handleSelectSuggestion = (tagName: string) => {
-    if (!tags.includes(tagName)) {
-      setTags([...tags, tagName]);
+    if (!tags.some(t => t.tag.name === tagName)) {
+      setTags([...tags, { tag: { name: tagName } }]);
     }
     setNewTag("");
     setIsAddingTag(false);
@@ -157,13 +156,13 @@ function NewNoteForm() {
           className="text-2xl sm:text-4xl font-display font-bold bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/20 w-full"
         />
         <div className="flex flex-wrap gap-2 items-center">
-          {tags.map((tag) => (
+          {tags.map(({ tag }) => (
             <span
-              key={tag}
-              onClick={() => setTags(tags.filter((t) => t !== tag))}
+              key={tag.name}
+              onClick={() => setTags(tags.filter((t) => t.tag.name !== tag.name))}
               className="text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded cursor-pointer hover:bg-brand-primary/20 transition-colors"
             >
-              #{tag} &times;
+              #{tag.name} &times;
             </span>
           ))}
 
@@ -241,7 +240,7 @@ function NoteEditorContent({ note }: { note: Note }) {
     return allTags.filter(
       (tag) =>
         tag.name.toLowerCase().includes(newTag.toLowerCase()) &&
-        !note.tags.includes(tag.name),
+        !note.tags.some(t => t.tag.name === tag.name),
     );
   }, [allTags, newTag, note.tags]);
 
@@ -277,10 +276,13 @@ function NoteEditorContent({ note }: { note: Note }) {
     const newTagsToAdd = newTag
       .split(",")
       .map((t) => t.trim())
-      .filter((t) => t !== "" && !note.tags.includes(t));
+      .filter((t) => t !== "" && !note.tags.some(et => et.tag.name === t));
 
     if (newTagsToAdd.length > 0) {
-      const updatedTags = [...note.tags, ...newTagsToAdd];
+      const updatedTags = [
+        ...note.tags, 
+        ...newTagsToAdd.map(name => ({ tag: { name } } as { tag: Partial<Tag> }))
+      ];
       const now = new Date().toISOString();
       updateNote(note.id, { tags: updatedTags, updatedAt: now });
       syncWithBackend({
@@ -292,10 +294,11 @@ function NoteEditorContent({ note }: { note: Note }) {
   };
 
   const handleSelectSuggestion = (tagName: string) => {
-    if (!note.tags.includes(tagName)) {
-      const updatedTags = [...note.tags, tagName];
+    if (!note.tags.some(t => t.tag.name === tagName)) {
+      const updatedTags = [...note.tags, { tag: { name: tagName } } as any];
       const now = new Date().toISOString();
       updateNote(note.id, { tags: updatedTags, updatedAt: now });
+      
       syncWithBackend({
         id: note.id,
         updates: { tags: updatedTags, updatedAt: now },
@@ -306,10 +309,11 @@ function NoteEditorContent({ note }: { note: Note }) {
   };
 
   const handleRemoveTag = (tagToRemove: string) => {
-    if (viewMode === "preview") return; // Prevent removal in preview
-    const updatedTags = note.tags.filter((t) => t !== tagToRemove);
+    if (viewMode === "preview") return; 
+    const updatedTags = note.tags.filter((t) => t.tag.name !== tagToRemove);
     const now = new Date().toISOString();
     updateNote(note.id, { tags: updatedTags, updatedAt: now });
+    
     syncWithBackend({
       id: note.id,
       updates: { tags: updatedTags, updatedAt: now },
@@ -390,14 +394,14 @@ function NoteEditorContent({ note }: { note: Note }) {
           />
         )}
         <div className="flex flex-wrap gap-2 items-center">
-          {note.tags.map((tag: string) => (
+          {note.tags.map(({ tag }: { tag: any }) => (
             <span
-              key={tag}
-              onClick={() => handleRemoveTag(tag)}
+              key={tag.id || tag.name}
+              onClick={() => handleRemoveTag(tag.name)}
               className={`text-xs font-bold text-brand-primary bg-brand-primary/10 px-2 py-1 rounded transition-colors group ${viewMode !== "preview" ? "cursor-pointer hover:bg-brand-primary/20" : ""}`}
               title={viewMode !== "preview" ? "Click to remove" : ""}
             >
-              #{tag}
+              #{tag.name}
               {viewMode !== "preview" && (
                 <span className="ml-1 opacity-0 group-hover:opacity-100">
                   &times;

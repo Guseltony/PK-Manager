@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BiSolidDashboard, BiSolidNotepad } from "react-icons/bi";
-import { BsFillTagFill } from "react-icons/bs";
+import { BsFillLightbulbFill, BsFillTagFill } from "react-icons/bs";
 import { IoMdArchive } from "react-icons/io";
 import { FiBook, FiCheckSquare, FiStar, FiActivity, FiZap } from "react-icons/fi";
 import { NavLink } from "../type/type";
@@ -19,6 +19,7 @@ const navSections: NavSection[] = [
     label: "Workspace",
     links: [
       { href: "/dashboard", name: "dashboard", icon: BiSolidDashboard },
+      { href: "/ideas", name: "ideas", icon: BsFillLightbulbFill },
       { href: "/notes", name: "notes", icon: BiSolidNotepad },
       { href: "/tag-list", name: "tags", icon: BsFillTagFill },
     ],

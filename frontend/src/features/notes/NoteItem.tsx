@@ -42,10 +42,10 @@ export default function NoteItem({ note }: NoteItemProps) {
       </p>
 
       <div className="flex flex-wrap gap-1.5 mt-1">
-        {note.tags.slice(0, 2).map((tag) => (
-          <span key={tag} className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-white/5 text-text-muted/70 px-1.5 py-0.5 rounded">
+        {note.tags.slice(0, 2).map((tagObj) => (
+          <span key={`${note.id}-${tagObj.tag.id || tagObj.tag.name}`} className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-white/5 text-text-muted/70 px-1.5 py-0.5 rounded">
             <FiTag size={8} />
-            {tag}
+            {tagObj.tag.name}
           </span>
         ))}
         {note.tags.length > 2 && (

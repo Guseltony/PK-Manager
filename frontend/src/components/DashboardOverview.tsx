@@ -12,6 +12,11 @@ import { useNotes } from "../hooks/useNotes";
 import { useTasks } from "../hooks/useTasks";
 import { useDreams } from "../hooks/useDreams";
 import { useJournal } from "../hooks/useJournal";
+import { useTagsStore } from "../store/tagsStore";
+import GlobalTagFilter from "./GlobalTagFilter";
+import { Task } from "../types/task";
+import { Note } from "../types/note";
+import { Dream } from "../types/dream";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
@@ -45,55 +50,49 @@ function StatCard({ icon: Icon, label, value, trend, color, bg }: DashboardStatP
   );
 }
 
-interface Task {
-  id: string;
-  title: string;
-  status: string;
-  priority: string;
-  dueDate?: string;
-}
 
-interface Note {
-  id: string;
-  title: string;
-  updatedAt: string;
-  tags: string[];
-}
-
-interface Dream {
-  id: string;
-  title: string;
-  category?: string;
-  milestones?: { completed: boolean }[];
-}
 
 export default function DashboardOverview() {
   const { notes, isLoading: loadingNotes } = useNotes();
   const { tasks, isLoading: loadingTasks } = useTasks();
   const { dreams, isLoading: loadingDreams } = useDreams();
   const { entry: todayEntry } = useJournal(new Date());
+  const { globalTagFilter } = useTagsStore();
 
   const today = dayjs().startOf("day");
 
-  const todayTasks = (tasks as Task[]).filter((t) => {
+  // Filtering Logic
+  const filteredTasks = (tasks as Task[]).filter((t: Task) => 
+    !globalTagFilter || (t.tags && t.tags.some(({ tag }) => tag.name === globalTagFilter))
+  );
+
+  const filteredNotes = (notes as Note[]).filter((n: Note) => 
+    !globalTagFilter || (n.tags && n.tags.some(({ tag }) => tag.name === globalTagFilter))
+  );
+
+  const filteredDreams = (dreams as Dream[]).filter((d: Dream) => 
+    !globalTagFilter || (d.tags && d.tags.some(({ tag }) => tag.name === globalTagFilter))
+  );
+
+  const todayTasks = filteredTasks.filter((t) => {
     if (t.status === "done") return false;
     if (!t.dueDate) return false;
     return dayjs(t.dueDate).isSame(today, "day");
   });
 
-  const activeDreams = (dreams as Dream[]).filter((d) => d.milestones && d.milestones.some((m) => !m.completed));
+  const activeDreams = filteredDreams.filter((d) => d.milestones && d.milestones.some((m) => !m.completed));
 
-  const recentNotes = [...(notes as Note[])]
+  const recentNotes = [...filteredNotes]
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
     .slice(0, 4);
 
-  const completedToday = (tasks as Task[]).filter((t) => t.status === "done" && t.dueDate && dayjs(t.dueDate).isSame(today, "day")).length;
+  const completedToday = filteredTasks.filter((t) => t.status === "done" && t.dueDate && dayjs(t.dueDate).isSame(today, "day")).length;
 
   const stats = [
     {
       icon: FiFileText,
       label: "Total Notes",
-      value: loadingNotes ? "..." : notes.length,
+      value: loadingNotes ? "..." : filteredNotes.length,
       trend: recentNotes.length > 0 ? `${recentNotes.length} recent` : undefined,
       color: "text-brand-primary",
       bg: "bg-brand-primary/10",
@@ -153,6 +152,15 @@ export default function DashboardOverview() {
         </div>
       </div>
 
+      {/* Global Filter Bar */}
+      <motion.div 
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="bg-surface-soft/30 border border-white/5 p-4 rounded-2xl backdrop-blur-md"
+      >
+        <GlobalTagFilter />
+      </motion.div>
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, i) => (
@@ -189,7 +197,7 @@ export default function DashboardOverview() {
                 <NextLink
                   href={`/notes/${note.id}`}
                   key={note.id}
-                  className="p-4 rounded-xl bg-surface-base border border-white/5 hover:border-white/10 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between group cursor-pointer min-w-[240px] sm:min-w-0 flex-shrink-0"
+                  className="p-4 rounded-xl bg-surface-base border border-white/5 hover:border-white/10 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between group cursor-pointer min-w-60 sm:min-w-0 shrink-0"
                 >
                   <div className="flex items-center gap-4">
                     <div className="w-10 h-10 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
@@ -203,9 +211,9 @@ export default function DashboardOverview() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    {note.tags.slice(0, 3).map((t) => (
-                      <span key={t} className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-white/5 text-text-muted/60">
-                        {t}
+                    {note.tags.slice(0, 3).map(({ tag }) => (
+                      <span key={`${note.id}-${tag.id || tag.name}`} className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-white/5 text-text-muted/60">
+                        {tag.name}
                       </span>
                     ))}
                   </div>
@@ -264,7 +272,7 @@ export default function DashboardOverview() {
                 </p>
               ) : todayTasks.slice(0, 6).map((task) => (
                 <div key={task.id} className="flex items-center gap-3 group">
-                  <div className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${
+                  <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${
                     task.priority === "urgent" ? "bg-red-500" :
                     task.priority === "high" ? "bg-amber-500" :
                     task.priority === "medium" ? "bg-emerald-500" : "bg-blue-400"

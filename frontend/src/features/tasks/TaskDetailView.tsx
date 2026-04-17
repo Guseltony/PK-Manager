@@ -126,14 +126,14 @@ export default function TaskDetailView({
 
   const handleAddTag = (tagName: string) => {
     if (!task || isCompleted) return;
-    if (!task.tags.includes(tagName)) {
-      updateTask({ id: task.id, updates: { tags: [...task.tags, tagName] } });
+    if (!task.tags.some(t => t.tag.name === tagName)) {
+      updateTask({ id: task.id, updates: { tags: [...task.tags.map(t => ({ name: t.tag.name })), { name: tagName }] } });
     }
   };
 
   const handleRemoveTag = (tagName: string) => {
     if (!task || isCompleted) return;
-    updateTask({ id: task.id, updates: { tags: task.tags.filter(t => t !== tagName) } });
+    updateTask({ id: task.id, updates: { tags: task.tags.filter(t => t.tag.name !== tagName).map(t => ({ name: t.tag.name })) } });
   };
 
   const handleSubtaskToggle = (subtaskId: string, currentStatus: string) => {
@@ -329,13 +329,13 @@ export default function TaskDetailView({
           </div>
 
           <div className="flex flex-wrap gap-2 ml-10">
-            {task.tags?.map((tag) => (
+            {task.tags?.map((tagObj: any) => (
               <span
-                key={tag}
-                onClick={() => !isCompleted && handleRemoveTag(tag)}
+                key={tagObj.tag.id || tagObj.tag.name}
+                onClick={() => !isCompleted && handleRemoveTag(tagObj.tag.name)}
                 className={`flex items-center gap-1.5 text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-3 py-1.5 rounded-xl border border-brand-primary/20 uppercase tracking-tighter transition-all group ${!isCompleted ? "cursor-pointer hover:bg-red-400/10 hover:text-red-400 hover:border-red-400/20" : ""}`}
               >
-                <FiTag size={10} /> {tag}
+                <FiTag size={10} /> {tagObj.tag.name}
                 {!isCompleted && (
                   <span className="opacity-0 group-hover:opacity-100">
                     &times;

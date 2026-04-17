@@ -15,6 +15,7 @@ import {
   FiZap,
   FiStar,
   FiTarget,
+  FiTag,
 } from "react-icons/fi";
 import { IconType } from "react-icons";
 import { motion, AnimatePresence } from "framer-motion";
@@ -64,6 +65,13 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                 <span className="px-3 py-1 rounded-xl border border-white/10 bg-white/5 text-text-muted text-[10px] font-black uppercase tracking-widest">
                   {dream.priority} PRIORITY
                 </span>
+                <div className="flex gap-2">
+                  {dream.tags?.map((tagObj: any) => (
+                    <span key={tagObj.tag.id} className="flex items-center gap-1.5 px-3 py-1 rounded-xl border border-brand-primary/20 bg-brand-primary/10 text-brand-primary text-[10px] font-black uppercase tracking-widest">
+                       <FiTag size={10} /> {tagObj.tag.name}
+                    </span>
+                  ))}
+                </div>
               </div>
               <h1 className="text-5xl font-display font-black text-text-main mb-4 tracking-tighter">
                 {dream.title}

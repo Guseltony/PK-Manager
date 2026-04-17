@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useJournal, useJournalTimeline } from "../../hooks/useJournal";
 import dayjs from "dayjs";
-import { FiCheck, FiSave, FiList, FiX, FiCalendar } from "react-icons/fi";
+import { FiCheck, FiSave, FiList, FiX, FiCalendar, FiTag } from "react-icons/fi";
 import { RiEmotionHappyLine, RiEmotionNormalLine, RiEmotionUnhappyLine } from "react-icons/ri";
 import { FaRegSmileBeam } from "react-icons/fa";
 
@@ -81,6 +81,14 @@ export default function JournalLayout() {
           ) : (
             <span className="text-[10px] text-emerald-500 flex items-center gap-1 uppercase tracking-widest opacity-50"><FiCheck /> Saved</span>
           )}
+        </div>
+        
+        <div className="flex flex-wrap gap-2 mt-4">
+          {entry?.tags?.map((tagObj: any) => (
+            <span key={tagObj.tag.id} className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-text-muted hover:text-text-main transition-all">
+               <FiTag size={10} className="text-brand-primary/60" /> {tagObj.tag.name}
+            </span>
+          ))}
         </div>
       </div>
 
