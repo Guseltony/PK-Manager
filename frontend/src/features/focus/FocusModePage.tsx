@@ -7,6 +7,7 @@ import {
   FiArrowRight,
   FiCheckCircle,
   FiClock,
+  FiCpu,
   FiLoader,
   FiPauseCircle,
   FiPlayCircle,
@@ -16,6 +17,7 @@ import {
   FiZap,
 } from "react-icons/fi";
 import { useFocus } from "@/src/hooks/useFocus";
+import { useFocusCoach } from "@/src/hooks/useAI";
 import { FocusTask } from "@/src/types/focus";
 
 const SESSION_SECONDS = 25 * 60;
@@ -67,6 +69,7 @@ export default function FocusModePage() {
     isCompletingTask,
     isSkippingTask,
   } = useFocus();
+  const { data: coach } = useFocusCoach();
   const [secondsLeft, setSecondsLeft] = useState(SESSION_SECONDS);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
 
@@ -381,6 +384,27 @@ export default function FocusModePage() {
               </section>
 
               <section className="rounded-[2rem] border border-white/10 bg-black/20 p-6 backdrop-blur-xl">
+                <div className="flex items-center gap-2">
+                  <FiCpu className="text-brand-primary" />
+                  <p className="text-[11px] font-black uppercase tracking-[0.2em] text-text-muted">
+                    AI Coach
+                  </p>
+                </div>
+                <p className="mt-3 text-sm text-text-main">
+                  {coach?.summary || "Your AI coach summary will appear here once focus context is loaded."}
+                </p>
+                {coach?.coaching?.length ? (
+                  <div className="mt-4 space-y-3">
+                    {coach.coaching.map((item) => (
+                      <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-muted">
+                        {item}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="rounded-[2rem] border border-white/10 bg-black/20 p-6 backdrop-blur-xl">
                 <p className="text-[11px] font-black uppercase tracking-[0.2em] text-text-muted">
                   Queue Logic
                 </p>
@@ -401,6 +425,14 @@ export default function FocusModePage() {
                     <FiArrowRight className="mt-0.5 text-brand-primary" />
                     <span>{analytics?.totalSessions ?? 0} focus sessions and {analytics?.totalCompleted ?? 0} completions have been tracked so far.</span>
                   </div>
+                  {coach?.taskOrder?.slice(0, 2).map((item) => (
+                    <div key={item.taskId} className="flex items-start gap-3">
+                      <FiArrowRight className="mt-0.5 text-brand-primary" />
+                      <span>
+                        <span className="font-semibold text-text-main">{item.title}:</span> {item.reason}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </section>
             </aside>

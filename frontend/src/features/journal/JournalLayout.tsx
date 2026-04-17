@@ -3,14 +3,19 @@
 import { useState, useRef } from "react";
 import { useJournal, useJournalTimeline } from "../../hooks/useJournal";
 import dayjs from "dayjs";
-import { FiCheck, FiSave, FiList, FiX, FiCalendar, FiTag } from "react-icons/fi";
+import { FiCheck, FiCpu, FiLoader, FiSave, FiList, FiX, FiCalendar, FiTag } from "react-icons/fi";
 import { RiEmotionHappyLine, RiEmotionNormalLine, RiEmotionUnhappyLine } from "react-icons/ri";
 import { FaRegSmileBeam } from "react-icons/fa";
+import { useJournalAI, useTaskPlanner } from "../../hooks/useAI";
+import { AiJournalReflection } from "../../types/ai";
 
 export default function JournalLayout() {
   const [currentDate, setCurrentDate] = useState(new Date());
-  const { entry, isLoading, updateEntry, isSaving } = useJournal(currentDate);
+  const { entry, dateKey, isLoading, updateEntry, isSaving } = useJournal(currentDate);
   const { timeline, isLoading: loadingTimeline } = useJournalTimeline(30, 0);
+  const [reflection, setReflection] = useState<AiJournalReflection | null>(null);
+  const journalAi = useJournalAI(dateKey);
+  const { createSuggestedTasks, isCreatingSuggestedTasks } = useTaskPlanner();
   
   const [showTimeline, setShowTimeline] = useState(false);
 
@@ -35,6 +40,12 @@ export default function JournalLayout() {
   const handleMoodSelect = (selectedMood: "great" | "good" | "neutral" | "bad") => {
     setLocalMood(selectedMood);
     if (entry) updateEntry({ id: entry.id, payload: { mood: selectedMood } });
+  };
+
+  const handleReflect = async () => {
+    if (!entry) return;
+    const result = await journalAi.mutateAsync(entry.id);
+    setReflection(result);
   };
 
   if (isLoading) {
@@ -71,6 +82,14 @@ export default function JournalLayout() {
             >
               <FiList /> History
             </button>
+            <button
+              onClick={handleReflect}
+              disabled={!entry || journalAi.isPending}
+              className="p-2 transition-all rounded-xl border border-amber-400/20 bg-amber-400/10 text-xs font-bold uppercase tracking-widest flex items-center gap-2 text-amber-300 disabled:opacity-50"
+            >
+              {journalAi.isPending ? <FiLoader className="animate-spin" /> : <FiCpu />}
+              AI Reflect
+            </button>
           </div>
         </header>
 
@@ -84,12 +103,44 @@ export default function JournalLayout() {
         </div>
         
         <div className="flex flex-wrap gap-2 mt-4">
-          {entry?.tags?.map((tagObj: any) => (
+          {entry?.tags?.map((tagObj) => (
             <span key={tagObj.tag.id} className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-text-muted hover:text-text-main transition-all">
                <FiTag size={10} className="text-brand-primary/60" /> {tagObj.tag.name}
             </span>
           ))}
         </div>
+
+        {(reflection || entry?.insights?.length) ? (
+          <div className="mt-5 rounded-[1.75rem] border border-amber-400/20 bg-amber-400/10 p-4 sm:p-5">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div className="max-w-2xl">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">AI Reflection</p>
+                <p className="mt-2 text-sm text-text-main">
+                  {reflection?.summary || "Insights from your journal are stored here when you run AI reflection."}
+                </p>
+              </div>
+              {reflection?.extractedTasks?.length ? (
+                <button
+                  onClick={() => createSuggestedTasks({ tasks: reflection.extractedTasks })}
+                  disabled={isCreatingSuggestedTasks}
+                  className="rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+                >
+                  {isCreatingSuggestedTasks ? "Saving..." : `Create ${reflection.extractedTasks.length} tasks`}
+                </button>
+              ) : null}
+            </div>
+
+            {entry?.insights?.length ? (
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {entry.insights.map((insight) => (
+                  <div key={insight.id} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-text-muted">
+                    {insight.message}
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
       </div>
 
       {/* WRITING AREA */}

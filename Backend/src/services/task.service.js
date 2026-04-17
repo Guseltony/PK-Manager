@@ -1,8 +1,28 @@
 import { prisma } from "../config/db.js";
 import { syncTags, tagInclude } from "../utils/tagHelper.js";
 
+const normalizeTags = (tags = []) =>
+  tags
+    .map((tag) => {
+      if (typeof tag === "string") {
+        return { name: tag };
+      }
+
+      if (tag?.name) {
+        return { name: tag.name, color: tag.color };
+      }
+
+      if (tag?.tag?.name) {
+        return { name: tag.tag.name, color: tag.tag.color };
+      }
+
+      return null;
+    })
+    .filter(Boolean);
+
 export const taskCreation = async (data, userId) => {
-  const { title, description, status, priority, dueDate, tags, noteId, dreamId } = data;
+  const { title, description, status, priority, dueDate, startDate, estimatedTime, duration, tags, noteId, dreamId } = data;
+  const normalizedTags = normalizeTags(tags);
   
   return await prisma.task.create({
     data: {
@@ -11,7 +31,10 @@ export const taskCreation = async (data, userId) => {
       status: status || "todo",
       priority: priority || "medium",
       dueDate: dueDate ? new Date(dueDate) : null,
-      tags: syncTags(tags, userId),
+      startDate: startDate ? new Date(startDate) : undefined,
+      estimatedTime,
+      duration,
+      tags: syncTags(normalizedTags, userId),
       userId,
       noteId,
       dreamId,
@@ -27,6 +50,21 @@ export const taskCreation = async (data, userId) => {
       activities: true,
     },
   });
+};
+
+export const createManyTasks = async (tasks, userId, shared = {}) => {
+  return Promise.all(
+    tasks.map((task) =>
+      taskCreation(
+        {
+          ...task,
+          noteId: task.noteId ?? shared.noteId ?? null,
+          dreamId: task.dreamId ?? shared.dreamId ?? null,
+        },
+        userId,
+      ),
+    ),
+  );
 };
 
 export const getUserTasks = async (userId, filters = {}) => {
@@ -118,6 +156,7 @@ export const getTask = async (taskId, userId) => {
 
 export const updateTask = async (taskId, userId, data) => {
   const { title, description, status, priority, dueDate, startDate, duration, estimatedTime, tags, noteId, dreamId, aiScore, completedAt } = data;
+  const normalizedTags = normalizeTags(tags);
   
   // If status is changing to done, set completedAt if not provided
   let finalCompletedAt = completedAt;
@@ -138,7 +177,7 @@ export const updateTask = async (taskId, userId, data) => {
       startDate: startDate ? new Date(startDate) : startDate,
       duration,
       estimatedTime,
-      tags: tags ? syncTags(tags, userId) : undefined,
+      tags: tags ? syncTags(normalizedTags, userId) : undefined,
       noteId,
       dreamId,
       aiScore,

@@ -4,15 +4,17 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   FiSend, 
-  FiFileText, FiCheckSquare, FiTarget, FiTrash2,
+  FiFileText, FiCheckSquare, FiTarget, FiTrash2, FiLoader, FiCpu,
   FiClock, FiTag, FiSearch,
 } from "react-icons/fi";
 // import { BiLightbulb } from "react-icons/bi";
 import { useIdeas } from "../../../hooks/useIdeas";
+import { useIdeaAI, useTaskPlanner } from "../../../hooks/useAI";
 import { Idea } from "../../../types/idea";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { BsFillLightbulbFill } from "react-icons/bs";
+import { AiIdeaPlan } from "../../../types/ai";
 
 dayjs.extend(relativeTime);
 
@@ -167,7 +169,14 @@ export default function IdeasPage() {
 }
 
 function IdeaCard({ idea, idx, onDelete, onConvert }: { idea: Idea; idx: number; onDelete: () => void; onConvert: (type: string) => void }) {
-  const [isConverting, setIsConverting] = useState(false);
+  const [aiPlan, setAiPlan] = useState<AiIdeaPlan | null>(null);
+  const ideaAi = useIdeaAI();
+  const { createSuggestedTasks, isCreatingSuggestedTasks } = useTaskPlanner();
+
+  const handlePlanIdea = async () => {
+    const result = await ideaAi.mutateAsync(idea.id);
+    setAiPlan(result);
+  };
 
   return (
     <motion.div
@@ -194,6 +203,13 @@ function IdeaCard({ idea, idx, onDelete, onConvert }: { idea: Idea; idx: number;
              className="p-2 rounded-lg hover:bg-red-500/10 text-text-muted/30 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100"
            >
              <FiTrash2 className="w-4 h-4" />
+           </button>
+           <button
+             onClick={handlePlanIdea}
+             className="p-2 rounded-lg hover:bg-amber-400/10 text-text-muted/40 hover:text-amber-300 transition-all"
+             title="Generate AI execution plan"
+           >
+             {ideaAi.isPending ? <FiLoader className="w-4 h-4 animate-spin" /> : <FiCpu className="w-4 h-4" />}
            </button>
         </div>
       </div>
@@ -240,6 +256,47 @@ function IdeaCard({ idea, idx, onDelete, onConvert }: { idea: Idea; idx: number;
           </div>
         </div>
       )}
+
+      {aiPlan ? (
+        <div className="mt-5 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">AI Plan</p>
+              <p className="mt-2 text-sm text-amber-50/90">{aiPlan.summary}</p>
+            </div>
+            {aiPlan.suggestedTasks.length > 0 ? (
+              <button
+                onClick={() => createSuggestedTasks({ tasks: aiPlan.suggestedTasks })}
+                disabled={isCreatingSuggestedTasks}
+                className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+              >
+                {isCreatingSuggestedTasks ? "Saving..." : `Create ${aiPlan.suggestedTasks.length} tasks`}
+              </button>
+            ) : null}
+          </div>
+
+          {aiPlan.suggestedTags.length > 0 ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {aiPlan.suggestedTags.map((tag) => (
+                <span key={tag} className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-amber-100">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
+
+          {aiPlan.suggestedTasks.length > 0 ? (
+            <div className="mt-4 space-y-2">
+              {aiPlan.suggestedTasks.map((task, taskIndex) => (
+                <div key={`${task.title}-${taskIndex}`} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
+                  <p className="text-sm font-bold text-text-main">{task.title}</p>
+                  {task.description ? <p className="mt-1 text-xs text-text-muted">{task.description}</p> : null}
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* Floating Sparkle Decoration */}
       <div className="absolute top-2 right-2 w-1 h-1 rounded-full bg-brand-primary blur-[2px] opacity-0 group-hover:opacity-50 transition-opacity" />

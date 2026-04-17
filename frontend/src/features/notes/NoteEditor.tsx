@@ -26,6 +26,8 @@ import dayjs from "dayjs";
 import { Note } from "../../types/note";
 import { Tag } from "../../types/tag";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
+import { useNoteAI, useTaskPlanner } from "../../hooks/useAI";
+import { AiNoteAnalysis } from "../../types/ai";
 
 export default function NoteEditor() {
   const { selectedNoteId, notes, isCreating } = useNotesStore();
@@ -235,6 +237,9 @@ function NoteEditorContent({ note }: { note: Note }) {
   );
   const { tags: allTags } = useTags();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [analysis, setAnalysis] = useState<AiNoteAnalysis | null>(null);
+  const noteAi = useNoteAI();
+  const { createSuggestedTasks, isCreatingSuggestedTasks } = useTaskPlanner();
 
   const suggestions = useMemo(() => {
     return allTags.filter(
@@ -367,6 +372,18 @@ function NoteEditorContent({ note }: { note: Note }) {
           </div>
 
           <button
+            onClick={async () => {
+              const result = await noteAi.mutateAsync(note.id);
+              setAnalysis(result);
+            }}
+            className="h-9 px-3 flex items-center justify-center gap-2 rounded-xl text-text-muted hover:bg-white/5 hover:text-brand-primary transition-all"
+          >
+            <FiCpu size={16} />
+            <span className="hidden sm:inline text-xs font-bold uppercase tracking-widest">
+              {noteAi.isPending ? "Analyzing..." : "AI Assist"}
+            </span>
+          </button>
+          <button
             className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 hover:text-red-400 transition-all"
             onClick={() => setShowDeleteConfirm(true)}
           >
@@ -453,6 +470,46 @@ function NoteEditorContent({ note }: { note: Note }) {
             ))}
         </div>
       </div>
+
+      {analysis ? (
+        <div className="mx-4 mt-4 rounded-[1.75rem] border border-brand-primary/20 bg-brand-primary/10 p-4 sm:mx-6 lg:mx-8">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="max-w-2xl">
+              <p className="text-[11px] font-black uppercase tracking-[0.2em] text-brand-primary">AI Note Analysis</p>
+              <p className="mt-2 text-sm text-text-main">{analysis.summary}</p>
+            </div>
+            {analysis.suggestedTasks.length > 0 ? (
+              <button
+                onClick={() => createSuggestedTasks({ tasks: analysis.suggestedTasks, noteId: note.id })}
+                disabled={isCreatingSuggestedTasks}
+                className="rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+              >
+                {isCreatingSuggestedTasks ? "Saving..." : `Create ${analysis.suggestedTasks.length} tasks`}
+              </button>
+            ) : null}
+          </div>
+
+          {analysis.keyInsights.length > 0 ? (
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              {analysis.keyInsights.map((insight) => (
+                <div key={insight} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-text-muted">
+                  {insight}
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {analysis.suggestedTags.length > 0 ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {analysis.suggestedTags.map((tag) => (
+                <span key={tag} className="rounded-full border border-brand-primary/20 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* Editor Body */}
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden mt-4 sm:mt-6 p-4 sm:p-6 lg:p-8 pt-0 gap-4">

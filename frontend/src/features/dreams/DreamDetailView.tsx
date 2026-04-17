@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useDream } from "../../hooks/useDreams";
+import { useDreamAI, useTaskPlanner } from "../../hooks/useAI";
+import { useTasks } from "../../hooks/useTasks";
 import {
   FiArrowLeft,
   FiCheckCircle,
@@ -21,6 +23,8 @@ import { IconType } from "react-icons";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import MilestoneList from "./MilestoneList";
+import { AiDreamIntelligence } from "../../types/ai";
+import PromptModal from "../../components/ui/PromptModal";
 // import MilestoneList from "./MilestoneList";
 
 interface DreamDetailViewProps {
@@ -30,12 +34,43 @@ interface DreamDetailViewProps {
 export default function DreamDetailView({ id }: DreamDetailViewProps) {
   const { dream, isLoading, addMilestone, toggleMilestone } = useDream(id);
   const [activeTab, setActiveTab] = useState("execution");
+  const [intelligence, setIntelligence] = useState<AiDreamIntelligence | null>(null);
+  const [showTaskPrompt, setShowTaskPrompt] = useState(false);
+  const dreamAi = useDreamAI();
+  const { createSuggestedTasks, isCreatingSuggestedTasks } = useTaskPlanner();
+  const { createTask, isCreating } = useTasks();
 
   if (isLoading) return <LoadingState />;
   if (!dream) return <NotFoundState />;
 
   const isAtRisk = dream.healthScore < 50;
   const isAccelerating = dream.healthScore > 80 && dream.progress > 20;
+
+  const handleCreateDreamTask = (title: string) => {
+    createTask({
+      title,
+      dreamId: dream.id,
+      description: `Advance dream: ${dream.title}`,
+      priority: dream.priority,
+      duration: 1,
+      tags: (dream.tags || []).map(({ tag }) => ({ tag: { name: tag.name } })),
+    });
+  };
+
+  const handleGenerateDreamTasks = async () => {
+    const result = await dreamAi.mutateAsync(dream.id);
+    setIntelligence(result);
+  };
+
+  const handleCreateSuggestedMilestones = () => {
+    if (!intelligence?.suggestedMilestones?.length) return;
+    intelligence.suggestedMilestones.forEach((milestone) => {
+      addMilestone({
+        title: milestone.title,
+        description: milestone.description || undefined,
+      });
+    });
+  };
 
   return (
     <div className="flex-1 overflow-y-auto custom-scrollbar bg-surface-base">
@@ -66,7 +101,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                   {dream.priority} PRIORITY
                 </span>
                 <div className="flex gap-2">
-                  {dream.tags?.map((tagObj: any) => (
+                  {dream.tags?.map((tagObj) => (
                     <span key={tagObj.tag.id} className="flex items-center gap-1.5 px-3 py-1 rounded-xl border border-brand-primary/20 bg-brand-primary/10 text-brand-primary text-[10px] font-black uppercase tracking-widest">
                        <FiTag size={10} /> {tagObj.tag.name}
                     </span>
@@ -212,9 +247,20 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                   <h3 className="text-xl font-bold text-text-main">
                     Linked Mission Tasks
                   </h3>
-                  <button className="flex items-center gap-2 text-brand-primary font-bold text-xs uppercase tracking-widest hover:text-brand-accent transition-colors">
-                    <FiPlus /> Deploy New Task
-                  </button>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={handleGenerateDreamTasks}
+                      className="flex items-center gap-2 text-amber-300 font-bold text-xs uppercase tracking-widest hover:text-amber-200 transition-colors"
+                    >
+                      <FiZap /> {dreamAi.isPending ? "Generating..." : "AI Generate"}
+                    </button>
+                    <button
+                      onClick={() => setShowTaskPrompt(true)}
+                      className="flex items-center gap-2 text-brand-primary font-bold text-xs uppercase tracking-widest hover:text-brand-accent transition-colors"
+                    >
+                      <FiPlus /> Deploy New Task
+                    </button>
+                  </div>
                 </div>
                 {dream.tasks && dream.tasks.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -303,29 +349,85 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
             {activeTab === "intelligence" && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-6">
-                  <h3 className="text-xl font-bold text-text-main flex items-center gap-2">
-                    <FiZap className="text-brand-primary" /> AI SENSORS
-                  </h3>
-                  <div className="space-y-4">
-                    <InsightCard
-                      type="prediction"
-                      message="Completion estimated for June 20, 2026 based on current velocity."
-                    />
-                    <InsightCard
-                      type="warning"
-                      message="Activity frequency dropped by 14% over the last 7 cycles."
-                    />
-                    <InsightCard
-                      type="suggestion"
-                      message="Link 3 more relevant notes to increase system intelligence index."
-                    />
+                  <div className="flex items-center justify-between gap-4">
+                    <h3 className="text-xl font-bold text-text-main flex items-center gap-2">
+                      <FiZap className="text-brand-primary" /> AI SENSORS
+                    </h3>
+                    <button
+                      onClick={async () => {
+                        const result = await dreamAi.mutateAsync(dream.id);
+                        setIntelligence(result);
+                      }}
+                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
+                    >
+                      {dreamAi.isPending ? "Refreshing..." : "Refresh AI"}
+                    </button>
                   </div>
+                  {intelligence?.summary ? (
+                    <div className="rounded-2xl border border-brand-primary/20 bg-brand-primary/10 px-5 py-4 text-sm text-text-main">
+                      {intelligence.summary}
+                    </div>
+                  ) : null}
+                  <div className="space-y-4">
+                    {(dream.insights || []).length > 0 ? (
+                      dream.insights?.map((insight) => (
+                        <InsightCard key={insight.id} type={insight.type} message={insight.message} />
+                      ))
+                    ) : (
+                      <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-5 py-6 text-sm text-text-muted">
+                        Run AI refresh to generate dream-specific insights and next moves.
+                      </div>
+                    )}
+                  </div>
+                  {intelligence?.suggestedTasks?.length ? (
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary">Suggested Tasks</p>
+                        <button
+                          onClick={() => createSuggestedTasks({ tasks: intelligence.suggestedTasks, dreamId: dream.id })}
+                          disabled={isCreatingSuggestedTasks}
+                          className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+                        >
+                          {isCreatingSuggestedTasks ? "Saving..." : `Create ${intelligence.suggestedTasks.length}`}
+                        </button>
+                      </div>
+                      <div className="mt-3 space-y-2">
+                        {intelligence.suggestedTasks.map((task, index) => (
+                          <div key={`${task.title}-${index}`} className="rounded-xl border border-white/10 bg-black/20 px-3 py-3">
+                            <p className="text-sm font-bold text-text-main">{task.title}</p>
+                            {task.description ? <p className="mt-1 text-xs text-text-muted">{task.description}</p> : null}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
                 <div className="space-y-6">
                   <h3 className="text-xl font-bold text-text-main flex items-center gap-2">
                     <FiActivity className="text-brand-accent" /> RECENT
                     MANEUVERS
                   </h3>
+                  {intelligence?.suggestedMilestones?.length ? (
+                    <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-5">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300">Suggested Milestones</p>
+                        <button
+                          onClick={handleCreateSuggestedMilestones}
+                          className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-text-main transition hover:bg-black/30"
+                        >
+                          Create all
+                        </button>
+                      </div>
+                      <div className="mt-3 space-y-3">
+                        {intelligence.suggestedMilestones.map((milestone, index) => (
+                          <div key={`${milestone.title}-${index}`} className="rounded-xl border border-white/10 bg-black/20 px-4 py-3">
+                            <p className="text-sm font-bold text-text-main">{milestone.title}</p>
+                            {milestone.description ? <p className="mt-1 text-xs text-text-muted">{milestone.description}</p> : null}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                   <div className="space-y-4">
                     {dream.activities?.map((activity) => (
                       <div key={activity.id} className="flex gap-4 group">
@@ -350,6 +452,14 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
           </motion.div>
         </AnimatePresence>
       </div>
+      <PromptModal
+        isOpen={showTaskPrompt}
+        onClose={() => setShowTaskPrompt(false)}
+        onSubmit={handleCreateDreamTask}
+        title="Deploy New Task"
+        message={`Create a new task directly inside "${dream.title}".`}
+        placeholder="e.g. Draft landing page copy"
+      />
     </div>
   );
 }

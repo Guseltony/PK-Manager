@@ -7,6 +7,7 @@ import {
   addSubtask,
   updateSubtask,
   deleteSubtask,
+  createManyTasks,
 } from "../services/task.service.js";
 
 export const createNewTask = async (req, res) => {
@@ -17,6 +18,18 @@ export const createNewTask = async (req, res) => {
     res.status(201).json({ data: task });
   } catch (error) {
     console.error("DEBUG: createNewTask error:", error);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const createManyNewTasks = async (req, res) => {
+  try {
+    const tasks = await createManyTasks(req.body.tasks, req.user.id, {
+      noteId: req.body.noteId,
+      dreamId: req.body.dreamId,
+    });
+    res.status(201).json({ data: tasks });
+  } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };

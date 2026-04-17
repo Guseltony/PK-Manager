@@ -27,6 +27,7 @@ export function useJournal(date?: Date) {
 
   return {
     entry,
+    dateKey: dateStr,
     isLoading,
     updateEntry: updateMutation.mutate,
     isSaving: updateMutation.isPending,

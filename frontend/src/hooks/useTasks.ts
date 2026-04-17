@@ -4,6 +4,32 @@ import { Task, NewTask, Subtask } from "../types/task";
 import { useTasksStore } from "../store/tasksStore";
 import { useEffect } from "react";
 
+const normalizeTaskShape = (task: Partial<Task>) => {
+  if (!task.tags) return task;
+
+  return {
+    ...task,
+    tags: task.tags.map((tag) => {
+      if ("tag" in tag && tag.tag) {
+        return tag;
+      }
+
+      if ("name" in tag) {
+        return {
+          tag: {
+            id: `temp-${tag.name}`,
+            name: tag.name,
+            color: "color" in tag ? tag.color : undefined,
+            createdAt: new Date().toISOString(),
+          },
+        };
+      }
+
+      return tag;
+    }),
+  };
+};
+
 export function useTasks(activeFilter = "all") {
   const queryClient = useQueryClient();
   const { setTasks, addTask, updateTask: updateInStore, deleteTask: deleteFromStore } = useTasksStore();
@@ -65,7 +91,7 @@ export function useTasks(activeFilter = "all") {
           if (!old) return undefined;
           return {
             ...old,
-            ...updates,
+            ...normalizeTaskShape(updates),
             // Keep activities during update - they'll be refreshed on success
             activities: old.activities 
           };
@@ -73,7 +99,7 @@ export function useTasks(activeFilter = "all") {
       }
       if (previousTasks) {
         queryClient.setQueryData<Task[]>(["tasks", activeFilter], (old) =>
-          old?.map((t) => (t.id === id ? { ...t, ...updates } : t))
+          old?.map((t) => (t.id === id ? { ...t, ...normalizeTaskShape(updates) } : t))
         );
       }
 

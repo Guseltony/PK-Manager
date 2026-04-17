@@ -24,6 +24,7 @@ import { useTasksStore } from "../../store/tasksStore";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import PromptModal from "../../components/ui/PromptModal";
 import { TaskStatus, Priority } from "../../types/task";
+import { useTaskEnrichmentAI, useTaskSubtasksAI } from "../../hooks/useAI";
 
 interface TaskDetailViewProps {
   taskId: string;
@@ -52,6 +53,8 @@ export default function TaskDetailView({
     isDeletingSubtask,
   } = useTasks();
   const { tags: allTags } = useTags();
+  const taskSubtasksAi = useTaskSubtasksAI();
+  const taskEnrichmentAi = useTaskEnrichmentAI();
   
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showSubtaskPrompt, setShowSubtaskPrompt] = useState(false);
@@ -65,6 +68,17 @@ export default function TaskDetailView({
   const [showDurationPrompt, setShowDurationPrompt] = useState(false);
 
   const [prevTaskId, setPrevTaskId] = useState<string | null>(null);
+
+  const getTagName = (tagLike: unknown) => {
+    if (!tagLike || typeof tagLike !== "object") return null;
+    if ("tag" in tagLike && tagLike.tag && typeof tagLike.tag === "object" && "name" in tagLike.tag) {
+      return String(tagLike.tag.name);
+    }
+    if ("name" in tagLike) {
+      return String(tagLike.name);
+    }
+    return null;
+  };
 
   const isCompleted = task?.status === "done";
 
@@ -126,14 +140,41 @@ export default function TaskDetailView({
 
   const handleAddTag = (tagName: string) => {
     if (!task || isCompleted) return;
-    if (!task.tags.some(t => t.tag.name === tagName)) {
-      updateTask({ id: task.id, updates: { tags: [...task.tags.map(t => ({ name: t.tag.name })), { name: tagName }] } });
+    const currentTags = (task.tags || []).map(getTagName).filter((value): value is string => Boolean(value));
+    if (!currentTags.some((name) => name.toLowerCase() === tagName.toLowerCase())) {
+      updateTask({ id: task.id, updates: { tags: [...currentTags.map((name) => ({ name })), { name: tagName }] } });
     }
   };
 
   const handleRemoveTag = (tagName: string) => {
     if (!task || isCompleted) return;
-    updateTask({ id: task.id, updates: { tags: task.tags.filter(t => t.tag.name !== tagName).map(t => ({ name: t.tag.name })) } });
+    const nextTags = (task.tags || [])
+      .map(getTagName)
+      .filter((name): name is string => Boolean(name) && name !== tagName)
+      .map((name) => ({ name }));
+    updateTask({ id: task.id, updates: { tags: nextTags } });
+  };
+
+  const handleAiEnrich = async () => {
+    if (!task || isCompleted) return;
+
+    const result = await taskEnrichmentAi.mutateAsync(task.id);
+    updateTask({
+      id: task.id,
+      updates: {
+        title: result.task.title || task.title,
+        description: result.task.description || "",
+        priority: result.task.priority,
+        estimatedTime: result.task.estimatedTime ?? undefined,
+        duration: result.task.duration ?? undefined,
+        startDate: result.task.startDate ?? undefined,
+        dueDate: result.task.dueDate ?? undefined,
+        tags: result.task.tags.map((name) => ({ name })),
+      },
+    });
+
+    setLocalDescription(result.task.description || "");
+    setLocalPriority(result.task.priority);
   };
 
   const handleSubtaskToggle = (subtaskId: string, currentStatus: string) => {
@@ -244,6 +285,13 @@ export default function TaskDetailView({
                 <FiEdit size={16} />
               </button>
               <button
+                onClick={handleAiEnrich}
+                className="p-2 text-text-muted hover:text-brand-primary hover:bg-white/5 rounded-xl transition-all duration-200"
+                title="AI enrich objective"
+              >
+                <FiZap size={16} className={taskEnrichmentAi.isPending ? "animate-pulse" : ""} />
+              </button>
+              <button
                 onClick={() => setShowDeleteConfirm(true)}
                 className="p-2 text-text-muted hover:text-brand-accent hover:bg-brand-accent/10 rounded-xl transition-all duration-200"
               >
@@ -329,20 +377,35 @@ export default function TaskDetailView({
           </div>
 
           <div className="flex flex-wrap gap-2 ml-10">
-            {task.tags?.map((tagObj: any) => (
-              <span
-                key={tagObj.tag.id || tagObj.tag.name}
-                onClick={() => !isCompleted && handleRemoveTag(tagObj.tag.name)}
-                className={`flex items-center gap-1.5 text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-3 py-1.5 rounded-xl border border-brand-primary/20 uppercase tracking-tighter transition-all group ${!isCompleted ? "cursor-pointer hover:bg-red-400/10 hover:text-red-400 hover:border-red-400/20" : ""}`}
-              >
-                <FiTag size={10} /> {tagObj.tag.name}
-                {!isCompleted && (
-                  <span className="opacity-0 group-hover:opacity-100">
-                    &times;
-                  </span>
-                )}
-              </span>
-            ))}
+            {(task.tags || []).map((tagObj, index) => {
+              const tagName = getTagName(tagObj);
+              if (!tagName) return null;
+
+              const tagId =
+                tagObj &&
+                typeof tagObj === "object" &&
+                "tag" in tagObj &&
+                tagObj.tag &&
+                typeof tagObj.tag === "object" &&
+                "id" in tagObj.tag
+                  ? String(tagObj.tag.id)
+                  : `temp-${tagName}-${index}`;
+
+              return (
+                <span
+                  key={tagId}
+                  onClick={() => !isCompleted && handleRemoveTag(tagName)}
+                  className={`flex items-center gap-1.5 text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-3 py-1.5 rounded-xl border border-brand-primary/20 uppercase tracking-tighter transition-all group ${!isCompleted ? "cursor-pointer hover:bg-red-400/10 hover:text-red-400 hover:border-red-400/20" : ""}`}
+                >
+                  <FiTag size={10} /> {tagName}
+                  {!isCompleted && (
+                    <span className="opacity-0 group-hover:opacity-100">
+                      &times;
+                    </span>
+                  )}
+                </span>
+              );
+            })}
             {!isCompleted && (
               <button
                 onClick={() => setShowTagPrompt(true)}
@@ -559,15 +622,29 @@ export default function TaskDetailView({
               </div>
             )}
             {!isCompleted && (
-              <button
-                onClick={() => setShowSubtaskPrompt(true)}
-                className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-white/10 text-text-muted hover:text-text-main hover:border-white/20 transition-all"
-              >
-                <FiPlus size={16} />
-                <span className="text-xs font-semibold uppercase tracking-widest">
-                  Add Subtask
-                </span>
-              </button>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <button
+                  onClick={() => setShowSubtaskPrompt(true)}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-white/10 text-text-muted hover:text-text-main hover:border-white/20 transition-all"
+                >
+                  <FiPlus size={16} />
+                  <span className="text-xs font-semibold uppercase tracking-widest">
+                    Add Subtask
+                  </span>
+                </button>
+                <button
+                  onClick={async () => {
+                    const result = await taskSubtasksAi.mutateAsync(task.id);
+                    result.subtasks.forEach((subtask) => handleAddSubtask(subtask.title));
+                  }}
+                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-amber-400/20 bg-amber-400/10 text-amber-300 hover:bg-amber-400/15 transition-all"
+                >
+                  <FiZap size={16} />
+                  <span className="text-xs font-semibold uppercase tracking-widest">
+                    {taskSubtasksAi.isPending ? "Generating..." : "AI Subtasks"}
+                  </span>
+                </button>
+              </div>
             )}
           </div>
         </div>

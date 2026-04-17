@@ -16,6 +16,7 @@ import journalRoutes from "./routes/journalRoutes.js";
 import { startLedgerCron } from "./jobs/ledgerCron.js";
 import focusRoutes from "./routes/focusRoutes.js";
 import ideaRoutes from "./routes/ideaRoutes.js";
+import aiRoutes from "./routes/aiRoutes.js";
 
 // connect to the database
 connectDB();
@@ -51,10 +52,11 @@ app.use("/ledger", authMiddleware, ledgerRoutes);
 app.use("/journal", authMiddleware, journalRoutes);
 app.use("/focus", authMiddleware, focusRoutes);
 app.use("/idea", authMiddleware, ideaRoutes);
+app.use("/ai", authMiddleware, aiRoutes);
 
 // port and listening
 
-app.listen(env.PORT || 5555, () => {
+const server = app.listen(env.PORT || 5555, () => {
   console.log(`server connected on port ${env.PORT}`);
 });
 

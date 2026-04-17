@@ -2,6 +2,7 @@ import express from "express";
 import {
   allUserTasks,
   createNewTask,
+  createManyNewTasks,
   getSingleTask,
   updateExistingTask,
   deleteExistingTask,
@@ -13,6 +14,7 @@ import { validateRequest } from "../middlewares/zodValidation.js";
 import { createTaskSchema, updateTaskSchema } from "../validators/task.schema.js";
 import { idParamSchema } from "../validators/idParams.schema.js";
 import { csrfMiddleware } from "../middlewares/csrfMiddleware.js";
+import { createManyAiTasksSchema } from "../validators/ai.schema.js";
 
 const tasksRoutes = express.Router();
 
@@ -29,6 +31,12 @@ tasksRoutes.post(
   "/create",
   validateRequest(createTaskSchema, "body"),
   createNewTask
+);
+
+tasksRoutes.post(
+  "/create-many",
+  validateRequest(createManyAiTasksSchema, "body"),
+  createManyNewTasks
 );
 
 tasksRoutes.get(

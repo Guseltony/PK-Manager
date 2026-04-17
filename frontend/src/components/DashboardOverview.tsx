@@ -12,6 +12,7 @@ import { useNotes } from "../hooks/useNotes";
 import { useTasks } from "../hooks/useTasks";
 import { useDreams } from "../hooks/useDreams";
 import { useJournal } from "../hooks/useJournal";
+import { useDashboardSummary } from "../hooks/useAI";
 import { useTagsStore } from "../store/tagsStore";
 import GlobalTagFilter from "./GlobalTagFilter";
 import { Task } from "../types/task";
@@ -57,6 +58,7 @@ export default function DashboardOverview() {
   const { tasks, isLoading: loadingTasks } = useTasks();
   const { dreams, isLoading: loadingDreams } = useDreams();
   const { entry: todayEntry } = useJournal(new Date());
+  const { data: dashboardSummary } = useDashboardSummary();
   const { globalTagFilter } = useTagsStore();
 
   const today = dayjs().startOf("day");
@@ -174,6 +176,35 @@ export default function DashboardOverview() {
           </motion.div>
         ))}
       </div>
+
+      {dashboardSummary ? (
+        <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-4">
+          <div className="bg-surface-soft border border-brand-primary/20 rounded-2xl p-6">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary mb-3">
+              AI Daily Brief
+            </p>
+            <p className="text-sm text-text-main leading-relaxed">{dashboardSummary.summary}</p>
+            <p className="mt-4 text-xs text-text-muted">{dashboardSummary.momentum}</p>
+          </div>
+          <div className="bg-surface-soft border border-white/5 rounded-2xl p-6">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted mb-3">
+              Priority Stack
+            </p>
+            <div className="space-y-2">
+              {(dashboardSummary.priorities.length ? dashboardSummary.priorities : ["No urgent priorities surfaced right now."]).map((item) => (
+                <div key={item} className="rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-sm text-text-main">
+                  {item}
+                </div>
+              ))}
+              {dashboardSummary.blockers.map((item) => (
+                <div key={item} className="rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2 text-sm text-red-200">
+                  {item}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left: Recent Notes & Goals */}
