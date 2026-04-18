@@ -281,3 +281,33 @@ Focus on:
 - UX quality
 - Clean architecture
 - Developer-friendly features
+
+
+
+1. In the smart note taking when typing it is upside down the cursor always goes to the left instead of right
+
+2. the image in the ideas are too big..
+
+3. error when selecting new color via the palette
+Uncaught ReferenceError: usedColors is not defined
+    at handleColorChange (TagNotes.tsx:393:18)
+    at onChange (TagNotes.tsx:191:38)
+    at executeDispatch (react-dom-client.development.js:20610:9)
+    at runWithFiberInDEV (react-dom-client.development.js:986:30)
+    at processDispatchQueue (react-dom-client.development.js:20660:19)
+    at react-dom-client.development.js:21234:9
+    at batchedUpdates$1 (react-dom-client.development.js:3377:40)
+    at dispatchEventForPluginEventSystem (react-dom-client.development.js:20814:7)
+    at dispatchEvent (react-dom-client.development.js:25817:11)
+    at dispatchDiscreteEvent (react-dom-client.development.js:25785:11)Understand this error
+forward-logs-shared.ts:95 [Fast Refresh] rebuilding
+forward-logs-shared.ts:95 [Fast Refresh] done in 173ms
+48TagNotes.tsx:393 Uncaught ReferenceError: usedColors is not defined
+    at handleColorChange (TagNotes.tsx:393:18)
+    at onChange (TagNotes.tsx:191:38)
+
+4. when i select a node that was link to a tag in the tag page, for instance am in the tag page i select a tag and the i select a note / goal / task /ideas i should be directed to the page to view the selected node that is to the note page, dream page, ideas page
+
+5. in the manual deploy new task in the dream page... when i clik the submit don't close the modal until it is sucessfull that is change the ui from submit to submitting then when successful close the modal
+
+6. do the multi-note linking model for tasks and if the user click the node/notes from the task let them be directed to the page.
