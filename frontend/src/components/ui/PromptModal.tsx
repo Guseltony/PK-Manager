@@ -7,7 +7,7 @@ import { FiPlus } from "react-icons/fi";
 interface PromptModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (value: string) => void;
+  onSubmit: (value: string) => void | Promise<void>;
   title: string;
   message: string;
   placeholder?: string;
@@ -27,11 +27,13 @@ export default function PromptModal({
 }: PromptModalProps) {
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   const [value, setValue] = useState(defaultValue);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (isOpen !== prevIsOpen) {
     setPrevIsOpen(isOpen);
     if (isOpen) {
       setValue(defaultValue);
+      setIsSubmitting(false);
     }
   }
 
@@ -41,11 +43,18 @@ export default function PromptModal({
     s.toLowerCase().includes(value.toLowerCase())
   );
 
-  const handleSubmit = (e?: React.FormEvent) => {
+  const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (value.trim()) {
-      onSubmit(value.trim());
+    if (!value.trim() || isSubmitting) {
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      await onSubmit(value.trim());
       onClose();
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -72,10 +81,16 @@ export default function PromptModal({
                     <button
                       key={suggestion}
                       type="button"
-                      onMouseDown={(e) => {
+                      onMouseDown={async (e) => {
                         e.preventDefault(); // Prevent blur
-                        onSubmit(suggestion);
-                        onClose();
+                        if (isSubmitting) return;
+                        try {
+                          setIsSubmitting(true);
+                          await onSubmit(suggestion);
+                          onClose();
+                        } finally {
+                          setIsSubmitting(false);
+                        }
                       }}
                       className="w-full text-left px-4 py-3 text-xs font-bold text-text-muted hover:text-brand-primary hover:bg-brand-primary/10 transition-all flex items-center justify-between group border-b border-white/5 last:border-none"
                     >
@@ -100,16 +115,17 @@ export default function PromptModal({
             <button
               type="button"
               onClick={onClose}
+              disabled={isSubmitting}
               className="flex-1 py-3 rounded-2xl text-sm font-bold text-text-muted hover:bg-white/5 transition-all"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={!value.trim()}
+              disabled={!value.trim() || isSubmitting}
               className="flex-1 py-3 rounded-2xl text-sm font-bold bg-brand-primary text-white shadow-lg shadow-brand-primary/20 hover:bg-brand-primary/90 transition-all disabled:opacity-50"
             >
-              Submit
+              {isSubmitting ? "Submitting..." : "Submit"}
             </button>
           </div>
         </form>

@@ -3,10 +3,22 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiSearch, FiFileText, FiCheckSquare, FiTarget, FiBookOpen, FiActivity } from "react-icons/fi";
+import {
+  FiSearch,
+  FiFileText,
+  FiCheckSquare,
+  FiTarget,
+  FiBookOpen,
+  FiActivity,
+} from "react-icons/fi";
 import { useNotes } from "../hooks/useNotes";
 import { useTasks } from "../hooks/useTasks";
 import { useDreams } from "../hooks/useDreams";
+import { useNotesStore } from "../store/notesStore";
+import { useTasksStore } from "../store/tasksStore";
+import type { Note } from "../types/note";
+import type { Task } from "../types/task";
+import type { Dream } from "../types/dream";
 
 interface SearchResult {
   id: string;
@@ -17,16 +29,12 @@ interface SearchResult {
 }
 
 const typeConfig = {
-  note:    { icon: FiFileText,    color: "text-brand-primary",   label: "Note" },
-  task:    { icon: FiCheckSquare, color: "text-brand-secondary", label: "Task" },
-  dream:   { icon: FiTarget,      color: "text-emerald-400",     label: "Goal" },
-  journal: { icon: FiBookOpen,    color: "text-amber-400",       label: "Journal" },
-  ledger:  { icon: FiActivity,    color: "text-purple-400",      label: "Ledger" },
+  note: { icon: FiFileText, color: "text-brand-primary", label: "Note" },
+  task: { icon: FiCheckSquare, color: "text-brand-secondary", label: "Task" },
+  dream: { icon: FiTarget, color: "text-emerald-400", label: "Goal" },
+  journal: { icon: FiBookOpen, color: "text-amber-400", label: "Journal" },
+  ledger: { icon: FiActivity, color: "text-purple-400", label: "Ledger" },
 };
-
-interface Note { id: string; title: string; tags: string[] }
-interface Task { id: string; title: string; status: string; priority: string }
-interface Dream { id: string; title: string; category?: string }
 
 export default function GlobalSearch() {
   const [open, setOpen] = useState(false);
@@ -38,14 +46,12 @@ export default function GlobalSearch() {
   const { tasks } = useTasks();
   const { dreams } = useDreams();
 
-  // Register Ctrl+K / Cmd+K shortcut
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "k") {
         e.preventDefault();
         setOpen((prev) => {
           if (!prev) {
-            // Reset when opening via keyboard
             setQuery("");
             setCursor(0);
           }
@@ -58,7 +64,6 @@ export default function GlobalSearch() {
     return () => window.removeEventListener("keydown", handler);
   }, []);
 
-
   const results: SearchResult[] = useMemo(() => {
     if (!query.trim()) return [];
     const q = query.toLowerCase();
@@ -67,15 +72,15 @@ export default function GlobalSearch() {
       .filter(
         (n: Note) =>
           n.title?.toLowerCase().includes(q) ||
-          n.tags?.some((t) => t.toLowerCase().includes(q)),
+          n.tags?.some((t) => t.tag.name.toLowerCase().includes(q)),
       )
       .slice(0, 4)
       .map((n) => ({
         id: n.id,
-        type: "note",
+        type: "note" as const,
         title: n.title || "Untitled",
-        subtitle: n.tags.join(", "),
-        href: `/notes/${n.id}`,
+        subtitle: n.tags.map((tag) => tag.tag.name).join(", "),
+        href: `/notes?note=${n.id}`,
       }));
 
     const taskResults: SearchResult[] = (tasks || [])
@@ -83,10 +88,10 @@ export default function GlobalSearch() {
       .slice(0, 4)
       .map((t) => ({
         id: t.id,
-        type: "task",
+        type: "task" as const,
         title: t.title,
         subtitle: `${t.status} · ${t.priority}`,
-        href: `/tasks`,
+        href: `/tasks?task=${t.id}`,
       }));
 
     const dreamResults: SearchResult[] = (dreams || [])
@@ -98,7 +103,7 @@ export default function GlobalSearch() {
       .slice(0, 3)
       .map((d) => ({
         id: d.id,
-        type: "dream",
+        type: "dream" as const,
         title: d.title,
         subtitle: d.category,
         href: `/dreams/${d.id}`,
@@ -107,13 +112,24 @@ export default function GlobalSearch() {
     return [...noteResults, ...taskResults, ...dreamResults];
   }, [query, notes, tasks, dreams]);
 
-  // Navigate results with keyboard
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!open) return;
-      if (e.key === "ArrowDown") { e.preventDefault(); setCursor((c) => Math.min(c + 1, results.length - 1)); }
-      if (e.key === "ArrowUp")   { e.preventDefault(); setCursor((c) => Math.max(c - 1, 0)); }
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setCursor((c) => Math.min(c + 1, results.length - 1));
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setCursor((c) => Math.max(c - 1, 0));
+      }
       if (e.key === "Enter" && results[cursor]) {
+        if (results[cursor].type === "note") {
+          useNotesStore.getState().selectNote(results[cursor].id);
+        }
+        if (results[cursor].type === "task") {
+          useTasksStore.getState().setSelectedTaskId(results[cursor].id);
+        }
         router.push(results[cursor].href);
         setOpen(false);
       }
@@ -124,7 +140,6 @@ export default function GlobalSearch() {
 
   return (
     <>
-      {/* Trigger Button (visible in sidebar) */}
       <button
         onClick={() => {
           setOpen(true);
@@ -138,11 +153,10 @@ export default function GlobalSearch() {
           Search everything...
         </span>
         <kbd className="text-[10px] bg-white/10 border border-white/10 px-1.5 py-0.5 rounded font-mono opacity-50">
-          ⌘K
+          Cmd/Ctrl+K
         </kbd>
       </button>
 
-      {/* Modal */}
       <AnimatePresence>
         {open && (
           <>
@@ -160,7 +174,6 @@ export default function GlobalSearch() {
               transition={{ duration: 0.15 }}
               className="-translate-x-1/2 fixed top-4 sm:top-24 left-1/2 w-[calc(100%-2rem)] sm:w-full sm:max-w-xl z-50 glass border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
             >
-              {/* Search Input */}
               <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5">
                 <FiSearch className="text-text-muted flex-shrink-0" size={18} />
                 <input
@@ -183,7 +196,6 @@ export default function GlobalSearch() {
                 )}
               </div>
 
-              {/* Results */}
               <div className="max-h-80 overflow-y-auto custom-scrollbar">
                 {query.trim() === "" ? (
                   <div className="px-5 py-8 text-center">
@@ -191,8 +203,8 @@ export default function GlobalSearch() {
                       Type to search across all your notes, tasks, and goals.
                     </p>
                     <div className="flex justify-center gap-6 mt-4 text-[10px] text-text-muted/60 uppercase tracking-widest">
-                      <span>↑↓ Navigate</span>
-                      <span>↩ Open</span>
+                      <span>Up/Down</span>
+                      <span>Enter Open</span>
                       <span>Esc Close</span>
                     </div>
                   </div>
@@ -208,6 +220,12 @@ export default function GlobalSearch() {
                       <div
                         key={result.id}
                         onClick={() => {
+                          if (result.type === "note") {
+                            useNotesStore.getState().selectNote(result.id);
+                          }
+                          if (result.type === "task") {
+                            useTasksStore.getState().setSelectedTaskId(result.id);
+                          }
                           router.push(result.href);
                           setOpen(false);
                         }}

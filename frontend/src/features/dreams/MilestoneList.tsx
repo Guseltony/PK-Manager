@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { FiPlus, FiCheckCircle, FiCircle, FiX } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
-import { Milestone } from "../../hooks/useDreams";
+import type { Milestone } from "../../types/dream";
 
 interface MilestoneListProps {
   milestones: Milestone[];

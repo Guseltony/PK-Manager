@@ -18,7 +18,7 @@ export default function RegisterPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
-    setForm((prev) => ({
+    setForm((prev: RegisterFormData) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));

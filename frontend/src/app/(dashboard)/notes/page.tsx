@@ -3,9 +3,19 @@
 import NoteList from "@/src/features/notes/NoteList";
 import NoteEditor from "@/src/features/notes/NoteEditor";
 import { useNotesStore } from "@/src/store/notesStore";
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 
 export default function NotesPage() {
   const { selectedNoteId, isCreating } = useNotesStore();
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const noteId = searchParams.get("note");
+    if (noteId) {
+      useNotesStore.getState().selectNote(noteId);
+    }
+  }, [searchParams]);
   
   // On mobile, if a note is selected or being created, we hide the list and show the editor.
   // Otherwise, we show the list and hide the editor.
