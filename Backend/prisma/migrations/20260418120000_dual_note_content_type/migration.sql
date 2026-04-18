@@ -1,0 +1,2 @@
+ALTER TABLE "Note"
+ADD COLUMN IF NOT EXISTS "contentType" TEXT NOT NULL DEFAULT 'markdown';
