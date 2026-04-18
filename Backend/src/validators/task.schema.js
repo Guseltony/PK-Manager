@@ -25,6 +25,7 @@ export const createTaskSchema = z.object({
   duration: z.number().optional().nullable(),
   tags: z.array(tagInputSchema).optional(),
   noteId: z.string().optional().nullable(),
+  noteIds: z.array(z.string().uuid()).optional(),
   dreamId: z.string().optional().nullable(),
 });
 
@@ -39,6 +40,7 @@ export const updateTaskSchema = z.object({
   duration: z.number().int().min(0).optional(),
   tags: z.array(tagInputSchema).optional(),
   noteId: z.string().uuid().optional().nullable(),
+  noteIds: z.array(z.string().uuid()).optional(),
   dreamId: z.string().uuid().optional().nullable(),
   aiScore: z.number().optional(),
   completedAt: z.string().optional().nullable(),

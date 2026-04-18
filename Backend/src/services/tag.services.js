@@ -74,7 +74,7 @@ const tagUpdate = async ({ name: title, color }, tag_id, user_id) => {
   const update = {};
 
   if (title !== undefined && title !== "") update.name = title;
-  if (color !== undefined && color !== "") update.color = color;
+  if (color !== undefined) update.color = color === "" ? null : color;
 
   const updateTag = await prisma.tag.update({
     where: { id: tag.id, userId: user_id },
@@ -91,11 +91,17 @@ const getAllTag = async (user_id) => {
     where: {
       userId: user_id,
     },
-    // select: {
-    //   id: true,
-    //   name: true,
-    //   color: true,
-    // },
+    include: {
+      _count: {
+        select: {
+          notes: true,
+          tasks: true,
+          dreams: true,
+          journals: true,
+          ideas: true,
+        },
+      },
+    },
   });
 
   if (!allTag) {
@@ -104,6 +110,12 @@ const getAllTag = async (user_id) => {
 
   const allTagArray = allTag.map((tag) => ({
     ...tag,
+    count:
+      (tag._count?.notes || 0) +
+      (tag._count?.tasks || 0) +
+      (tag._count?.dreams || 0) +
+      (tag._count?.journals || 0) +
+      (tag._count?.ideas || 0),
     createdAt: tag.createdAt.toISOString(),
   }));
 
@@ -173,6 +185,19 @@ const getTag = async (tag_id, user_id) => {
           } 
         } 
       },
+      ideas: {
+        include: {
+          idea: {
+            include: {
+              tags: {
+                include: {
+                  tag: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -187,6 +212,7 @@ const getTag = async (tag_id, user_id) => {
     tasks: tagExist.tasks.map((t) => t.task),
     dreams: tagExist.dreams.map((d) => d.dream),
     journals: tagExist.journals.map((j) => j.journalEntry),
+    ideas: tagExist.ideas.map((ideaLink) => ideaLink.idea),
     createdAt: tagExist.createdAt.toISOString(),
   };
 

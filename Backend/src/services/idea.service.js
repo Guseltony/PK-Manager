@@ -1,16 +1,41 @@
 import { prisma } from "../libs/prisma.js";
-import { syncTags, tagInclude } from "../utils/tagHelper.js";
+import { createTagLinks, syncTags, tagInclude } from "../utils/tagHelper.js";
+
+const normalizeTags = (tags = []) =>
+  tags
+    .map((tag) => {
+      if (typeof tag === "string") {
+        return { name: tag };
+      }
+
+      if (tag?.name) {
+        return { name: tag.name, color: tag.color };
+      }
+
+      if (tag?.tag?.name) {
+        return { name: tag.tag.name, color: tag.tag.color };
+      }
+
+      return null;
+    })
+    .filter(Boolean);
 
 export const createIdea = async (data, userId) => {
-  const { content, tags } = data;
+  const { title, description, content, tags } = data;
+  const normalizedTags = normalizeTags(tags);
   
   return await prisma.idea.create({
     data: {
-      content,
+      title: title || "Untitled Idea",
+      description: description || null,
+      content: content || "",
       userId,
-      tags: syncTags(tags, userId),
+      tags: createTagLinks(normalizedTags, userId),
     },
-    include: tagInclude()
+    include: {
+      ...tagInclude(),
+      links: true
+    }
   });
 };
 
@@ -26,14 +51,17 @@ export const getUserIdeas = async (userId) => {
 };
 
 export const updateIdea = async (ideaId, userId, updates) => {
-  const { content, status, tags } = updates;
+  const { title, description, content, status, tags } = updates;
+  const normalizedTags = normalizeTags(tags);
   
   return await prisma.idea.update({
     where: { id: ideaId, userId },
     data: {
+      title,
+      description,
       content,
       status,
-      tags: tags ? syncTags(tags, userId) : undefined,
+      tags: tags ? syncTags(normalizedTags, userId) : undefined,
     },
     include: tagInclude()
   });
@@ -59,30 +87,30 @@ export const convertIdeaToEntity = async (ideaId, userId, targetType) => {
   if (targetType === "task") {
     createdEntity = await prisma.task.create({
       data: {
-        title: idea.content.split('\n')[0].slice(0, 100),
-        description: idea.content,
+        title: idea.title !== "Untitled Idea" ? idea.title : idea.content.split('\n')[0].slice(0, 100),
+        description: idea.description || idea.content,
         userId,
-        tags: syncTags(tagsArray, userId),
+        tags: createTagLinks(tagsArray, userId),
       }
     });
   } else if (targetType === "note") {
     createdEntity = await prisma.note.create({
       data: {
-        title: idea.content.split('\n')[0].slice(0, 100),
-        content: idea.content,
+        title: idea.title !== "Untitled Idea" ? idea.title : idea.content.split('\n')[0].slice(0, 100),
+        content: idea.description ? `${idea.description}\n\n${idea.content}` : idea.content,
         userId,
-        tags: syncTags(tagsArray, userId),
+        tags: createTagLinks(tagsArray, userId),
       }
     });
   } else if (targetType === "dream") {
     createdEntity = await prisma.dream.create({
       data: {
-        title: idea.content.split('\n')[0].slice(0, 100),
-        description: idea.content,
+        title: idea.title !== "Untitled Idea" ? idea.title : idea.content.split('\n')[0].slice(0, 100),
+        description: idea.description || idea.content,
         userId,
         status: "active",
         priority: "medium",
-        tags: syncTags(tagsArray, userId),
+        tags: createTagLinks(tagsArray, userId),
       }
     });
   } else {

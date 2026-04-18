@@ -1,33 +1,73 @@
-/**
- * Helper to generate Prisma connectOrCreate structure for tags
- * @param {Array<{name: string, color?: string}>} tagsArray 
- * @param {string} userId 
- * @returns {object} Prisma transaction object for tags
- */
-export const syncTags = (tagsArray, userId) => {
-  if (!tagsArray || !tagsArray.length) return undefined;
+const normalizeTags = (tagsArray = []) =>
+  tagsArray
+    .map((tag) => {
+      if (!tag) return null;
 
-  return {
-    deleteMany: {},
-    create: tagsArray.map((tag) => ({
-      tag: {
-        connectOrCreate: {
-          where: {
-            name_userId: {
-              name: tag.name.toLowerCase(),
-              userId: userId,
-            },
+      if (typeof tag === "string") {
+        return { name: tag.trim().toLowerCase(), color: null };
+      }
+
+      if (typeof tag.name === "string") {
+        return {
+          name: tag.name.trim().toLowerCase(),
+          color: tag.color || null,
+        };
+      }
+
+      if (tag.tag && typeof tag.tag.name === "string") {
+        return {
+          name: tag.tag.name.trim().toLowerCase(),
+          color: tag.tag.color || null,
+        };
+      }
+
+      return null;
+    })
+    .filter((tag) => tag?.name);
+
+const buildCreateEntries = (tagsArray, userId) =>
+  normalizeTags(tagsArray).map((tag) => ({
+    tag: {
+      connectOrCreate: {
+        where: {
+          name_userId: {
+            name: tag.name,
+            userId,
           },
-          create: {
-            name: tag.name.toLowerCase(),
-            color: tag.color || null,
-            user: {
-              connect: { id: userId },
-            },
+        },
+        create: {
+          name: tag.name,
+          color: tag.color,
+          user: {
+            connect: { id: userId },
           },
         },
       },
-    })),
+    },
+  }));
+
+/**
+ * Helper for nested relation creates on create operations.
+ */
+export const createTagLinks = (tagsArray, userId) => {
+  const create = buildCreateEntries(tagsArray, userId);
+  if (!create.length) return undefined;
+
+  return { create };
+};
+
+/**
+ * Helper for nested relation sync on update operations.
+ */
+export const syncTags = (tagsArray, userId) => {
+  const create = buildCreateEntries(tagsArray, userId);
+  if (!create.length) {
+    return { deleteMany: {} };
+  }
+
+  return {
+    deleteMany: {},
+    create,
   };
 };
 

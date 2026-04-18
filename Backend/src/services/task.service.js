@@ -1,5 +1,5 @@
 import { prisma } from "../config/db.js";
-import { syncTags, tagInclude } from "../utils/tagHelper.js";
+import { createTagLinks, syncTags, tagInclude } from "../utils/tagHelper.js";
 
 const normalizeTags = (tags = []) =>
   tags
@@ -18,11 +18,122 @@ const normalizeTags = (tags = []) =>
 
       return null;
     })
+    .filter(Boolean)
+    .slice(0, 2);
+
+const ensureRequiredTags = (tags = [], title = "") => {
+  if (tags.length > 0) return tags.slice(0, 2);
+
+  const fallback = title
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word.replace(/[^a-zA-Z0-9_-]/g, "").toLowerCase())
     .filter(Boolean);
 
+  if (fallback.length > 0) {
+    return Array.from(new Map(fallback.map((name) => [name, { name }])).values()).slice(0, 2);
+  }
+
+  return [{ name: "general" }];
+};
+
+const normalizeNoteIds = (noteIds = [], noteId) => {
+  const merged = [
+    ...(Array.isArray(noteIds) ? noteIds : []),
+    ...(noteId ? [noteId] : []),
+  ].filter(Boolean);
+
+  return Array.from(new Set(merged));
+};
+
+const resolveOwnedNoteIds = async (candidateNoteIds, userId) => {
+  if (!candidateNoteIds.length) {
+    return [];
+  }
+
+  const ownedNotes = await prisma.note.findMany({
+    where: {
+      id: { in: candidateNoteIds },
+      userId,
+    },
+    select: { id: true },
+  });
+
+  return candidateNoteIds.filter((id) =>
+    ownedNotes.some((note) => note.id === id),
+  );
+};
+
+const createTaskNoteLinks = (noteIds = []) => {
+  if (!noteIds.length) return undefined;
+
+  return {
+    create: noteIds.map((id) => ({
+      note: {
+        connect: { id },
+      },
+    })),
+  };
+};
+
+const syncTaskNoteLinks = (noteIds = []) => ({
+  deleteMany: {},
+  ...(noteIds.length
+    ? {
+        create: noteIds.map((id) => ({
+          note: {
+            connect: { id },
+          },
+        })),
+      }
+    : {}),
+});
+
+const taskInclude = {
+  ...tagInclude(),
+  subtasks: true,
+  activities: true,
+  note: {
+    select: { id: true, title: true, updatedAt: true },
+  },
+  notes: {
+    include: {
+      note: {
+        select: {
+          id: true,
+          title: true,
+          updatedAt: true,
+          contentType: true,
+        },
+      },
+    },
+  },
+  dream: {
+    select: { id: true, title: true },
+  },
+};
+
 export const taskCreation = async (data, userId) => {
-  const { title, description, status, priority, dueDate, startDate, estimatedTime, duration, tags, noteId, dreamId } = data;
-  const normalizedTags = normalizeTags(tags);
+  const {
+    title,
+    description,
+    status,
+    priority,
+    dueDate,
+    startDate,
+    estimatedTime,
+    duration,
+    tags,
+    noteId,
+    noteIds,
+    dreamId,
+  } = data;
+  const normalizedTags = ensureRequiredTags(normalizeTags(tags), title);
+  const resolvedNoteIds = await resolveOwnedNoteIds(
+    normalizeNoteIds(noteIds, noteId),
+    userId,
+  );
   
   return await prisma.task.create({
     data: {
@@ -34,9 +145,10 @@ export const taskCreation = async (data, userId) => {
       startDate: startDate ? new Date(startDate) : undefined,
       estimatedTime,
       duration,
-      tags: syncTags(normalizedTags, userId),
+      tags: createTagLinks(normalizedTags, userId),
       userId,
-      noteId,
+      noteId: resolvedNoteIds[0] || null,
+      notes: createTaskNoteLinks(resolvedNoteIds),
       dreamId,
       activities: {
         create: {
@@ -44,11 +156,7 @@ export const taskCreation = async (data, userId) => {
         },
       },
     },
-    include: {
-      ...tagInclude(),
-      subtasks: true,
-      activities: true,
-    },
+    include: taskInclude,
   });
 };
 
@@ -59,6 +167,7 @@ export const createManyTasks = async (tasks, userId, shared = {}) => {
         {
           ...task,
           noteId: task.noteId ?? shared.noteId ?? null,
+          noteIds: task.noteIds ?? shared.noteIds ?? undefined,
           dreamId: task.dreamId ?? shared.dreamId ?? null,
         },
         userId,
@@ -86,7 +195,19 @@ export const getUserTasks = async (userId, filters = {}) => {
     };
   }
   if (dreamId) where.dreamId = dreamId;
-  if (noteId) where.noteId = noteId;
+  if (noteId) {
+    where.OR = [
+      ...(where.OR || []),
+      { noteId },
+      {
+        notes: {
+          some: {
+            noteId,
+          },
+        },
+      },
+    ];
+  }
 
   const now = new Date();
   const startOfToday = new Date(now.setHours(0, 0, 0, 0));
@@ -122,14 +243,7 @@ export const getUserTasks = async (userId, filters = {}) => {
   return await prisma.task.findMany({
     where,
     include: {
-      ...tagInclude(),
-      subtasks: true,
-      note: {
-        select: { id: true, title: true }
-      },
-      dream: {
-        select: { id: true, title: true }
-      },
+      ...taskInclude,
     },
     orderBy: [
       { priority: "desc" },
@@ -143,20 +257,37 @@ export const getTask = async (taskId, userId) => {
   return await prisma.task.findFirst({
     where: { id: taskId, userId },
     include: {
-      ...tagInclude(),
-      subtasks: true,
+      ...taskInclude,
       activities: {
         orderBy: { timestamp: "desc" }
       },
-      note: true,
-      dream: true,
     },
   });
 };
 
 export const updateTask = async (taskId, userId, data) => {
-  const { title, description, status, priority, dueDate, startDate, duration, estimatedTime, tags, noteId, dreamId, aiScore, completedAt } = data;
+  const {
+    title,
+    description,
+    status,
+    priority,
+    dueDate,
+    startDate,
+    duration,
+    estimatedTime,
+    tags,
+    noteId,
+    noteIds,
+    dreamId,
+    aiScore,
+    completedAt,
+  } = data;
   const normalizedTags = normalizeTags(tags);
+  const shouldSyncNotes = Object.prototype.hasOwnProperty.call(data, "noteId")
+    || Object.prototype.hasOwnProperty.call(data, "noteIds");
+  const resolvedNoteIds = shouldSyncNotes
+    ? await resolveOwnedNoteIds(normalizeNoteIds(noteIds, noteId), userId)
+    : null;
   
   // If status is changing to done, set completedAt if not provided
   let finalCompletedAt = completedAt;
@@ -177,8 +308,9 @@ export const updateTask = async (taskId, userId, data) => {
       startDate: startDate ? new Date(startDate) : startDate,
       duration,
       estimatedTime,
-      tags: tags ? syncTags(normalizedTags, userId) : undefined,
-      noteId,
+      tags: tags ? syncTags(ensureRequiredTags(normalizedTags, title), userId) : undefined,
+      noteId: shouldSyncNotes ? resolvedNoteIds[0] || null : undefined,
+      notes: shouldSyncNotes ? syncTaskNoteLinks(resolvedNoteIds) : undefined,
       dreamId,
       aiScore,
       completedAt: finalCompletedAt ? new Date(finalCompletedAt) : finalCompletedAt,
@@ -191,11 +323,7 @@ export const updateTask = async (taskId, userId, data) => {
         },
       },
     },
-    include: {
-      ...tagInclude(),
-      subtasks: true,
-      activities: true,
-    },
+    include: taskInclude,
   });
 
   return task;

@@ -20,7 +20,8 @@ export const createTag = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(401).json({
+    console.error("createTag error:", error);
+    res.status(400).json({
       error: error.message,
     });
   }
@@ -37,7 +38,8 @@ export const updateTag = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(401).json({
+    console.error("updateTag error:", error);
+    res.status(400).json({
       error: error.message,
     });
   }
@@ -55,7 +57,8 @@ export const allTag = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(401).json({
+    console.error("allTag error:", error);
+    res.status(400).json({
       error: error.message,
     });
   }
@@ -72,7 +75,8 @@ export const aTag = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(401).json({
+    console.error("aTag error:", error);
+    res.status(400).json({
       error: error.message,
     });
   }
@@ -88,7 +92,8 @@ export const deleteTag = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(401).json({
+    console.error("deleteTag error:", error);
+    res.status(400).json({
       error: error.message,
     });
   }
@@ -121,7 +126,8 @@ export const tagToNote = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(401).json({
+    console.error("tagToNote error:", error);
+    res.status(400).json({
       error: error.message,
     });
   }

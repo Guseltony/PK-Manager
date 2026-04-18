@@ -1,5 +1,5 @@
 import { prisma } from "../config/db.js";
-import { syncTags, tagInclude } from "../utils/tagHelper.js";
+import { createTagLinks, syncTags, tagInclude } from "../utils/tagHelper.js";
 
 export const dreamCreation = async (data, userId) => {
   const { title, description, category, priority, targetDate } = data;
@@ -12,7 +12,7 @@ export const dreamCreation = async (data, userId) => {
       priority: priority || "medium",
       targetDate: targetDate ? new Date(targetDate) : null,
       userId,
-      tags: syncTags(data.tags, userId),
+      tags: createTagLinks(data.tags, userId),
       activities: {
         create: {
           action: "created",

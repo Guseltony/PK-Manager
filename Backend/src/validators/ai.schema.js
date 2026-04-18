@@ -96,5 +96,6 @@ export const aiDashboardSummaryResponseSchema = z.object({
 export const createManyAiTasksSchema = z.object({
   tasks: z.array(taskSuggestionSchema).min(1).max(20),
   noteId: z.string().uuid().nullable().optional(),
+  noteIds: z.array(z.string().uuid()).optional(),
   dreamId: z.string().uuid().nullable().optional(),
 });

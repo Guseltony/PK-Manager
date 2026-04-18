@@ -5,6 +5,12 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(10),
   NODE_ENV: z.string(),
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+  GOOGLE_REDIRECT_URI: z.string().min(1).optional(),
+  CLOUDINARY_CLOUD_NAME: z.string().min(1).optional(),
+  CLOUDINARY_API_KEY: z.string().min(1).optional(),
+  CLOUDINARY_API_SECRET: z.string().min(1).optional(),
   GROQ_API_KEY: z.string().min(1).optional(),
   GROQ_MODEL: z.string().min(1).optional(),
 });

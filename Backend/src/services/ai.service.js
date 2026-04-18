@@ -24,12 +24,34 @@ const normalizeTask = (task) => ({
   duration: task.duration ?? null,
   startDate: task.startDate ?? null,
   dueDate: task.dueDate ?? null,
-  tags: Array.from(new Set((task.tags || []).map((tag) => tag.trim().toLowerCase()).filter(Boolean))),
+  tags: Array.from(new Set((task.tags || []).map((tag) => tag.trim().toLowerCase()).filter(Boolean))).slice(0, 2),
   status: "todo",
 });
 
 const normalizeTagNames = (tags = []) =>
   Array.from(new Set(tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean)));
+
+const getNoteTextForAi = (note) => {
+  if (note.contentType !== "richtext") {
+    return note.content;
+  }
+
+  try {
+    const parsed = JSON.parse(note.content);
+    if (typeof parsed?.html === "string") {
+      return parsed.html
+        .replace(/<img[^>]*alt="([^"]*)"[^>]*>/gi, " $1 ")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/&nbsp;/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+  } catch {
+    return note.content;
+  }
+
+  return note.content;
+};
 
 const withFallback = async (runner, fallback) => {
   try {
@@ -210,7 +232,7 @@ export const analyzeNote = async (userId, noteId) => {
           note: {
             id: note.id,
             title: note.title,
-            content: note.content,
+            content: getNoteTextForAi(note),
             tags: note.tags.map((item) => item.tag.name),
             linkedTasks: note.tasks,
           },

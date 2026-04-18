@@ -26,6 +26,7 @@ export const createManyNewTasks = async (req, res) => {
   try {
     const tasks = await createManyTasks(req.body.tasks, req.user.id, {
       noteId: req.body.noteId,
+      noteIds: req.body.noteIds,
       dreamId: req.body.dreamId,
     });
     res.status(201).json({ data: tasks });

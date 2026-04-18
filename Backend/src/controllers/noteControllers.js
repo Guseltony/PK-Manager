@@ -19,7 +19,8 @@ export const createNote = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(401).json({
+    console.error("createNote error:", error);
+    res.status(400).json({
       error: error.message,
     });
   }
@@ -37,6 +38,7 @@ export const getSingleNote = async (req, res) => {
       });
     }
   } catch (error) {
+    console.error("getSingleNote error:", error);
     res.status(400).json({
       error: error.message,
     });
@@ -56,7 +58,8 @@ export const allUserNote = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(401).json({
+    console.error("allUserNote error:", error);
+    res.status(400).json({
       error: error.message,
     });
   }
@@ -64,9 +67,9 @@ export const allUserNote = async (req, res) => {
 
 export const updateNote = async (req, res) => {
   try {
-    const { title, content, tagsArray } = req.body;
+    const { title, content, contentType, tagsArray } = req.body;
     const data = await updateUserNote(
-      { title, content, tagsArray },
+      { title, content, contentType, tagsArray },
       req.params.id,
       req.user.id,
     );
@@ -78,7 +81,8 @@ export const updateNote = async (req, res) => {
       });
     }
   } catch (error) {
-    res.status(401).json({
+    console.error("updateNote error:", error);
+    res.status(400).json({
       error: error.message,
     });
   }
@@ -92,7 +96,8 @@ export const deleteNote = async (req, res) => {
       message: "deleted successfully",
     });
   } catch (error) {
-    res.status(401).json({
+    console.error("deleteNote error:", error);
+    res.status(400).json({
       error: error.message,
     });
   }

@@ -1,8 +1,11 @@
 import { z } from "zod";
 
+const contentTypeSchema = z.enum(["markdown", "richtext"]);
+
 export const createNoteSchema = z.object({
   title: z.string().trim().min(1, "title is required").toLowerCase(),
   content: z.string().trim().min(2, "required"),
+  contentType: contentTypeSchema.optional(),
   tagsArray: z
     .array(
       z.object({
@@ -19,6 +22,7 @@ export const noteResponseSchema = z.object({
   id: z.uuid(),
   title: z.string(),
   content: z.string(),
+  contentType: contentTypeSchema.default("markdown"),
   isArchived: z.boolean(),
   userId: z.uuid(),
   createdAt: z.preprocess((arg) => {

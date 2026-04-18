@@ -4,9 +4,9 @@ import {
   allNoteResponseSchema,
   noteResponseSchema,
 } from "../validators/note.schema.js";
-import { syncTags, tagInclude } from "../utils/tagHelper.js";
+import { createTagLinks, syncTags, tagInclude } from "../utils/tagHelper.js";
 
-const noteCreation = async ({ title, content, tagsArray }, user_id) => {
+const noteCreation = async ({ title, content, contentType, tagsArray }, user_id) => {
   if (!title || !content) {
     throw new Error("title and content of the note is required");
   }
@@ -48,10 +48,11 @@ const noteCreation = async ({ title, content, tagsArray }, user_id) => {
     data: {
       title,
       content,
+      contentType: contentType || "markdown",
       user: {
         connect: { id: user_id },
       },
-      tags: syncTags(tagsArray, user_id),
+      tags: createTagLinks(tagsArray, user_id),
     },
     include: {
       ...tagInclude(),
@@ -104,11 +105,12 @@ const getNote = async (note_id, user_id) => {
   return validateNote;
 };
 
-const updateUserNote = async ({ title, content, tagsArray }, note_id, user_id) => {
+const updateUserNote = async ({ title, content, contentType, tagsArray }, note_id, user_id) => {
   const noteObj = {};
 
   if (title !== undefined) noteObj.title = title;
   if (content !== undefined) noteObj.content = content;
+  if (contentType !== undefined) noteObj.contentType = contentType;
 
   const updateNote = await prisma.note.update({
     where: {
