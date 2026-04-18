@@ -69,13 +69,50 @@ export function useDream(id: string | null) {
     },
   });
 
-  const addMilestoneMutation = useMutation({
+  const addMilestoneMutation = useMutation<
+    Milestone,
+    Error,
+    Partial<Milestone>,
+    { previousDream?: Dream }
+  >({
     mutationFn: async (milestone: Partial<Milestone>) => {
       const { data } = await api.post<{ data: Milestone }>(`/dream/${id}/milestones`, milestone);
       return data.data;
     },
+    onMutate: async (milestone) => {
+      await queryClient.cancelQueries({ queryKey: ["dream", id] });
+      const previousDream = queryClient.getQueryData<Dream>(["dream", id]);
+
+      if (previousDream) {
+        queryClient.setQueryData<Dream>(["dream", id], {
+          ...previousDream,
+          milestones: [
+            ...(previousDream.milestones || []),
+            {
+              id: `temp-milestone-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+              dreamId: id || "",
+              title: milestone.title || "New milestone",
+              description: milestone.description || null,
+              completed: false,
+              weight: milestone.weight || 1,
+              targetDate: milestone.targetDate || null,
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          ],
+        });
+      }
+
+      return { previousDream };
+    },
+    onError: (_error, _milestone, context) => {
+      if (context?.previousDream) {
+        queryClient.setQueryData(["dream", id], context.previousDream);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dream", id] });
+      queryClient.invalidateQueries({ queryKey: ["dreams"] });
     },
   });
 

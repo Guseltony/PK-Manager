@@ -23,9 +23,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const bootstrapAuth = async () => {
       try {
-        const { data } = await api.post("/auth/refresh");
-        if (data.csrfToken) {
-          setManualCsrfToken(data.csrfToken);
+        const response = await api.post<{ data?: { csrfToken?: string }; csrfToken?: string }>("/auth/refresh");
+        const csrfToken = response.data.data?.csrfToken || response.data.csrfToken;
+        if (csrfToken) {
+          setManualCsrfToken(csrfToken);
         }
       } catch (err) {
         console.warn("Auth bootstrap failed (user likely not logged in)");

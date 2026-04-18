@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 import { BACKEND_URL } from "@/src/constants/constants";
 import { User, UserApiResponse } from "@/src/type/type";
 
@@ -6,9 +7,7 @@ export type AuthResult =
   | { user: User; authenticated: true }
   | { user: null; authenticated: false };
 
-export async function GET(): Promise<AuthResult> {
-  console.log("🔥 /api/user HIT");
-
+export async function GET() {
   try {
     const cookieStore = await cookies();
 
@@ -18,10 +17,11 @@ export async function GET(): Promise<AuthResult> {
       .join("; ");
 
     if (!cookieHeader) {
-      return { user: null, authenticated: false };
+      return NextResponse.json<AuthResult>({
+        user: null,
+        authenticated: false,
+      });
     }
-
-    console.log("🍪 Cookie header:", cookieHeader);
 
     const res = await fetch(`${BACKEND_URL}/user/get`, {
       headers: {
@@ -32,16 +32,22 @@ export async function GET(): Promise<AuthResult> {
     });
 
     if (!res.ok) {
-      return { user: null, authenticated: false };
+      return NextResponse.json<AuthResult>({
+        user: null,
+        authenticated: false,
+      });
     }
 
     const result: UserApiResponse = await res.json();
 
-    return {
-      user: result.data, // 👈 unwrap here
+    return NextResponse.json<AuthResult>({
+      user: result.data,
       authenticated: true,
-    };
+    });
   } catch {
-    return { user: null, authenticated: false };
+    return NextResponse.json<AuthResult>({
+      user: null,
+      authenticated: false,
+    });
   }
 }

@@ -54,7 +54,7 @@ export function useFocus() {
       taskId: string;
       durationSeconds?: number;
     }) => {
-      const { data } = await api.post(`/focus/sessions/${sessionId}/tasks/${taskId}/complete`, {
+      const { data } = await api.post<{ data: FocusSession }>(`/focus/sessions/${sessionId}/tasks/${taskId}/complete`, {
         durationSeconds,
       });
       return data.data;
@@ -70,7 +70,7 @@ export function useFocus() {
       sessionId: string;
       taskId: string;
     }) => {
-      const { data } = await api.post(`/focus/sessions/${sessionId}/tasks/${taskId}/skip`);
+      const { data } = await api.post<{ data: FocusSession }>(`/focus/sessions/${sessionId}/tasks/${taskId}/skip`);
       return data.data;
     },
     onSuccess: invalidateFocus,

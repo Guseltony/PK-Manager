@@ -16,6 +16,7 @@ interface BackendNote extends Omit<Note, "tags"> {
 
 const mapBackendNote = (note: BackendNote): Note => ({
   ...note,
+  contentType: note.contentType || "markdown",
   // Ensure tags is always an array
   tags: note.tags || [],
 });

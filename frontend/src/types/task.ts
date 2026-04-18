@@ -28,6 +28,7 @@ export interface Task {
   tags: { tag: Tag }[];
   userId: string;
   noteId: string | null;
+  noteIds?: string[];
   dreamId: string | null;
   aiScore: number | null;
   suggestedAt: string | null;
@@ -39,9 +40,11 @@ export interface Task {
   subtasks?: Subtask[];
   activities?: ActivityLog[];
   note?: { id: string; title: string };
+  notes?: { note: { id: string; title: string; updatedAt?: string; contentType?: string } }[];
   dream?: { id: string; title: string };
 }
 
 export type NewTask = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'userId' | 'subtasks' | 'activities' | 'note' | 'dream' | 'aiScore' | 'suggestedAt' | 'completedAt' | 'tags'> & {
   tags: { tag: Partial<Tag> }[];
+  noteIds?: string[];
 };

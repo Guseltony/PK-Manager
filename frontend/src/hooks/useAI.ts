@@ -25,8 +25,8 @@ export function useTaskPlanner() {
   });
 
   const createManyMutation = useMutation({
-    mutationFn: async ({ tasks, noteId, dreamId }: { tasks: AiTaskSuggestion[]; noteId?: string | null; dreamId?: string | null }) => {
-      const { data } = await api.post<{ data: Task[] }>("/task/create-many", { tasks, noteId, dreamId });
+    mutationFn: async ({ tasks, noteId, noteIds, dreamId }: { tasks: AiTaskSuggestion[]; noteId?: string | null; noteIds?: string[]; dreamId?: string | null }) => {
+      const { data } = await api.post<{ data: Task[] }>("/task/create-many", { tasks, noteId, noteIds, dreamId });
       return data.data;
     },
     onSuccess: () => {

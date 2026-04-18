@@ -1,9 +1,11 @@
 import { Tag } from "./tag";
+import type { NoteContentType } from "../features/notes/noteContent";
 
 export interface Note {
   id: string;
   title: string;
   content: string;
+  contentType: NoteContentType;
   tags: { tag: Tag }[];
   category?: string;
   isFavorite?: boolean;

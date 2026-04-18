@@ -3,11 +3,14 @@ import { Task } from "./task";
 
 export interface Milestone {
   id: string;
+  dreamId?: string;
   title: string;
-  description?: string;
+  description?: string | null;
   completed: boolean;
   weight: number;
-  targetDate?: string;
+  targetDate?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface DreamInsight {

@@ -15,18 +15,19 @@ const normalizeTaskShape = (task: Partial<Task>) => {
       }
 
       if ("name" in tag) {
+        const t = tag as unknown as { name: string; color?: string };
         return {
           tag: {
-            id: `temp-${tag.name}`,
-            name: tag.name,
-            color: "color" in tag ? tag.color : undefined,
+            id: `temp-${t.name}`,
+            name: t.name,
+            color: t.color,
             createdAt: new Date().toISOString(),
-          },
+          } as import("../types/tag").Tag,
         };
       }
 
-      return tag;
-    }),
+      return tag as unknown as { tag: import("../types/tag").Tag };
+    }) as { tag: import("../types/tag").Tag }[],
   };
 };
 
@@ -70,6 +71,11 @@ export function useTasks(activeFilter = "all") {
     onSuccess: (data) => {
       addTask(data);
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["dreams"] });
+      if (data.dreamId) {
+        queryClient.invalidateQueries({ queryKey: ["dream", data.dreamId] });
+      }
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
   });
 
@@ -114,6 +120,11 @@ export function useTasks(activeFilter = "all") {
         updateInStore(data.id, data);
         queryClient.invalidateQueries({ queryKey: ["tasks"] });
         queryClient.invalidateQueries({ queryKey: ["task", data.id] });
+        queryClient.invalidateQueries({ queryKey: ["dreams"] });
+        if (data.dreamId) {
+          queryClient.invalidateQueries({ queryKey: ["dream", data.dreamId] });
+        }
+        queryClient.invalidateQueries({ queryKey: ["notes"] });
       }
     },
   });
@@ -147,7 +158,12 @@ export function useTasks(activeFilter = "all") {
             ...old,
             subtasks: [
               ...(old.subtasks || []),
-              { id: "temp-id", title, status: "todo", taskId },
+              {
+                id: `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                title,
+                status: "todo",
+                taskId,
+              },
             ],
           };
         });
@@ -245,8 +261,11 @@ export function useTasks(activeFilter = "all") {
     isLoading,
     error,
     createTask: createMutation.mutate,
+    createTaskAsync: createMutation.mutateAsync,
     updateTask: updateMutation.mutate,
+    updateTaskAsync: updateMutation.mutateAsync,
     deleteTask: deleteMutation.mutate,
+    deleteTaskAsync: deleteMutation.mutateAsync,
     addSubtask: addSubtaskMutation.mutate,
     updateSubtask: updateSubtaskMutation.mutate,
     deleteSubtask: deleteSubtaskMutation.mutate,

@@ -63,7 +63,11 @@ const apiFetch = async (url: string, options: ApiOptions = {}) => {
 
   const data = await response.json();
   if (!response.ok) {
-    const error = new Error(data.message || "API Error") as Error & { response?: { data: unknown; status: number } };
+    const resolvedMessage =
+      (typeof data?.message === "string" && data.message) ||
+      (typeof data?.error === "string" && data.error) ||
+      "API Error";
+    const error = new Error(resolvedMessage) as Error & { response?: { data: unknown; status: number } };
     error.response = { data, status: response.status };
     throw error;
   }

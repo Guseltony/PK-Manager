@@ -86,7 +86,7 @@ export function useTagDetail(tagId: string | null) {
     queryKey: ["tag", tagId],
     queryFn: async () => {
       if (!tagId) throw new Error("Tag ID is required");
-      const { data } = await api.get<{ data: Tag }>(`/tag/a/${tagId}`);
+      const { data } = await api.get<{ data: Tag }>(`/tag/get/${tagId}`);
       return data.data;
     },
     enabled: !!tagId,
