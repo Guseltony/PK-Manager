@@ -15,16 +15,19 @@ import {
   FiZap,
   FiArrowLeft,
 } from "react-icons/fi";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import dayjs from "dayjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTags } from "../../hooks/useTags";
 import { useNotesStore } from "../../store/notesStore";
+import { ImageGallery } from "../../components/ImageGallery";
 import { useTasksStore } from "../../store/tasksStore";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import PromptModal from "../../components/ui/PromptModal";
 import { TaskStatus, Priority } from "../../types/task";
 import { useTaskEnrichmentAI, useTaskSubtasksAI } from "../../hooks/useAI";
+import { getTagColorStyle } from "../../utils/tagColor";
+import { useRouter } from "next/navigation";
 
 interface TaskDetailViewProps {
   taskId: string;
@@ -38,11 +41,11 @@ export default function TaskDetailView({
   taskId,
   onClose,
 }: TaskDetailViewProps) {
-  const [isEditing, setIsEditing] = useState(false);
   const { data: task, isLoading } = useTask(taskId);
   const {
     updateTask,
-    deleteTask,
+    updateTaskAsync,
+    deleteTaskAsync,
     addSubtask,
     updateSubtask,
     deleteSubtask,
@@ -50,11 +53,11 @@ export default function TaskDetailView({
     isDeleting,
     isAddingSubtask,
     isUpdatingSubtask,
-    isDeletingSubtask,
   } = useTasks();
   const { tags: allTags } = useTags();
   const taskSubtasksAi = useTaskSubtasksAI();
   const taskEnrichmentAi = useTaskEnrichmentAI();
+  const router = useRouter();
   
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showSubtaskPrompt, setShowSubtaskPrompt] = useState(false);
@@ -122,7 +125,7 @@ export default function TaskDetailView({
     updateTask({ id: task.id, updates: { status: "done" } });
   };
 
-  const handlePriorityCycle = () => {
+  const handlePriorityCycle = async () => {
     if (!task || !localPriority || isCompleted) return;
     setIsCycling(true);
     const currentIndex = priorities.indexOf(localPriority);
@@ -132,17 +135,18 @@ export default function TaskDetailView({
     setLocalPriority(nextPriority);
     
     // Mutation in background
-    updateTask(
-      { id: task.id, updates: { priority: nextPriority } },
-      { onSettled: () => setIsCycling(false) }
-    );
+    try {
+      await updateTaskAsync({ id: task.id, updates: { priority: nextPriority } });
+    } finally {
+      setIsCycling(false);
+    }
   };
 
   const handleAddTag = (tagName: string) => {
     if (!task || isCompleted) return;
     const currentTags = (task.tags || []).map(getTagName).filter((value): value is string => Boolean(value));
     if (!currentTags.some((name) => name.toLowerCase() === tagName.toLowerCase())) {
-      updateTask({ id: task.id, updates: { tags: [...currentTags.map((name) => ({ name })), { name: tagName }] } });
+      updateTask({ id: task.id, updates: { tags: [...currentTags.map((name) => ({ tag: { id: `temp-${name}`, name, createdAt: new Date().toISOString() } as import("../../types/tag").Tag })), { tag: { id: `temp-${tagName}`, name: tagName, createdAt: new Date().toISOString() } as import("../../types/tag").Tag }] } });
     }
   };
 
@@ -151,7 +155,7 @@ export default function TaskDetailView({
     const nextTags = (task.tags || [])
       .map(getTagName)
       .filter((name): name is string => Boolean(name) && name !== tagName)
-      .map((name) => ({ name }));
+      .map((name) => ({ tag: { id: `temp-${name}`, name, createdAt: new Date().toISOString() } as import("../../types/tag").Tag }));
     updateTask({ id: task.id, updates: { tags: nextTags } });
   };
 
@@ -169,7 +173,7 @@ export default function TaskDetailView({
         duration: result.task.duration ?? undefined,
         startDate: result.task.startDate ?? undefined,
         dueDate: result.task.dueDate ?? undefined,
-        tags: result.task.tags.map((name) => ({ name })),
+        tags: result.task.tags.map((name) => ({ tag: { id: `temp-${name}`, name, createdAt: new Date().toISOString() } as import("../../types/tag").Tag })),
       },
     });
 
@@ -192,9 +196,7 @@ export default function TaskDetailView({
 
   const handleDelete = () => {
     if (isCompleted) return;
-    deleteTask(taskId, {
-      onSuccess: () => onClose(),
-    });
+    deleteTaskAsync(taskId).then(() => onClose());
   };
 
   const handleAddSubtask = (title: string) => {
@@ -209,15 +211,36 @@ export default function TaskDetailView({
     if (!task || isCompleted) return;
     const note = notes.find(n => n.title.toLowerCase() === noteTitle.toLowerCase());
     if (note) {
-      updateTask({ id: task.id, updates: { noteId: note.id } });
+      const existingNoteIds = Array.from(
+        new Set([
+          ...(task.notes?.map(({ note: linkedNote }) => linkedNote.id) || []),
+          ...(task.noteId ? [task.noteId] : []),
+        ]),
+      );
+      if (!existingNoteIds.includes(note.id)) {
+        updateTask({ id: task.id, updates: { noteId: existingNoteIds[0] || note.id, noteIds: [...existingNoteIds, note.id] } });
+      }
     } else {
       alert("Note not found. Please select an existing note title.");
     }
   };
 
-  const handleUnlinkNote = () => {
+  const handleUnlinkNote = (noteIdToRemove: string) => {
     if (!task || isCompleted) return;
-    updateTask({ id: task.id, updates: { noteId: null } });
+    const remainingNoteIds = Array.from(
+      new Set(
+        (task.notes?.map(({ note }) => note.id) || [])
+          .concat(task.noteId ? [task.noteId] : [])
+          .filter((id) => id !== noteIdToRemove),
+      ),
+    );
+    updateTask({
+      id: task.id,
+      updates: {
+        noteId: remainingNoteIds[0] || null,
+        noteIds: remainingNoteIds,
+      },
+    });
   };
 
   const handleUpdateDescription = () => {
@@ -250,6 +273,21 @@ export default function TaskDetailView({
       <div className="w-full md:w-96 lg:w-112.5 absolute md:relative inset-0 border-l border-white/5 bg-surface-soft p-4 sm:p-6 lg:p-8 flex items-center justify-center z-20">
         <p className="text-text-muted">Task context not found</p>
       </div>
+    );
+
+  const linkedNoteEntries = [
+    ...(task.notes?.map(({ note }) => [note.id, note] as const) || []),
+    ...(task.note
+      ? [[task.note.id, { ...task.note, updatedAt: undefined, contentType: undefined }] as const]
+      : []),
+  ];
+
+  const linkedNotes: { id: string; title: string; updatedAt?: string; contentType?: string }[] =
+    Array.from(
+      new Map<
+        string,
+        { id: string; title: string; updatedAt?: string; contentType?: string }
+      >(linkedNoteEntries).values(),
     );
 
   return (
@@ -391,11 +429,22 @@ export default function TaskDetailView({
                   ? String(tagObj.tag.id)
                   : `temp-${tagName}-${index}`;
 
+              const tagColor =
+                tagObj &&
+                typeof tagObj === "object" &&
+                "tag" in tagObj &&
+                tagObj.tag &&
+                typeof tagObj.tag === "object" &&
+                "color" in tagObj.tag
+                  ? (tagObj.tag.color as string | null | undefined)
+                  : undefined;
+
               return (
                 <span
                   key={tagId}
                   onClick={() => !isCompleted && handleRemoveTag(tagName)}
-                  className={`flex items-center gap-1.5 text-[10px] font-bold text-brand-primary bg-brand-primary/10 px-3 py-1.5 rounded-xl border border-brand-primary/20 uppercase tracking-tighter transition-all group ${!isCompleted ? "cursor-pointer hover:bg-red-400/10 hover:text-red-400 hover:border-red-400/20" : ""}`}
+                  className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-xl border uppercase tracking-tighter transition-all group ${!isCompleted ? "cursor-pointer hover:opacity-90" : ""}`}
+                  style={getTagColorStyle(tagColor)}
                 >
                   <FiTag size={10} /> {tagName}
                   {!isCompleted && (
@@ -658,16 +707,28 @@ export default function TaskDetailView({
             <div className="h-px flex-1 bg-white/5 ml-4" />
           </div>
           <div className="space-y-3">
-            {task.note ? (
-              <div className="group relative overflow-hidden flex items-center justify-between p-4 rounded-2xl bg-surface-base border border-brand-primary/20 hover:border-brand-primary/50 transition-all">
+            {linkedNotes.map((linkedNote) => (
+              <div
+                key={linkedNote.id}
+                className="group relative overflow-hidden flex items-center justify-between p-4 rounded-2xl bg-surface-base border border-brand-primary/20 hover:border-brand-primary/50 transition-all"
+              >
+                <button
+                  type="button"
+                  onClick={() => {
+                    useNotesStore.getState().selectNote(linkedNote.id);
+                    router.push(`/notes?note=${linkedNote.id}`);
+                  }}
+                  className="absolute inset-0"
+                  title={`Open ${linkedNote.title}`}
+                />
                 <div className="absolute inset-0 bg-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="flex items-center gap-3 relative z-10">
+                <div className="flex items-center gap-3 relative z-10 min-w-0">
                   <div className="w-8 h-8 rounded-lg bg-brand-primary/20 flex items-center justify-center text-brand-primary">
                     <FiLink size={14} />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-text-main leading-tight mb-1 truncate">
-                      {task.note.title}
+                      {linkedNote.title}
                     </p>
                     <p className="text-[10px] text-brand-primary font-bold uppercase tracking-tighter">
                       Linked Knowledge Node
@@ -676,7 +737,7 @@ export default function TaskDetailView({
                 </div>
                 {!isCompleted && (
                   <button
-                    onClick={handleUnlinkNote}
+                    onClick={() => handleUnlinkNote(linkedNote.id)}
                     className="relative z-10 p-2 text-text-muted hover:text-red-400 transition-colors"
                     title="Unlink Note"
                   >
@@ -684,7 +745,32 @@ export default function TaskDetailView({
                   </button>
                 )}
               </div>
-            ) : !isCompleted ? (
+            ))}
+            {task.dream ? (
+              <div className="group relative overflow-hidden flex items-center justify-between p-4 rounded-2xl bg-surface-base border border-emerald-500/20 hover:border-emerald-500/50 transition-all">
+                <button
+                  type="button"
+                  onClick={() => router.push(`/dreams/${task.dream?.id}`)}
+                  className="absolute inset-0"
+                  title={`Open ${task.dream.title}`}
+                />
+                <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                    <FiZap size={14} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-text-main leading-tight mb-1 truncate">
+                      {task.dream.title}
+                    </p>
+                    <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-tighter">
+                      Linked Dream Node
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+            {!isCompleted ? (
               <button
                 onClick={() => setShowNotePrompt(true)}
                 className="w-full flex flex-col items-center justify-center gap-2 p-6 rounded-3xl border border-dashed border-white/10 text-text-muted hover:text-brand-primary hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all group"
@@ -697,12 +783,17 @@ export default function TaskDetailView({
                   Connect to Library
                 </p>
               </button>
-            ) : (
+            ) : !linkedNotes.length && !task.dream ? (
               <p className="text-[10px] text-text-muted italic opacity-40 text-center py-4">
                 No linked knowledge nodes
               </p>
-            )}
+            ) : null}
           </div>
+        </div>
+
+        {/* Component: Visual Inspiration (ImageGallery) */}
+        <div className="mb-10">
+          <ImageGallery parentType="task" parentId={task.id} />
         </div>
 
         {/* Execution History (Activity Timeline) */}

@@ -3,6 +3,7 @@
 import { Tag } from "../../types/tag";
 import { useTagsStore } from "../../store/tagsStore";
 import { FiTag, FiHash } from "react-icons/fi";
+import { getTagColorStyle, getTagIconStyle } from "../../utils/tagColor";
 
 interface TagItemProps {
   tag: Tag;
@@ -17,12 +18,16 @@ export default function TagItem({ tag, isSelected }: TagItemProps) {
       onClick={() => selectTag(tag.id)}
       className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${
         isSelected
-          ? "bg-brand-primary/10 text-brand-primary border border-brand-primary/20"
+          ? "border"
           : "hover:bg-white/5 text-text-muted hover:text-text-main border border-transparent"
       }`}
+      style={isSelected ? getTagColorStyle(tag.color) : undefined}
     >
       <div className="flex items-center gap-3">
-        <div className={`p-2 rounded-lg ${isSelected ? "bg-brand-primary/20" : "bg-white/5 group-hover:bg-white/10"}`}>
+        <div
+          className={`p-2 rounded-lg ${isSelected ? "" : "bg-white/5 group-hover:bg-white/10"}`}
+          style={isSelected ? getTagIconStyle(tag.color) : undefined}
+        >
           <FiTag size={14} />
         </div>
         <span className="text-sm font-medium">{tag.name}</span>

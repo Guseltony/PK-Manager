@@ -8,6 +8,7 @@ import { RiEmotionHappyLine, RiEmotionNormalLine, RiEmotionUnhappyLine } from "r
 import { FaRegSmileBeam } from "react-icons/fa";
 import { useJournalAI, useTaskPlanner } from "../../hooks/useAI";
 import { AiJournalReflection } from "../../types/ai";
+import { getTagColorStyle } from "../../utils/tagColor";
 
 export default function JournalLayout() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -104,7 +105,11 @@ export default function JournalLayout() {
         
         <div className="flex flex-wrap gap-2 mt-4">
           {entry?.tags?.map((tagObj) => (
-            <span key={tagObj.tag.id} className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/5 text-[10px] font-bold text-text-muted hover:text-text-main transition-all">
+            <span
+              key={tagObj.tag.id}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-full border text-[10px] font-bold transition-all"
+              style={getTagColorStyle(tagObj.tag.color)}
+            >
                <FiTag size={10} className="text-brand-primary/60" /> {tagObj.tag.name}
             </span>
           ))}

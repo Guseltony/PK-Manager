@@ -51,6 +51,9 @@ export default function TaskItem({ task, isSelected, onClick }: TaskItemProps) {
   };
 
   const isDone = task.status === "done";
+  const totalSubtasks = task.subtasks?.length || 0;
+  const completedSubtasks = task.subtasks?.filter((subtask) => subtask.status === "done").length || 0;
+  const subtaskProgress = totalSubtasks > 0 ? Math.round((completedSubtasks / totalSubtasks) * 100) : 0;
 
   return (
     <div
@@ -123,6 +126,20 @@ export default function TaskItem({ task, isSelected, onClick }: TaskItemProps) {
             </div>
           )}
         </div>
+        {totalSubtasks > 0 && (
+          <div className="mt-3">
+            <div className="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-text-muted">
+              <span>Subtasks</span>
+              <span>{completedSubtasks}/{totalSubtasks}</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/8">
+              <div
+                className="h-full rounded-full bg-brand-primary transition-all duration-500"
+                style={{ width: `${subtaskProgress}%` }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2">

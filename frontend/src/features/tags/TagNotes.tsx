@@ -17,26 +17,55 @@ import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import { motion, AnimatePresence } from "framer-motion";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import { getTagColorStyle } from "../../utils/tagColor";
+import { useRouter } from "next/navigation";
+import { useNotesStore } from "../../store/notesStore";
+import { useTasksStore } from "../../store/tasksStore";
 
 dayjs.extend(relativeTime);
 
-type TabType = "all" | "notes" | "tasks" | "dreams" | "journals" | "graph";
+type TabType = "all" | "notes" | "tasks" | "dreams" | "ideas" | "journals" | "graph";
+const TAG_COLOR_OPTIONS = [
+  "#6366f1",
+  "#8b5cf6",
+  "#ec4899",
+  "#f97316",
+  "#f59e0b",
+  "#10b981",
+  "#06b6d4",
+  "#3b82f6",
+  "#ef4444",
+  "#94a3b8",
+];
 
 export default function TagNotes() {
   const { selectedTagId, selectTag } = useTagsStore();
-  const { deleteTag, updateTag } = useTags();
+  const { deleteTag, updateTag, tags } = useTags();
   const { data: tagDetail, isLoading: isLoadingDetail } = useTagDetail(selectedTagId);
+  const router = useRouter();
   
   const [activeTab, setActiveTab] = useState<TabType>("all");
   const [isEditing, setIsEditing] = useState(false);
   const [editName, setEditName] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const usedColors = useMemo<Set<string>>(
+    () =>
+      new Set(
+        tags
+          .filter((tag) => tag.id !== tagDetail?.id)
+          .map((tag) => tag.color)
+          .filter((color): color is string => Boolean(color)),
+      ),
+    [tagDetail?.id, tags],
+  );
 
   const relatedTags = useMemo(() => {
     if (!tagDetail) return [];
-    const coOccurring = new Map<string, { count: number; color?: string }>();
+    const coOccurring = new Map<string, { count: number; color?: string | null }>();
     
-    const processTags = (entities: { tags?: { tag: { name: string, color?: string } }[] }[]) => {
+    const processTags = (
+      entities: Array<{ tags?: Array<{ tag: { name: string; color?: string | null } }> }>,
+    ) => {
       entities?.forEach(e => {
         e.tags?.forEach(({ tag }) => {
           const name = tag.name;
@@ -52,6 +81,7 @@ export default function TagNotes() {
     processTags(tagDetail.tasks || []);
     processTags(tagDetail.dreams || []);
     processTags(tagDetail.journals || []);
+    processTags(tagDetail.ideas || []);
 
     return Array.from(coOccurring.entries())
       .sort((a, b) => b[1].count - a[1].count)
@@ -65,6 +95,34 @@ export default function TagNotes() {
       updateTag({ id: tagDetail.id, updates: { name: editName.trim() } });
     }
     setIsEditing(false);
+  };
+
+  const handleColorChange = (color: string | null) => {
+    if (!tagDetail) return;
+    if (color && usedColors.has(color) && tagDetail.color !== color) {
+      window.alert("That color is already in use by another tag. Pick a unique one.");
+      return;
+    }
+
+    updateTag({ id: tagDetail.id, updates: { color } });
+  };
+
+  const openNote = (noteId: string) => {
+    useNotesStore.getState().selectNote(noteId);
+    router.push(`/notes?note=${noteId}`);
+  };
+
+  const openTask = (taskId: string) => {
+    useTasksStore.getState().setSelectedTaskId(taskId);
+    router.push(`/tasks?task=${taskId}`);
+  };
+
+  const openDream = (dreamId: string) => {
+    router.push(`/dreams/${dreamId}`);
+  };
+
+  const openIdea = (ideaId: string) => {
+    router.push(`/ideas?idea=${ideaId}`);
   };
 
   if (!selectedTagId) {
@@ -90,10 +148,11 @@ export default function TagNotes() {
   }
 
   const tabs: { id: TabType; label: string; icon: IconType; count: number }[] = [
-    { id: "all", label: "Overview", icon: FiLayout, count: (tagDetail.notes?.length || 0) + (tagDetail.tasks?.length || 0) + (tagDetail.dreams?.length || 0) + (tagDetail.journals?.length || 0) },
+    { id: "all", label: "Overview", icon: FiLayout, count: (tagDetail.notes?.length || 0) + (tagDetail.tasks?.length || 0) + (tagDetail.dreams?.length || 0) + (tagDetail.ideas?.length || 0) + (tagDetail.journals?.length || 0) },
     { id: "notes", label: "Notes", icon: FiFileText, count: tagDetail.notes?.length || 0 },
     { id: "tasks", label: "Tasks", icon: FiCheckSquare, count: tagDetail.tasks?.length || 0 },
     { id: "dreams", label: "Goals", icon: FiTarget, count: tagDetail.dreams?.length || 0 },
+    { id: "ideas", label: "Ideas", icon: FiBook, count: tagDetail.ideas?.length || 0 },
     { id: "journals", label: "Journals", icon: FiBook, count: tagDetail.journals?.length || 0 },
     { id: "graph", label: "Graph View", icon: FiActivity, count: 0 },
   ];
@@ -129,7 +188,10 @@ export default function TagNotes() {
               </form>
             ) : (
               <div className="flex items-center gap-4">
-                <h1 className="text-3xl sm:text-5xl font-display font-black text-text-main uppercase tracking-tighter">
+                <h1
+                  className="text-3xl sm:text-5xl font-display font-black text-text-main uppercase tracking-tighter"
+                  style={tagDetail.color ? { color: tagDetail.color } : undefined}
+                >
                   #{tagDetail.name}
                 </h1>
                 <button 
@@ -140,6 +202,41 @@ export default function TagNotes() {
                 </button>
               </div>
             )}
+
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+                Tag Color
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {TAG_COLOR_OPTIONS.map((color) => (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={() => handleColorChange(color)}
+                    disabled={usedColors.has(color) && tagDetail.color !== color}
+                    className={`h-7 w-7 rounded-full border-2 transition-all ${tagDetail.color === color ? "scale-110 border-white" : "border-white/10 hover:scale-105"} ${(usedColors.has(color) && tagDetail.color !== color) ? "cursor-not-allowed opacity-30" : ""}`}
+                    style={{ backgroundColor: color }}
+                    title={color}
+                  />
+                ))}
+                <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-text-muted">
+                  Palette
+                  <input
+                    type="color"
+                    value={tagDetail.color || "#6366f1"}
+                    onChange={(e) => handleColorChange(e.target.value)}
+                    className="h-6 w-8 cursor-pointer rounded border border-white/10 bg-transparent"
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={() => handleColorChange(null)}
+                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-text-muted hover:bg-white/10"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
             
             {relatedTags.length > 0 && (
               <div className="flex items-center gap-3 mt-4">
@@ -152,7 +249,8 @@ export default function TagNotes() {
                          const found = useTagsStore.getState().tags.find(t => t.name === rt.name);
                          if (found) selectTag(found.id);
                       }}
-                      className="px-3 py-1 rounded-lg bg-white/5 border border-white/5 text-[10px] font-bold text-text-main hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all"
+                      className="px-3 py-1 rounded-lg border text-[10px] font-bold text-text-main transition-all"
+                      style={getTagColorStyle(rt.color)}
                     >
                       #{rt.name}
                     </button>
@@ -214,7 +312,7 @@ export default function TagNotes() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                       {tagDetail.notes.slice(0, 3).map((note) => (
-                        <div key={note.id} className="bg-surface-soft border border-white/5 rounded-2xl overflow-hidden hover:border-brand-primary/30 transition-all">
+                        <div key={note.id} onClick={() => openNote(note.id)} className="bg-surface-soft border border-white/5 rounded-2xl overflow-hidden hover:border-brand-primary/30 transition-all cursor-pointer">
                           <NoteItem note={note} />
                         </div>
                       ))}
@@ -232,7 +330,7 @@ export default function TagNotes() {
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {tagDetail.tasks.slice(0, 4).map((task) => (
-                        <div key={task.id} className="bg-surface-soft border border-white/5 rounded-2xl overflow-hidden px-4">
+                        <div key={task.id} onClick={() => openTask(task.id)} className="bg-surface-soft border border-white/5 rounded-2xl overflow-hidden px-4 cursor-pointer hover:border-brand-primary/30 transition-all">
                           <TaskItem task={task} />
                         </div>
                       ))}
@@ -250,13 +348,40 @@ export default function TagNotes() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                       {tagDetail.dreams.slice(0, 2).map((dream) => (
-                        <DreamCard key={dream.id} dream={dream} />
+                        <div key={dream.id} onClick={() => openDream(dream.id)} className="cursor-pointer">
+                          <DreamCard dream={dream} />
+                        </div>
                       ))}
                     </div>
                   </section>
                 )}
 
-                {(!tagDetail.notes?.length && !tagDetail.tasks?.length && !tagDetail.dreams?.length && !tagDetail.journals?.length) && (
+                {tagDetail.ideas && tagDetail.ideas.length > 0 && (
+                  <section>
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="text-xs font-black uppercase tracking-[0.2em] text-text-muted flex items-center gap-2">
+                        <FiBook size={14} className="text-cyan-400" /> Idea Sparks
+                      </h3>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {tagDetail.ideas.slice(0, 4).map((idea) => (
+                        <button
+                          key={idea.id}
+                          type="button"
+                          onClick={() => openIdea(idea.id)}
+                          className="rounded-2xl border border-white/5 bg-surface-soft p-5 text-left transition-all hover:border-brand-primary/30"
+                        >
+                          <p className="text-sm font-black text-text-main">{idea.title}</p>
+                          <p className="mt-2 line-clamp-3 text-xs text-text-muted">
+                            {idea.description || idea.content}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {(!tagDetail.notes?.length && !tagDetail.tasks?.length && !tagDetail.dreams?.length && !tagDetail.ideas?.length && !tagDetail.journals?.length) && (
                   <div className="flex flex-col items-center justify-center py-20 text-center text-text-muted opacity-50">
                     <FiGrid size={48} className="mb-4" />
                     <p>This node is isolated. No connected items found.</p>
@@ -268,7 +393,7 @@ export default function TagNotes() {
             {activeTab === "notes" && (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {tagDetail.notes?.map((note) => (
-                  <div key={note.id} className="bg-surface-soft border border-white/5 rounded-2xl overflow-hidden hover:border-brand-primary/30 transition-all">
+                  <div key={note.id} onClick={() => openNote(note.id)} className="bg-surface-soft border border-white/5 rounded-2xl overflow-hidden hover:border-brand-primary/30 transition-all cursor-pointer">
                     <NoteItem note={note} />
                   </div>
                 ))}
@@ -278,7 +403,7 @@ export default function TagNotes() {
             {activeTab === "tasks" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {tagDetail.tasks?.map((task) => (
-                  <div key={task.id} className="bg-surface-soft border border-white/5 rounded-2xl overflow-hidden px-4">
+                  <div key={task.id} onClick={() => openTask(task.id)} className="bg-surface-soft border border-white/5 rounded-2xl overflow-hidden px-4 cursor-pointer hover:border-brand-primary/30 transition-all">
                     <TaskItem task={task} />
                   </div>
                 ))}
@@ -288,7 +413,27 @@ export default function TagNotes() {
             {activeTab === "dreams" && (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {tagDetail.dreams?.map((dream) => (
-                  <DreamCard key={dream.id} dream={dream} />
+                  <div key={dream.id} onClick={() => openDream(dream.id)} className="cursor-pointer">
+                    <DreamCard dream={dream} />
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {activeTab === "ideas" && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {tagDetail.ideas?.map((idea) => (
+                  <button
+                    key={idea.id}
+                    type="button"
+                    onClick={() => openIdea(idea.id)}
+                    className="rounded-2xl border border-white/5 bg-surface-soft p-5 text-left transition-all hover:border-brand-primary/30"
+                  >
+                    <p className="text-sm font-black text-text-main">{idea.title}</p>
+                    <p className="mt-2 line-clamp-4 text-xs text-text-muted">
+                      {idea.description || idea.content}
+                    </p>
+                  </button>
                 ))}
               </div>
             )}

@@ -5,6 +5,8 @@ import { useNotesStore } from "../../store/notesStore";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { FiTag, FiClock } from "react-icons/fi";
+import { getPreviewTextFromNote } from "./noteContent";
+import { getTagColorStyle } from "../../utils/tagColor";
 
 dayjs.extend(relativeTime);
 
@@ -16,7 +18,11 @@ export default function NoteItem({ note }: NoteItemProps) {
   const { selectedNoteId, selectNote } = useNotesStore();
   const isSelected = selectedNoteId === note.id;
 
-  const previewText = note.content.replace(/[#*`]/g, "").slice(0, 60);
+  const previewText = getPreviewTextFromNote(
+    note.content,
+    note.contentType || "markdown",
+    60,
+  );
 
   return (
     <div
@@ -43,7 +49,11 @@ export default function NoteItem({ note }: NoteItemProps) {
 
       <div className="flex flex-wrap gap-1.5 mt-1">
         {note.tags.slice(0, 2).map((tagObj) => (
-          <span key={`${note.id}-${tagObj.tag.id || tagObj.tag.name}`} className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-white/5 text-text-muted/70 px-1.5 py-0.5 rounded">
+          <span
+            key={`${note.id}-${tagObj.tag.id || tagObj.tag.name}`}
+            className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-white/5 text-text-muted/70 px-1.5 py-0.5 rounded border border-transparent"
+            style={getTagColorStyle(tagObj.tag.color)}
+          >
             <FiTag size={8} />
             {tagObj.tag.name}
           </span>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useTasksStore } from "@/src/store/tasksStore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TaskListView from "./TaskListView";
 import TaskDetailView from "./TaskDetailView";
 import TaskQuickAdd from "./TaskQuickAdd";
@@ -12,9 +12,9 @@ import {
   FiCheckCircle, 
   FiZap, 
   FiStar,
-  FiList,
-  FiArrowLeft
+  FiList
 } from "react-icons/fi";
+import { useSearchParams } from "next/navigation";
 
 const filters = [
   { id: "all", label: "All Tasks", icon: FiList },
@@ -29,6 +29,14 @@ const filters = [
 export default function TasksPageContent() {
   const { selectedTaskId, setSelectedTaskId } = useTasksStore();
   const [filter, setFilter] = useState("all");
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const taskId = searchParams.get("task");
+    if (taskId) {
+      setSelectedTaskId(taskId);
+    }
+  }, [searchParams, setSelectedTaskId]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-surface-base relative">
