@@ -88,10 +88,13 @@ export const getDailySummaries = async (userId) => {
   });
 
   // Ensure score caps
-  const summaries = Object.values(dailyMap).map((sum) => ({
-    ...sum,
-    productivityScore: Math.min(sum.productivityScore, 100)
-  }));
+  const summaries = Object.values(dailyMap)
+    .map((sum) => ({
+      ...sum,
+      id: sum.date,
+      productivityScore: Math.min(sum.productivityScore, 100)
+    }))
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return summaries;
 };

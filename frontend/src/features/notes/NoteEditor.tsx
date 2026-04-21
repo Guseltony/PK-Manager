@@ -51,6 +51,21 @@ import {
 
 const PREVIEW_SIZE_STORAGE_KEY = "pk-manager-note-preview-font-size";
 const DEFAULT_RICH_HTML = "<p dir=\"ltr\"></p>";
+const RICH_TEXT_BLOCK_SELECTOR = "p, div, h1, h2, h3, h4, h5, h6, li, ul, ol, blockquote";
+
+function normalizeRichEditorDirection(editor: HTMLDivElement) {
+  editor.setAttribute("dir", "ltr");
+  editor.style.direction = "ltr";
+  editor.style.textAlign = "left";
+  editor.style.unicodeBidi = "normal";
+
+  editor.querySelectorAll<HTMLElement>(RICH_TEXT_BLOCK_SELECTOR).forEach((node) => {
+    node.setAttribute("dir", "ltr");
+    node.style.direction = "ltr";
+    node.style.textAlign = "left";
+    node.style.unicodeBidi = "normal";
+  });
+}
 
 export default function NoteEditor() {
   const { selectedNoteId, notes, isCreating } = useNotesStore();
@@ -185,20 +200,23 @@ function NewNoteForm() {
 
   const syncRichState = () => {
     if (richEditorRef.current) {
-      richEditorRef.current.dir = "ltr";
-      richEditorRef.current.style.direction = "ltr";
-      richEditorRef.current.style.textAlign = "left";
-      richEditorRef.current.style.unicodeBidi = "plaintext";
+      normalizeRichEditorDirection(richEditorRef.current);
     }
     setRichHtml(richEditorRef.current?.innerHTML || DEFAULT_RICH_HTML);
   };
 
   const applyRichCommand = (command: string, value?: string) => {
     richEditorRef.current?.focus();
+    document.execCommand("defaultParagraphSeparator", false, "p");
     document.execCommand(command, false, value);
     saveRichSelection();
     syncRichState();
   };
+
+  useEffect(() => {
+    if (contentType !== "richtext" || !richEditorRef.current) return;
+    normalizeRichEditorDirection(richEditorRef.current);
+  }, [contentType]);
 
   const handleRichImageUpload = (image: { url: string }) => {
     const editor = richEditorRef.current;
@@ -409,11 +427,12 @@ function NewNoteForm() {
               spellCheck
               suppressContentEditableWarning
               onInput={syncRichState}
+              onFocus={syncRichState}
               onKeyUp={saveRichSelection}
               onMouseUp={saveRichSelection}
               onBlur={saveRichSelection}
-              className="flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-7 text-text-main outline-none custom-scrollbar [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-lg [&_h3]:font-bold [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain [&_p]:min-h-[1.75rem]"
-              style={{ direction: "ltr", textAlign: "left", unicodeBidi: "plaintext" }}
+              className="flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm leading-7 text-text-main outline-none custom-scrollbar [&_blockquote]:text-left [&_div]:text-left [&_h1]:text-left [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-left [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-left [&_h3]:text-lg [&_h3]:font-bold [&_li]:text-left [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.75rem] [&_p]:text-left [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain"
+              style={{ direction: "ltr", textAlign: "left", unicodeBidi: "normal" }}
               dangerouslySetInnerHTML={{ __html: richHtml }}
             />
           </div>
@@ -592,20 +611,23 @@ function NoteEditorContent({ note }: { note: Note }) {
 
   const syncRichState = () => {
     if (richEditorRef.current) {
-      richEditorRef.current.dir = "ltr";
-      richEditorRef.current.style.direction = "ltr";
-      richEditorRef.current.style.textAlign = "left";
-      richEditorRef.current.style.unicodeBidi = "plaintext";
+      normalizeRichEditorDirection(richEditorRef.current);
     }
     setRichHtml(richEditorRef.current?.innerHTML || DEFAULT_RICH_HTML);
   };
 
   const applyRichCommand = (command: string, value?: string) => {
     richEditorRef.current?.focus();
+    document.execCommand("defaultParagraphSeparator", false, "p");
     document.execCommand(command, false, value);
     saveRichSelection();
     syncRichState();
   };
+
+  useEffect(() => {
+    if (contentType !== "richtext" || !richEditorRef.current) return;
+    normalizeRichEditorDirection(richEditorRef.current);
+  }, [contentType, richHtml]);
 
   const handleMarkdownImageUpload = (image: { url: string }) => {
     const textarea = markdownRef.current;
@@ -932,11 +954,12 @@ function NoteEditorContent({ note }: { note: Note }) {
                 spellCheck
                 suppressContentEditableWarning
                 onInput={syncRichState}
+                onFocus={syncRichState}
                 onKeyUp={saveRichSelection}
                 onMouseUp={saveRichSelection}
                 onBlur={saveRichSelection}
-                className="flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-7 text-text-main outline-none custom-scrollbar [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-lg [&_h3]:font-bold [&_ol]:list-decimal [&_ol]:pl-5 [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain [&_p]:min-h-[1.75rem]"
-                style={{ direction: "ltr", textAlign: "left", unicodeBidi: "plaintext" }}
+                className="flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm leading-7 text-text-main outline-none custom-scrollbar [&_blockquote]:text-left [&_div]:text-left [&_h1]:text-left [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-left [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-left [&_h3]:text-lg [&_h3]:font-bold [&_li]:text-left [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.75rem] [&_p]:text-left [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain"
+                style={{ direction: "ltr", textAlign: "left", unicodeBidi: "normal" }}
                 dangerouslySetInnerHTML={{ __html: richHtml }}
               />
             </div>
@@ -994,7 +1017,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                   }
                 }}
                 className={`text-text-main ${previewTextSizeClass} [&_h1]:mb-2 [&_h1]:text-[1.8em] [&_h1]:font-bold [&_h2]:mb-2 [&_h2]:text-[1.5em] [&_h2]:font-bold [&_h3]:mb-2 [&_h3]:text-[1.25em] [&_h3]:font-bold [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5`}
-                style={{ direction: "ltr", textAlign: "left", unicodeBidi: "plaintext" }}
+                style={{ direction: "ltr", textAlign: "left", unicodeBidi: "normal" }}
                 dangerouslySetInnerHTML={{ __html: richHtml }}
               />
             )}
