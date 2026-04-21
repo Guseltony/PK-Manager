@@ -93,6 +93,16 @@ export const aiDashboardSummaryResponseSchema = z.object({
   momentum: z.string().trim().min(1),
 });
 
+export const aiLedgerInsightResponseSchema = z.object({
+  summary: z.string().trim().min(1),
+  momentum: z.string().trim().min(1),
+  streakDays: z.number().int().min(0),
+  peakExecutionWindow: z.string().trim().min(1),
+  strongestTags: z.array(z.string().trim().min(1)).max(6).default([]),
+  risks: z.array(z.string().trim().min(1)).max(5).default([]),
+  recommendations: z.array(z.string().trim().min(1)).max(5).default([]),
+});
+
 export const createManyAiTasksSchema = z.object({
   tasks: z.array(taskSuggestionSchema).min(1).max(20),
   noteId: z.string().uuid().nullable().optional(),

@@ -3,6 +3,7 @@ import { groqJsonCompletion } from "./groq.service.js";
 import { loadPrompt } from "../utils/promptLoader.js";
 import {
   aiDashboardSummaryResponseSchema,
+  aiLedgerInsightResponseSchema,
   aiTaskEnrichmentResponseSchema,
   aiSubtaskPlanResponseSchema,
   dreamIntelligenceResponseSchema,
@@ -14,8 +15,25 @@ import {
 } from "../validators/ai.schema.js";
 import { syncTags, tagInclude } from "../utils/tagHelper.js";
 
+const PK_MANAGER_AI_CORE_PROMPT = `
+You are PK-Manager's embedded intelligence layer.
+
+Work like a precise product copilot:
+- stay grounded in supplied context
+- produce useful, non-generic answers
+- prefer specific observations over broad advice
+- avoid repeating the prompt or input
+- keep outputs compact but information-dense
+- never invent unavailable facts
+- if data is sparse, say so directly and stay conservative
+- reuse the user's domain language when it improves clarity
+`.trim();
+
 const jsonPrompt = (payload) =>
   `Return valid JSON only.\n\nInput:\n${JSON.stringify(payload, null, 2)}`;
+
+const composeSystemPrompt = (prompt, instruction = "") =>
+  [PK_MANAGER_AI_CORE_PROMPT, prompt, instruction].filter(Boolean).join("\n\n");
 
 const normalizeTask = (task) => ({
   ...task,
@@ -30,6 +48,120 @@ const normalizeTask = (task) => ({
 
 const normalizeTagNames = (tags = []) =>
   Array.from(new Set(tags.map((tag) => tag.trim().toLowerCase()).filter(Boolean)));
+
+const deriveExecutionWindow = (logs) => {
+  if (!logs.length) {
+    return "Not enough execution history yet to identify a stable completion window.";
+  }
+
+  const windows = {
+    early_morning: 0,
+    late_morning: 0,
+    afternoon: 0,
+    evening: 0,
+    night: 0,
+  };
+
+  logs.forEach((log) => {
+    const hour = new Date(log.completedAt).getHours();
+    if (hour < 9) windows.early_morning += 1;
+    else if (hour < 12) windows.late_morning += 1;
+    else if (hour < 17) windows.afternoon += 1;
+    else if (hour < 21) windows.evening += 1;
+    else windows.night += 1;
+  });
+
+  const [strongest] = Object.entries(windows).sort((a, b) => b[1] - a[1]);
+  const labels = {
+    early_morning: "Early morning is the strongest completion window.",
+    late_morning: "Late morning is the strongest completion window.",
+    afternoon: "Afternoon is the strongest completion window.",
+    evening: "Evening is the strongest completion window.",
+    night: "Night is the strongest completion window.",
+  };
+
+  return labels[strongest[0]];
+};
+
+const deriveStreakDays = (summaries) => {
+  const dateKeys = new Set(
+    summaries
+      .filter((summary) => (summary.completedTasks ?? 0) > 0)
+      .map((summary) => new Date(summary.date).toISOString().slice(0, 10)),
+  );
+
+  let streak = 0;
+  const cursor = new Date();
+  cursor.setHours(0, 0, 0, 0);
+
+  while (dateKeys.has(cursor.toISOString().slice(0, 10))) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+};
+
+const buildLedgerFallback = ({ logs, summaries, openTasks }) => {
+  const streakDays = deriveStreakDays(summaries);
+  const strongestTags = Object.entries(
+    logs.reduce((acc, log) => {
+      (log.tags || []).forEach((tag) => {
+        if (!tag) return;
+        acc[tag] = (acc[tag] || 0) + 1;
+      });
+      return acc;
+    }, {}),
+  )
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4)
+    .map(([tag]) => tag);
+
+  const completedRecently = summaries
+    .slice()
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, 7)
+    .reduce((total, summary) => total + (summary.completedTasks || 0), 0);
+
+  const overdueTasks = openTasks.filter(
+    (task) => task.dueDate && new Date(task.dueDate).getTime() < Date.now(),
+  );
+
+  return {
+    summary: logs.length
+      ? `Ledger history shows ${logs.length} logged completions with ${completedRecently} completions across the last 7 tracked days.`
+      : "Ledger history is still sparse, so this readout is based on early execution signals.",
+    momentum:
+      streakDays >= 3
+        ? `Execution is active with a ${streakDays}-day completion streak.`
+        : completedRecently > 0
+          ? "Execution is moving, but consistency is still forming."
+          : "Momentum is currently low and needs a small completion win to restart.",
+    streakDays,
+    peakExecutionWindow: deriveExecutionWindow(logs),
+    strongestTags,
+    risks: [
+      ...(overdueTasks.length > 0
+        ? [`${overdueTasks.length} open task${overdueTasks.length > 1 ? "s are" : " is"} overdue and may be diluting execution focus.`]
+        : []),
+      ...(strongestTags.length <= 1 && logs.length >= 5
+        ? ["Execution is concentrated in a narrow topic band, which may leave other goals under-served."]
+        : []),
+      ...(streakDays === 0
+        ? ["There is no active daily completion streak right now."]
+        : []),
+    ].slice(0, 4),
+    recommendations: [
+      overdueTasks.length > 0
+        ? "Clear the most overdue task first, then rebuild momentum with one short same-day win."
+        : "Pick one high-value task and complete it early in your strongest execution window.",
+      strongestTags.length > 0
+        ? `Use the ledger's strongest tag pattern (${strongestTags.slice(0, 2).join(", ")}) to batch related work more deliberately.`
+        : "Log a few more completed tasks before making major process changes.",
+      "Review the ledger every few days to spot which goals are getting execution and which are only getting attention.",
+    ].filter(Boolean).slice(0, 4),
+  };
+};
 
 const getNoteTextForAi = (note) => {
   if (note.contentType !== "richtext") {
@@ -99,7 +231,7 @@ export const generateTaskPlan = async (userId, { input, sourceType = "general" }
   return withFallback(
     async () => {
       const raw = await groqJsonCompletion({
-        systemPrompt: prompt,
+        systemPrompt: composeSystemPrompt(prompt),
         userPrompt: jsonPrompt({
           today: new Date().toISOString().slice(0, 10),
           sourceType,
@@ -162,7 +294,10 @@ export const analyzeIdea = async (userId, ideaId) => {
   return withFallback(
     async () => {
       const raw = await groqJsonCompletion({
-        systemPrompt: `${prompt}\n\nReturn only JSON with summary, recommendation, suggestedTags, and suggestedTasks.`,
+        systemPrompt: composeSystemPrompt(
+          prompt,
+          "Return only JSON with summary, recommendation, suggestedTags, and suggestedTasks.",
+        ),
         userPrompt: jsonPrompt({
           idea: {
             id: idea.id,
@@ -227,7 +362,10 @@ export const analyzeNote = async (userId, noteId) => {
   const result = await withFallback(
     async () => {
       const raw = await groqJsonCompletion({
-        systemPrompt: `${prompt}\n\nReturn only JSON with summary, keyInsights, suggestedTags, and suggestedTasks.`,
+        systemPrompt: composeSystemPrompt(
+          prompt,
+          "Return only JSON with summary, keyInsights, suggestedTags, and suggestedTasks.",
+        ),
         userPrompt: jsonPrompt({
           note: {
             id: note.id,
@@ -298,7 +436,10 @@ export const reflectJournalEntry = async (userId, journalId) => {
   const parsed = await withFallback(
     async () => {
       const raw = await groqJsonCompletion({
-        systemPrompt: `${prompt}\n\nReturn only JSON with summary, insights, suggestedTags, and extractedTasks.`,
+        systemPrompt: composeSystemPrompt(
+          prompt,
+          "Return only JSON with summary, insights, suggestedTags, and extractedTasks.",
+        ),
         userPrompt: jsonPrompt({
           journal: {
             id: entry.id,
@@ -417,7 +558,10 @@ export const generateDreamIntelligence = async (userId, dreamId) => {
   const parsed = await withFallback(
     async () => {
       const raw = await groqJsonCompletion({
-        systemPrompt: `${prompt}\n\nReturn only JSON with summary, healthScore, aiScore, insights, suggestedMilestones, and suggestedTasks.`,
+        systemPrompt: composeSystemPrompt(
+          prompt,
+          "Return only JSON with summary, healthScore, aiScore, insights, suggestedMilestones, and suggestedTasks.",
+        ),
         userPrompt: jsonPrompt({
           dream: {
             id: dream.id,
@@ -526,7 +670,10 @@ export const generateFocusCoaching = async (userId) => {
   return withFallback(
     async () => {
       const raw = await groqJsonCompletion({
-        systemPrompt: `${prompt}\n\nReturn only JSON with summary, coaching, and taskOrder.`,
+        systemPrompt: composeSystemPrompt(
+          prompt,
+          "Return only JSON with summary, coaching, and taskOrder.",
+        ),
         userPrompt: jsonPrompt({
           today: new Date().toISOString().slice(0, 10),
           focusTasks: tasks,
@@ -572,7 +719,10 @@ export const generateTaskSubtasks = async (userId, taskId) => {
   return withFallback(
     async () => {
       const raw = await groqJsonCompletion({
-        systemPrompt: "You break one task into concrete subtasks for a productivity app. Return JSON only with summary and subtasks.",
+        systemPrompt: composeSystemPrompt(
+          "You break one task into concrete subtasks for a productivity app.",
+          "Return JSON only with summary and subtasks.",
+        ),
         userPrompt: jsonPrompt({
           task: {
             title: task.title,
@@ -619,7 +769,10 @@ export const enrichTaskWithAi = async (userId, taskId) => {
   return withFallback(
     async () => {
       const raw = await groqJsonCompletion({
-        systemPrompt: "You improve one productivity task for a PKM app. Fill missing objective details, tags, timing, and duration. Return JSON only with summary and task.",
+        systemPrompt: composeSystemPrompt(
+          "You improve one productivity task for a PKM app. Fill missing objective details, tags, timing, and duration.",
+          "Return JSON only with summary and task.",
+        ),
         userPrompt: jsonPrompt({
           today: new Date().toISOString().slice(0, 10),
           task: {
@@ -698,7 +851,10 @@ export const generateDashboardSummary = async (userId) => {
   return withFallback(
     async () => {
       const raw = await groqJsonCompletion({
-        systemPrompt: "You summarize a personal knowledge management dashboard. Return JSON only with summary, priorities, blockers, and momentum.",
+        systemPrompt: composeSystemPrompt(
+          "You summarize a personal knowledge management dashboard.",
+          "Return JSON only with summary, priorities, blockers, and momentum.",
+        ),
         userPrompt: jsonPrompt({
           today: new Date().toISOString().slice(0, 10),
           tasks,
@@ -725,5 +881,78 @@ export const generateDashboardSummary = async (userId) => {
           : "Momentum is quiet right now; a small win today will restart the engine.",
       };
     },
+  );
+};
+
+export const analyzeLedger = async (userId) => {
+  const [prompt, logs, summaries, openTasks, activeDreams] = await Promise.all([
+    loadPrompt("newLedgerPrompt.md"),
+    prisma.taskCompletionLog.findMany({
+      where: { userId },
+      orderBy: { completedAt: "desc" },
+      take: 120,
+      select: {
+        title: true,
+        priority: true,
+        status: true,
+        tags: true,
+        duration: true,
+        completedAt: true,
+      },
+    }),
+    prisma.dailySummary.findMany({
+      where: { userId },
+      orderBy: { date: "desc" },
+      take: 45,
+      select: {
+        date: true,
+        completedTasks: true,
+        totalDuration: true,
+        productivityScore: true,
+      },
+    }),
+    prisma.task.findMany({
+      where: { userId, status: { not: "done" } },
+      orderBy: [{ priority: "desc" }, { dueDate: "asc" }],
+      take: 20,
+      select: {
+        title: true,
+        priority: true,
+        dueDate: true,
+        dreamId: true,
+      },
+    }),
+    prisma.dream.findMany({
+      where: { userId, status: "active" },
+      take: 10,
+      select: {
+        title: true,
+        progress: true,
+        priority: true,
+      },
+    }),
+  ]);
+
+  return withFallback(
+    async () => {
+      const raw = await groqJsonCompletion({
+        systemPrompt: composeSystemPrompt(prompt),
+        userPrompt: jsonPrompt({
+          today: new Date().toISOString().slice(0, 10),
+          logs,
+          summaries,
+          activeDreams,
+          openTasks,
+        }),
+      });
+
+      const parsed = aiLedgerInsightResponseSchema.parse(raw);
+
+      return {
+        ...parsed,
+        strongestTags: normalizeTagNames(parsed.strongestTags).slice(0, 6),
+      };
+    },
+    () => buildLedgerFallback({ logs, summaries, openTasks }),
   );
 };

@@ -5,6 +5,7 @@ import {
   AiDreamIntelligence,
   AiFocusCoach,
   AiIdeaPlan,
+  AiLedgerInsight,
   AiJournalReflection,
   AiNoteAnalysis,
   AiSubtaskPlan,
@@ -138,6 +139,17 @@ export function useDashboardSummary() {
     queryKey: ["dashboardSummary"],
     queryFn: async () => {
       const { data } = await api.get<{ data: AiDashboardSummary }>("/ai/dashboard/summary");
+      return data.data;
+    },
+    staleTime: 1000 * 60 * 10,
+  });
+}
+
+export function useLedgerInsights() {
+  return useQuery<AiLedgerInsight>({
+    queryKey: ["ledgerInsights"],
+    queryFn: async () => {
+      const { data } = await api.get<{ data: AiLedgerInsight }>("/ai/ledger/insights");
       return data.data;
     },
     staleTime: 1000 * 60 * 10,
