@@ -71,6 +71,16 @@ export interface AiDashboardSummary {
   momentum: string;
 }
 
+export interface AiLedgerInsight {
+  summary: string;
+  momentum: string;
+  streakDays: number;
+  peakExecutionWindow: string;
+  strongestTags: string[];
+  risks: string[];
+  recommendations: string[];
+}
+
 export interface AiTaskEnrichment {
   summary: string;
   task: AiTaskSuggestion & {

@@ -16,7 +16,7 @@ export interface TaskCompletionLog {
 }
 
 export interface DailySummary {
-  id: string;
+  id?: string;
   date: string;
   totalTasks: number;
   completedTasks: number;

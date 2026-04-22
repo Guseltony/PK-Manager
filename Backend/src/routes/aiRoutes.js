@@ -8,6 +8,7 @@ import {
   coachFocusWithAi,
   enrichTaskWithAiController,
   generateTaskSubtasksWithAi,
+  getLedgerInsightsWithAi,
   getDashboardSummaryWithAi,
   generateDreamIntelligenceWithAi,
   planIdeaWithAi,
@@ -33,5 +34,6 @@ aiRoutes.post("/notes/:id/analyze", validateRequest(idParamSchema, "params"), an
 aiRoutes.post("/journal/:id/reflect", validateRequest(idParamSchema, "params"), reflectJournalWithAi);
 aiRoutes.post("/dreams/:id/intelligence", validateRequest(idParamSchema, "params"), generateDreamIntelligenceWithAi);
 aiRoutes.get("/focus/coach", coachFocusWithAi);
+aiRoutes.get("/ledger/insights", getLedgerInsightsWithAi);
 
 export default aiRoutes;
