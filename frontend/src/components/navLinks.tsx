@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { BiSolidDashboard, BiSolidNotepad } from "react-icons/bi";
 import { BsFillLightbulbFill, BsFillTagFill } from "react-icons/bs";
 import { IoMdArchive } from "react-icons/io";
-import { FiBook, FiCheckSquare, FiStar, FiActivity, FiZap } from "react-icons/fi";
+import { FiBook, FiCheckSquare, FiStar, FiActivity, FiZap, FiInbox, FiCalendar, FiShare2, FiTrendingUp, FiLayers, FiSettings } from "react-icons/fi";
 import { NavLink } from "../type/type";
 import GlobalSearch from "./GlobalSearch";
 
@@ -18,9 +18,11 @@ const navSections: NavSection[] = [
   {
     label: "Workspace",
     links: [
+      { href: "/inbox", name: "inbox", icon: FiInbox },
       { href: "/dashboard", name: "dashboard", icon: BiSolidDashboard },
       { href: "/ideas", name: "ideas", icon: BsFillLightbulbFill },
       { href: "/notes", name: "notes", icon: BiSolidNotepad },
+      { href: "/knowledge", name: "knowledge", icon: FiShare2 },
       { href: "/tag-list", name: "tags", icon: BsFillTagFill },
     ],
   },
@@ -34,9 +36,13 @@ const navSections: NavSection[] = [
   {
     label: "Execution",
     links: [
+      { href: "/projects", name: "projects", icon: FiLayers },
       { href: "/tasks", name: "tasks", icon: FiCheckSquare },
+      { href: "/calendar", name: "calendar", icon: FiCalendar },
       { href: "/focus", name: "focus", icon: FiZap },
       { href: "/ledger", name: "ledger", icon: FiActivity },
+      { href: "/insights", name: "insights", icon: FiTrendingUp },
+      { href: "/settings", name: "settings", icon: FiSettings },
     ],
   },
   {

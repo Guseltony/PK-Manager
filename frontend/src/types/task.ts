@@ -30,6 +30,7 @@ export interface Task {
   noteId: string | null;
   noteIds?: string[];
   dreamId: string | null;
+  projectId?: string | null;
   aiScore: number | null;
   suggestedAt: string | null;
   completedAt: string | null;
@@ -42,6 +43,7 @@ export interface Task {
   note?: { id: string; title: string };
   notes?: { note: { id: string; title: string; updatedAt?: string; contentType?: string } }[];
   dream?: { id: string; title: string };
+  project?: { id: string; title: string; status: "not_started" | "in_progress" | "completed" | "paused"; dreamId: string; progress: number };
 }
 
 export type NewTask = Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'userId' | 'subtasks' | 'activities' | 'note' | 'dream' | 'aiScore' | 'suggestedAt' | 'completedAt' | 'tags'> & {

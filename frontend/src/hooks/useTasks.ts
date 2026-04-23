@@ -72,8 +72,12 @@ export function useTasks(activeFilter = "all") {
       addTask(data);
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       queryClient.invalidateQueries({ queryKey: ["dreams"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
       if (data.dreamId) {
         queryClient.invalidateQueries({ queryKey: ["dream", data.dreamId] });
+      }
+      if (data.projectId) {
+        queryClient.invalidateQueries({ queryKey: ["project", data.projectId] });
       }
       queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
@@ -121,8 +125,12 @@ export function useTasks(activeFilter = "all") {
         queryClient.invalidateQueries({ queryKey: ["tasks"] });
         queryClient.invalidateQueries({ queryKey: ["task", data.id] });
         queryClient.invalidateQueries({ queryKey: ["dreams"] });
+        queryClient.invalidateQueries({ queryKey: ["projects"] });
         if (data.dreamId) {
           queryClient.invalidateQueries({ queryKey: ["dream", data.dreamId] });
+        }
+        if (data.projectId) {
+          queryClient.invalidateQueries({ queryKey: ["project", data.projectId] });
         }
         queryClient.invalidateQueries({ queryKey: ["notes"] });
       }
@@ -138,6 +146,7 @@ export function useTasks(activeFilter = "all") {
     onSuccess: (id) => {
       deleteFromStore(id);
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
     },
   });
 
