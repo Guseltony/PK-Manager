@@ -1,0 +1,774 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// enum Roles {
+//   admin
+//   user
+// }
+
+enum AuthProvider {
+  EMAIL
+  GOOGLE
+}
+
+model User {
+  id    String @id @default(uuid())
+  name  String @default("Anonymous")
+  email String @unique
+
+  // 🔐 AUTH
+  password String? // made optional (for Google users)
+  provider AuthProvider @default(EMAIL)
+  googleId String?      @unique
+
+  // ✅ VERIFICATION
+  emailVerified Boolean   @default(false)
+  verifiedAt    DateTime?
+
+  // 🧠 OPTIONAL PROFILE
+  username String?
+  avatar   String?
+
+  // 🔗 RELATIONS
+  notes                Note[]
+  tag                  Tag[]
+  session              Session[]
+  tasks                Task[]
+  dreams               Dream[]
+  projects             Project[]
+  settings             UserSettings?
+  taskLogs             TaskCompletionLog[]
+  dailySummaries       DailySummary[]
+  productivityInsights ProductivityInsight[]
+  journalEntries       JournalEntry[]
+  journalInsights      JournalInsight[]
+  journalMoodLogs      JournalMoodLog[]
+  focusSessions        FocusSession[]
+  focusAnalytics       FocusAnalytics[]
+  taskFocusMeta        TaskFocusMeta[]
+  ideas                Idea[]
+  images               Image[]
+  inboxItems           InboxItem[]
+  plannedFocusBlocks   PlannedFocusBlock[]
+  insightRecords       InsightRecord[]
+  knowledgeEdges       KnowledgeEdge[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  refreshToken String
+  expiresAt    DateTime
+  revoked      Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  userAgent    String?
+  ipAddress    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Note {
+  id         String              @id @default(uuid())
+  title      String
+  content    String
+  contentType String             @default("markdown")
+  isArchived Boolean             @default(false)
+  userId     String
+  user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags       NoteTag[]
+  tasks      Task[]
+  taskLinks  TaskNoteLink[]
+  dreamId    String?
+  dream      Dream?              @relation(fields: [dreamId], references: [id], onDelete: SetNull)
+  taskLogs   TaskCompletionLog[]
+  createdAt  DateTime            @default(now())
+  updatedAt  DateTime            @updatedAt
+}
+
+model Tag {
+  id     String  @id @default(uuid())
+  name   String
+  color  String?
+  userId String
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  notes    NoteTag[]
+  tasks    TaskTag[]
+  dreams   DreamTag[]
+  journals JournalTag[]
+  ideas    IdeaTag[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([name, userId])
+}
+
+model NoteTag {
+  id     String @id @default(uuid())
+  noteId String
+  tagId  String
+  note   Note   @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([noteId, tagId])
+}
+
+model TaskTag {
+  id     String @id @default(uuid())
+  taskId String
+  tagId  String
+  task   Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, tagId])
+}
+
+model DreamTag {
+  id      String @id @default(uuid())
+  dreamId String
+  tagId   String
+  dream   Dream  @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([dreamId, tagId])
+}
+
+model JournalTag {
+  id             String       @id @default(uuid())
+  journalEntryId String
+  tagId          String
+  journalEntry   JournalEntry @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  tag            Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([journalEntryId, tagId])
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  done
+}
+
+enum Priority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum DreamStatus {
+  active
+  paused
+  completed
+}
+
+enum ProjectStatus {
+  not_started
+  in_progress
+  completed
+  paused
+}
+
+enum AiStrictnessLevel {
+  low
+  medium
+  high
+}
+
+enum AiProactivenessLevel {
+  passive
+  active
+  autonomous
+}
+
+enum AiReasoningDepth {
+  fast
+  balanced
+  deep
+}
+
+enum AutoInsightFrequency {
+  real_time
+  hourly
+  daily
+}
+
+enum InboxRoutingSensitivity {
+  strict
+  flexible
+}
+
+enum TaskPrioritizationMode {
+  manual
+  ai_assisted
+  fully_automated
+}
+
+enum DeadlineEnforcementLevel {
+  soft
+  medium
+  strict
+}
+
+enum LedgerStrictnessLevel {
+  soft
+  balanced
+  strict
+}
+
+enum FailureVisibilityLevel {
+  hidden
+  user_only
+  dashboard_and_insights
+}
+
+enum DreamProgressSensitivity {
+  low
+  medium
+  high
+}
+
+enum IdeaStatus {
+  raw
+  in_progress
+  converted
+}
+
+enum InboxItemType {
+  TASK
+  IDEA
+  NOTE
+  JOURNAL
+  DREAM
+}
+
+enum InboxProcessingStatus {
+  queued
+  processing
+  routed
+  failed
+}
+
+enum FocusBlockStatus {
+  planned
+  completed
+  canceled
+}
+
+enum InsightType {
+  productivity
+  behavior
+  goal_progress
+  focus
+  emotional
+}
+
+enum KnowledgeNodeType {
+  task
+  idea
+  note
+  dream
+  journal
+}
+
+model Task {
+  id          String  @id @default(uuid())
+  title       String
+  description String?
+
+  status   TaskStatus @default(todo)
+  priority Priority   @default(medium)
+
+  dueDate       DateTime?
+  estimatedTime Int? // in minutes
+
+  tags TaskTag[]
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  noteId String?
+  note   Note?   @relation(fields: [noteId], references: [id], onDelete: SetNull)
+  notes  TaskNoteLink[]
+
+  dreamId String?
+  dream   Dream?  @relation(fields: [dreamId], references: [id], onDelete: SetNull)
+
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  aiScore     Float?
+  suggestedAt DateTime?
+
+  completedAt DateTime?
+
+  subtasks   Subtask[]
+  activities TaskActivity[]
+  taskLogs   TaskCompletionLog[]
+  focusMeta  TaskFocusMeta?
+  plannedFocusBlocks PlannedFocusBlock[]
+
+  startDate DateTime? @default(now())
+  duration  Int?      @default(1) // in days
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([projectId])
+}
+
+model TaskNoteLink {
+  id        String   @id @default(uuid())
+  taskId    String
+  noteId    String
+  createdAt DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  note Note @relation(fields: [noteId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, noteId])
+  @@index([noteId])
+}
+
+model Subtask {
+  id     String     @id @default(uuid())
+  taskId String
+  task   Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  title  String
+  status TaskStatus @default(todo)
+}
+
+model Dream {
+  id          String  @id @default(uuid())
+  title       String
+  description String?
+
+  status   DreamStatus @default(active)
+  category String?
+  priority Priority    @default(medium)
+
+  targetDate  DateTime?
+  progress    Float     @default(0)
+  healthScore Float     @default(100)
+  aiScore     Float?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tasks      Task[]
+  projects   Project[]
+  notes      Note[]
+  milestones DreamMilestone[]
+  insights   DreamInsight[]
+  activities DreamActivity[]
+  taskLogs   TaskCompletionLog[]
+  tags       DreamTag[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Project {
+  id          String        @id @default(uuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dreamId     String
+  dream       Dream         @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  status      ProjectStatus @default(not_started)
+  progress    Float         @default(0)
+  tasks       Task[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([userId, createdAt])
+  @@index([dreamId, createdAt])
+}
+
+model UserSettings {
+  id                           String                   @id @default(uuid())
+  userId                       String                   @unique
+  user                         User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  aiStrictness                 AiStrictnessLevel        @default(medium)
+  aiProactiveness              AiProactivenessLevel     @default(active)
+  aiReasoningDepth             AiReasoningDepth         @default(balanced)
+  autoTaskGenerationFromDreams Boolean                  @default(true)
+  autoLinkingKnowledgeGraph    Boolean                  @default(true)
+  autoInsightFrequency         AutoInsightFrequency     @default(daily)
+  inboxRoutingSensitivity      InboxRoutingSensitivity  @default(flexible)
+  taskPrioritizationMode       TaskPrioritizationMode   @default(ai_assisted)
+  deadlineEnforcement          DeadlineEnforcementLevel @default(medium)
+  ledgerStrictness             LedgerStrictnessLevel    @default(balanced)
+  failureVisibility            FailureVisibilityLevel   @default(user_only)
+  autoProjectGeneration        Boolean                  @default(true)
+  autoTaskBreakdownFromDreams  Boolean                  @default(true)
+  dreamProgressSensitivity     DreamProgressSensitivity @default(medium)
+  taskReminders                Boolean                  @default(true)
+  focusSessionAlerts           Boolean                  @default(true)
+  dailyInsightSummaries        Boolean                  @default(true)
+  missedJournalReminders       Boolean                  @default(true)
+  createdAt                    DateTime                 @default(now())
+  updatedAt                    DateTime                 @updatedAt
+}
+
+model DreamMilestone {
+  id          String    @id @default(uuid())
+  dreamId     String
+  dream       Dream     @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  completed   Boolean   @default(false)
+  weight      Float     @default(1)
+  targetDate  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model DreamInsight {
+  id        String   @id @default(uuid())
+  dreamId   String
+  dream     Dream    @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  message   String
+  type      String // warning, suggestion, progress, prediction
+  createdAt DateTime @default(now())
+}
+
+model DreamActivity {
+  id        String   @id @default(uuid())
+  dreamId   String
+  dream     Dream    @relation(fields: [dreamId], references: [id], onDelete: Cascade)
+  action    String // created, updated, progress_updated, milestone_completed
+  metadata  Json?
+  createdAt DateTime @default(now())
+}
+
+model TaskActivity {
+  id        String   @id @default(uuid())
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  action    String // created, updated, completed
+  timestamp DateTime @default(now())
+}
+
+// ==========================================
+// 📊 TASK LEDGER SYSTEM (EXECUTION LOG)
+// ==========================================
+
+model TaskCompletionLog {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  taskId String? // nullable if task was deleted, but we keep the log
+  task   Task?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  title       String
+  description String?
+  priority    Priority @default(medium)
+  status      String   @default("done")
+
+  duration Int? // in minutes
+  tags     String[]
+
+  goalId String?
+  dream  Dream?  @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  noteId String?
+  note   Note?   @relation(fields: [noteId], references: [id], onDelete: SetNull)
+
+  completedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@index([userId, completedAt])
+}
+
+model DailySummary {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date DateTime // Store as standardized midnight UTC date
+
+  totalTasks     Int  @default(0)
+  completedTasks Int  @default(0)
+  totalDuration  Int? @default(0)
+
+  productivityScore Float? @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, date])
+}
+
+model ProductivityInsight {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type    String // pattern, warning, suggestion, achievement
+  message String
+
+  createdAt DateTime @default(now())
+}
+
+// ==========================================
+// 📓 JOURNAL SYSTEM
+// ==========================================
+
+model JournalEntry {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date    DateTime // To organize chronologically by start of day or ISO string
+  content String   @db.Text
+  mood    String? // great, good, neutral, bad
+
+  // V1 Highlights saved as JSON
+  highlights Json? // { high: string, low: string }
+
+  insights JournalInsight[]
+  mentions JournalTaskMention[]
+  tags     JournalTag[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, date])
+}
+
+model JournalInsight {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  journalId String
+  journal   JournalEntry @relation(fields: [journalId], references: [id], onDelete: Cascade)
+
+  message String
+  type    String // pattern, suggestion, reflection
+
+  createdAt DateTime @default(now())
+}
+
+model JournalTaskMention {
+  id String @id @default(uuid())
+
+  journalId String
+  journal   JournalEntry @relation(fields: [journalId], references: [id], onDelete: Cascade)
+
+  extractedText String
+  suggestedTask Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+model JournalMoodLog {
+  id     String @id @default(uuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date DateTime
+  mood String // great, good, neutral, bad
+
+  @@unique([userId, date])
+}
+
+model FocusSession {
+  id               String    @id @default(uuid())
+  userId           String
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt        DateTime  @default(now())
+  endedAt          DateTime?
+  selectedTaskIds  String[]
+  completedTaskIds String[]
+  skippedTaskIds   String[]
+  completedCount   Int       @default(0)
+
+  @@index([userId, startedAt])
+}
+
+model PlannedFocusBlock {
+  id          String           @id @default(uuid())
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId      String?
+  task        Task?            @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  title       String
+  description String?
+  plannedStart DateTime
+  plannedEnd   DateTime
+  status      FocusBlockStatus @default(planned)
+  aiScore     Float?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([userId, plannedStart])
+  @@index([userId, status])
+}
+
+model TaskFocusMeta {
+  id                    String    @id @default(uuid())
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taskId                String    @unique
+  task                  Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  aiScore               Float?
+  skipCount             Int       @default(0)
+  completedInFocusCount Int       @default(0)
+  lastSkippedAt         DateTime?
+  focusSelectedAt       DateTime?
+  lastCompletedAt       DateTime?
+
+  @@index([userId, lastSkippedAt])
+}
+
+model FocusAnalytics {
+  id             String   @id @default(uuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date           DateTime
+  sessions       Int      @default(0)
+  tasksCompleted Int      @default(0)
+  totalFocusTime Int      @default(0)
+  avgFocusScore  Float?
+  updatedAt      DateTime @updatedAt
+
+  @@unique([userId, date])
+}
+
+model Idea {
+  id          String     @id @default(uuid())
+  title       String     @default("Untitled Idea")
+  description String?    @db.Text
+  content     String     @db.Text
+  status      IdeaStatus @default(raw)
+  userId      String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags      IdeaTag[]
+  links     IdeaLink[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([userId])
+}
+
+model IdeaTag {
+  id     String @id @default(uuid())
+  ideaId String
+  tagId  String
+  idea   Idea   @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([ideaId, tagId])
+}
+
+model IdeaLink {
+  id         String   @id @default(uuid())
+  ideaId     String
+  idea       Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  entityType String // note, task, dream
+  entityId   String
+  createdAt  DateTime @default(now())
+}
+
+model Image {
+  id       String @id @default(cuid())
+  url      String
+  publicId String
+
+  width  Int?
+  height Int?
+  size   Int?
+  format String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  parentType String // "note" | "dream" | "task" | "idea"
+  parentId   String?
+
+  aiProcessed Boolean @default(false)
+
+  createdAt DateTime @default(now())
+}
+
+model InsightRecord {
+  id             String      @id @default(uuid())
+  userId         String
+  user           User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type           InsightType
+  title          String
+  description    String      @db.Text
+  evidence       Json
+  recommendation String      @db.Text
+  confidence     Float
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  @@index([userId, type, createdAt])
+}
+
+model KnowledgeEdge {
+  id           String            @id @default(uuid())
+  userId       String
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fromType     KnowledgeNodeType
+  fromId       String
+  toType       KnowledgeNodeType
+  toId         String
+  relationType String
+  strength     Float
+  metadata     Json?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  @@index([userId, fromType, fromId])
+  @@index([userId, toType, toId])
+}
+
+model InboxItem {
+  id               String                @id @default(uuid())
+  userId           String
+  user             User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rawInput         String                @db.Text
+  title            String?
+  content          String?               @db.Text
+  source           String                @default("Inbox")
+  type             InboxItemType?
+  status           InboxProcessingStatus @default(queued)
+  tags             String[]               @default([])
+  confidence       Float?
+  suggestedActions Json?
+  links            Json?
+  processedPayload Json?
+  routedEntityType String?
+  routedEntityId   String?
+  processingError  String?
+  processedAt      DateTime?
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+
+  @@index([userId, status, createdAt])
+  @@index([userId, createdAt])
+}

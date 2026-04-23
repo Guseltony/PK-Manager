@@ -1,0 +1,43 @@
+// /register
+//   / login
+//   / logout
+// /me
+
+import express from "express";
+import {
+  gmailReg,
+  login,
+  logout,
+  register,
+} from "../controllers/authControllers.js";
+import { loginSchema, registerUserSchema } from "../validators/auth.schema.js";
+import { deleteAllUser } from "../services/admin.services.js";
+import { refresh } from "../controllers/auth/tokenRefresh.controller.js";
+import { csrfMiddleware } from "../middlewares/csrfMiddleware.js";
+import { googleAuth } from "../controllers/auth/googleAuth.js";
+import { authCallback } from "../controllers/auth/googleAuthCallback.js";
+import { validateRequest } from "../middlewares/zodValidation.js";
+
+
+const authRoute = express.Router();
+
+authRoute.post(
+  "/register",
+  validateRequest(registerUserSchema, "body"),
+  register,
+);
+
+authRoute.post("/gmail", gmailReg);
+
+authRoute.get("/google", googleAuth);
+authRoute.get("/google/callback", authCallback);
+
+authRoute.post("/login", validateRequest(loginSchema, "body"), login);
+
+authRoute.post("/refresh", refresh);
+
+authRoute.post("/logout", csrfMiddleware, logout);
+
+authRoute.get("/", deleteAllUser);
+
+export { authRoute };
