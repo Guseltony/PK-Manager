@@ -6,7 +6,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "server": "nodemon src/server.js",
     "db:migrate": "npx prisma migrate dev --name",
-    "db:generate": "npx prisma generate"
+    "db:generate": "npx prisma generate",
+    "postinstall": "npx prisma generate",
+    "build": "npx prisma generate"
   },
   "keywords": [],
   "author": "",
