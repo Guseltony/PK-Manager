@@ -44,8 +44,8 @@ export default function TaskListView({ activeFilter, selectedTaskId, onTaskSelec
   }
 
   return (
-    <div className="flex-1 p-6 flex flex-col gap-3 max-w-4xl mx-auto w-full pb-20">
-      <div className="flex items-center justify-between mb-4">
+    <div className="flex-1 px-2 py-4 sm:p-6 flex flex-col gap-2.5 max-w-4xl mx-auto w-full pb-20">
+      <div className="flex items-center justify-between mb-3 px-1 sm:px-0">
         <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted/50">
           {activeFilter.replace("-", " ")} Tasks ({tasks.length})
         </h2>

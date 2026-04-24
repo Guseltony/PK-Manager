@@ -58,11 +58,15 @@ export default function TaskItem({ task, isSelected, onClick }: TaskItemProps) {
   return (
     <div
       onClick={onClick}
-      className={`group flex items-center gap-4 p-4 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden ${
+      className={`group flex items-center gap-3 px-2 py-3 sm:gap-4 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden ${
         isSelected
           ? "bg-brand-primary/5 border-brand-primary/30 shadow-xl shadow-brand-primary/5 scale-[1.02] z-10"
           : "bg-surface-soft/50 border-white/5 hover:border-white/10 hover:bg-white/5 active:scale-[0.99]"
-      } ${showWarning ? "border-brand-accent/50 bg-brand-accent/5" : ""}`}
+      } ${showWarning ? "border-brand-accent/50 bg-brand-accent/5" : ""} ${
+        task.priority === "urgent" && !isDone
+          ? "shadow-[0_0_0_1px_rgba(248,113,113,0.18),0_0_32px_rgba(248,113,113,0.08)]"
+          : ""
+      }`}
     >
       <AnimatePresence>
         {showWarning && (
