@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { ComponentType } from "react";
 import { motion } from "framer-motion";
+import dayjs from "dayjs";
 import {
   FiActivity,
   FiAlertTriangle,
@@ -67,6 +68,15 @@ export default function ProjectsPage() {
   const orphanTasks = tasks.filter(
     (task) => !task.projectId && task.status !== "done",
   );
+  const projectsMissingNearTermTasks = projects.filter((project) =>
+    project.tasks.every((task) => {
+      if (task.status === "done" || !task.dueDate) {
+        return true;
+      }
+
+      return !dayjs(task.dueDate).isBefore(dayjs().add(7, "day"), "day");
+    }),
+  ).length;
   const healthyCount = projects.filter(
     (project) => project.health.state === "healthy",
   ).length;
@@ -100,8 +110,8 @@ export default function ProjectsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 md:px-6">
-      <section className="overflow-hidden rounded-[32px] border border-white/10 bg-surface-soft shadow-2xl">
-        <div className="bg-linear-to-r from-brand-primary/18 via-white/0 to-brand-accent/15 px-6 py-8">
+      <section className="overflow-hidden rounded-2xl sm:rounded-[32px] border border-white/10 bg-surface-soft shadow-2xl">
+        <div className="bg-linear-to-r from-brand-primary/18 via-white/0 to-brand-accent/15 px-4 sm:px-6 py-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <p className="text-xs font-black uppercase tracking-[0.24em] text-brand-primary">
@@ -147,7 +157,7 @@ export default function ProjectsPage() {
         <div className="space-y-6">
           <form
             onSubmit={handleCreateProject}
-            className="rounded-[28px] border border-white/10 bg-surface-soft p-6"
+            className="rounded-2xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-4 sm:p-6"
           >
             <div className="flex items-center gap-3">
               <div className="rounded-2xl bg-brand-primary/15 p-3 text-brand-primary">
@@ -220,7 +230,7 @@ export default function ProjectsPage() {
             </button>
           </form>
 
-          <div className="rounded-[28px] border border-white/10 bg-surface-soft p-6">
+          <div className="rounded-2xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-4 sm:p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-primary">
@@ -265,7 +275,7 @@ export default function ProjectsPage() {
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-amber-400/20 bg-amber-400/10 p-6">
+          <div className="rounded-2xl sm:rounded-[28px] border border-amber-400/20 bg-amber-400/10 p-4 sm:p-6">
             <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">
               Task Context Gap
             </p>
@@ -276,10 +286,15 @@ export default function ProjectsPage() {
               Projects are optional in the data model, but this page treats them
               as the preferred execution context between dreams and tasks.
             </p>
+            {projectsMissingNearTermTasks > 0 ? (
+              <p className="mt-3 text-xs font-bold uppercase tracking-[0.18em] text-amber-100">
+                {projectsMissingNearTermTasks} project{projectsMissingNearTermTasks === 1 ? "" : "s"} have no task scheduled in the next 7 days.
+              </p>
+            ) : null}
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-white/10 bg-surface-soft p-6">
+        <div className="rounded-none border border-white/10 bg-surface-soft p-4 sm:p-6">
           <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-primary">
@@ -318,7 +333,7 @@ export default function ProjectsPage() {
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.04 }}
-                    className="rounded-[26px] border border-white/10 bg-black/20 p-5"
+                    className="rounded-none border border-white/10 bg-black/20 p-2 sm:p-5"
                   >
                     <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                       <div className="max-w-3xl">
@@ -428,6 +443,19 @@ export default function ProjectsPage() {
                         />
                       </div>
                     </div>
+
+                    {project.taskSummary.total > 0 &&
+                    project.taskSummary.total === project.taskSummary.completed ? (
+                      <div className="mt-5 rounded-[22px] border border-emerald-400/20 bg-emerald-400/10 px-4 py-3">
+                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">
+                          Parent Dream Review
+                        </p>
+                        <p className="mt-2 text-sm text-emerald-100">
+                          This project is fully complete. Review the parent ambition
+                          to decide whether it should advance, pause, or close.
+                        </p>
+                      </div>
+                    ) : null}
 
                     <div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
                       <div>
