@@ -64,7 +64,7 @@ app.use("/api/upload", uploadRoutes);
 app.use("/inbox", authMiddleware, inboxRoutes);
 app.use("/calendar", authMiddleware, calendarRoutes);
 app.use("/insights", authMiddleware, insightsRoutes);
-app.use("/knowledge", authMiddleware, knowledgeRoutes);
+app.use("/knowledge", knowledgeRoutes);
 app.use("/project", authMiddleware, projectRoutes);
 app.use("/settings", authMiddleware, settingsRoutes);
 

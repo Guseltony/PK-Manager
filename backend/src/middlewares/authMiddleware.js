@@ -4,32 +4,23 @@ import { prisma } from "../libs/prisma.js";
 
 export const authMiddleware = async (req, res, next) => {
   try {
-    let token;
-    // get the token
+    console.log(`AUTH_DEBUG: [${req.method}] ${req.path}`);
+    console.log("AUTH_DEBUG: Cookies keys:", Object.keys(req.cookies || {}));
+    console.log("AUTH_DEBUG: AccessToken cookie:", !!req.cookies?.accessToken);
+    console.log("AUTH_DEBUG: Auth Header:", !!req.headers.authorization);
 
-    console.log("middleWare-accessToken:", req.cookies.accessToken);
-
-    console.log("cookie:", req.cookies);
-
-    const authHeader = req.headers.authorization;
-
-    if (authHeader && authHeader.startsWith("Bearer ")) {
-      token = authHeader.split(" ")[1];
-    }
-
-    // if the token is in the cookies
-
-    if (!token && req.cookies?.accessToken) {
-      token = req.cookies.accessToken;
-    }
+    let token = req.headers.authorization?.startsWith("Bearer ") 
+      ? req.headers.authorization.split(" ")[1] 
+      : req.cookies?.accessToken;
 
     if (!token) {
+      console.warn("AUTH_DEBUG: Token missing from both header and cookies");
       return res.status(401).json({
         error: "Unauthorized: token missing",
       });
     }
 
-    console.log("token from cookie set:", token);
+    console.log("AUTH_DEBUG: Token found, verifying...");
 
     // decode the token to get the user
 
@@ -61,8 +52,10 @@ export const authMiddleware = async (req, res, next) => {
 
     next();
   } catch (error) {
+    console.error("AUTH_ERROR:", error);
     return res.status(401).json({
       error: "Unauthorized: invalid or expired token",
+      details: error.message,
     });
   }
 };
