@@ -19,6 +19,7 @@ import { useDreams } from "../hooks/useDreams";
 import { useJournal } from "../hooks/useJournal";
 import { useDashboardSummary } from "../hooks/useAI";
 import { useTagsStore } from "../store/tagsStore";
+import { useInbox } from "../hooks/useInbox";
 import GlobalTagFilter from "./GlobalTagFilter";
 import { Task } from "../types/task";
 import { Note } from "../types/note";
@@ -36,6 +37,9 @@ interface DashboardStatProps {
   trend?: string;
   color: string;
   bg: string;
+  href: string;
+  sparkline: number[];
+  warning?: boolean;
 }
 
 function StatCard({
@@ -45,24 +49,43 @@ function StatCard({
   trend,
   color,
   bg,
+  href,
+  sparkline,
+  warning,
 }: DashboardStatProps) {
   return (
-    <div className="bg-surface-soft border border-white/5 rounded-xl p-5 hover:border-white/10 transition-all group">
-      <div className="flex items-center justify-between mb-4">
+    <NextLink
+      href={href}
+      className={`block bg-surface-soft border rounded-xl p-4 sm:p-5 transition-all group relative overflow-hidden hover:border-white/10 hover:-translate-y-0.5 ${
+        warning ? "border-amber-400/20 bg-amber-400/5" : "border-white/5"
+      }`}
+    >
+      <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
         <div
-          className={`w-11 h-11 rounded-xl ${bg} flex items-center justify-center`}
+          className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl ${bg} flex items-center justify-center`}
         >
-          <Icon className={`text-xl ${color}`} />
+          <Icon className={`text-lg sm:text-xl ${color}`} />
         </div>
         {trend && (
-          <span className="text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+          <span className="text-[10px] sm:text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
             {trend}
           </span>
         )}
       </div>
-      <p className="text-text-muted text-sm font-medium mb-1">{label}</p>
-      <h3 className="text-2xl font-bold text-text-main">{value}</h3>
-    </div>
+      <div>
+        <p className="text-text-muted text-[11px] sm:text-sm font-medium mb-0.5 sm:mb-1 uppercase tracking-wider">{label}</p>
+        <h3 className="text-xl sm:text-2xl font-black text-text-main tabular-nums">{value}</h3>
+      </div>
+      <div className="mt-4 flex items-end gap-1 opacity-80">
+        {sparkline.map((point, index) => (
+          <span
+            key={`${label}-spark-${index}`}
+            className={`block w-1.5 rounded-full ${warning ? "bg-amber-400/60" : "bg-white/20 group-hover:bg-white/30"}`}
+            style={{ height: `${Math.max(8, point * 8)}px` }}
+          />
+        ))}
+      </div>
+    </NextLink>
   );
 }
 
@@ -73,6 +96,7 @@ export default function DashboardOverview() {
   const { entry: todayEntry } = useJournal(new Date());
   const { data: dashboardSummary } = useDashboardSummary();
   const { globalTagFilter } = useTagsStore();
+  const { queue } = useInbox();
 
   const today = dayjs().startOf("day");
 
@@ -117,6 +141,39 @@ export default function DashboardOverview() {
       t.status === "done" && t.dueDate && dayjs(t.dueDate).isSame(today, "day"),
   ).length;
 
+  const buildDailySparkline = (
+    entries: string[],
+    formatter?: (isoDate: string) => string,
+  ) =>
+    Array.from({ length: 7 }, (_, offset) => {
+      const day = today.subtract(6 - offset, "day");
+      return entries.filter((value) =>
+        dayjs(formatter ? formatter(value) : value).isSame(day, "day"),
+      ).length;
+    });
+
+  const noteSparkline = buildDailySparkline(
+    filteredNotes.map((note) => note.updatedAt),
+  );
+  const taskSparkline = Array.from({ length: 7 }, (_, offset) => {
+    const day = today.subtract(6 - offset, "day");
+    return filteredTasks.filter(
+      (task) => task.dueDate && dayjs(task.dueDate).isSame(day, "day"),
+    ).length;
+  });
+  const dreamSparkline = buildDailySparkline(
+    filteredDreams.map((dream) => dream.updatedAt),
+  );
+  const journalSparkline = Array.from({ length: 7 }, (_, offset) => {
+    const day = today.subtract(6 - offset, "day");
+    return todayEntry?.createdAt && dayjs(todayEntry.createdAt).isSame(day, "day")
+      ? 1
+      : 0;
+  });
+  const inboxSignalCount = queue.filter(
+    (item) => item.status === "queued" || item.status === "failed",
+  ).length;
+
   const stats = [
     {
       icon: FiFileText,
@@ -126,6 +183,8 @@ export default function DashboardOverview() {
         recentNotes.length > 0 ? `${recentNotes.length} recent` : undefined,
       color: "text-brand-primary",
       bg: "bg-brand-primary/10",
+      href: "/notes",
+      sparkline: noteSparkline,
     },
     {
       icon: FiCheckSquare,
@@ -134,6 +193,8 @@ export default function DashboardOverview() {
       trend: completedToday > 0 ? `${completedToday} done` : undefined,
       color: "text-brand-secondary",
       bg: "bg-brand-secondary/10",
+      href: "/tasks",
+      sparkline: taskSparkline,
     },
     {
       icon: FiTarget,
@@ -142,14 +203,26 @@ export default function DashboardOverview() {
       trend: activeDreams.length > 0 ? "In progress" : undefined,
       color: "text-emerald-400",
       bg: "bg-emerald-400/10",
+      href: "/dreams",
+      sparkline: dreamSparkline,
     },
     {
-      icon: FiBookOpen,
-      label: "Journal Today",
-      value: todayEntry?.content ? "Written" : "Empty",
-      trend: todayEntry?.mood ? `Mood: ${todayEntry.mood}` : undefined,
+      icon: FiClock,
+      label: "Inbox Signal",
+      value: inboxSignalCount,
+      trend:
+        inboxSignalCount >= 10
+          ? "Needs routing"
+          : inboxSignalCount > 0
+            ? "In motion"
+            : "Clear",
       color: "text-amber-400",
       bg: "bg-amber-400/10",
+      href: "/inbox",
+      sparkline: Array.from({ length: 7 }, (_, offset) =>
+        offset === 6 ? Math.max(1, inboxSignalCount) : 0,
+      ),
+      warning: inboxSignalCount >= 10,
     },
   ];
 
@@ -194,7 +267,7 @@ export default function DashboardOverview() {
       </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -209,7 +282,7 @@ export default function DashboardOverview() {
 
       {dashboardSummary ? (
         <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-4">
-          <div className="bg-surface-soft border border-brand-primary/20 rounded-2xl p-6">
+          <div className="bg-surface-soft border border-brand-primary/20 rounded-2xl p-5 sm:p-6 max-sm:px-2">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary mb-3">
               AI Daily Brief
             </p>
@@ -220,7 +293,7 @@ export default function DashboardOverview() {
               {dashboardSummary.momentum}
             </p>
           </div>
-          <div className="bg-surface-soft border border-white/5 rounded-2xl p-6">
+          <div className="bg-surface-soft border border-white/5 rounded-2xl p-5 sm:p-6 max-sm:px-2">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted mb-3">
               Priority Stack
             </p>
@@ -228,31 +301,40 @@ export default function DashboardOverview() {
               {(dashboardSummary.priorities.length
                 ? dashboardSummary.priorities
                 : ["No urgent priorities surfaced right now."]
-              ).map((item) => (
+              ).map((item, i) => (
                 <div
-                  key={item}
+                  key={`priority-${i}-${item}`}
                   className="rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-sm text-text-main"
                 >
                   {item}
                 </div>
               ))}
-              {dashboardSummary.blockers.map((item) => (
+              {dashboardSummary.blockers.map((item, i) => (
                 <div
-                  key={item}
+                  key={`blocker-${i}-${item}`}
                   className="rounded-xl bg-red-500/10 border border-red-500/20 px-3 py-2 text-sm text-red-200"
                 >
                   {item}
                 </div>
               ))}
             </div>
+            {inboxSignalCount >= 10 ? (
+              <NextLink
+                href="/inbox"
+                className="mt-4 inline-flex items-center gap-2 rounded-xl border border-amber-400/20 bg-amber-400/10 px-3 py-2 text-xs font-bold text-amber-100 transition hover:bg-amber-400/15"
+              >
+                {inboxSignalCount} inbox items still need routing
+                <FiChevronRight />
+              </NextLink>
+            ) : null}
           </div>
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Left: Recent Notes & Goals */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="bg-surface-soft border border-white/5 rounded-xl p-6">
+          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 sm:p-6 max-sm:px-2">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-text-main flex items-center gap-3">
                 <FiClock className="text-brand-primary" />
@@ -320,7 +402,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Active Dreams */}
-          <div className="bg-surface-soft border border-white/5 rounded-xl p-6">
+          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 sm:p-6 max-sm:px-2">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-text-main flex items-center gap-3">
                 <FiActivity className="text-emerald-400" />
@@ -382,7 +464,7 @@ export default function DashboardOverview() {
 
         {/* Right: Today's Tasks */}
         <div className="flex flex-col gap-6">
-          <div className="bg-surface-soft border border-white/5 rounded-xl p-6">
+          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 sm:p-6 max-sm:px-2">
             <h2 className="text-lg font-bold text-text-main mb-6 flex items-center gap-3">
               <FiCheckSquare className="text-brand-secondary" />
               Due Today
@@ -429,7 +511,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Journal Quick Peek */}
-          <div className="bg-surface-soft border border-white/5 rounded-xl p-6">
+          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 sm:p-6 max-sm:px-2">
             <h2 className="text-lg font-bold text-text-main mb-4 flex items-center gap-3">
               <FiBookOpen className="text-amber-400" />
               Today&apos;s Journal
