@@ -14,6 +14,7 @@ import {
 //   getRefreshTokenCookieOptions,
 // } from "../../utils/cookie.utils.js";
 import { fetchUsrIpandAgent } from "../../utils/userAgent.ip.js";
+import { env } from "../../validators/env.schema.js";
 
 // const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -142,7 +143,7 @@ export const authCallback = async (req, res) => {
     res.clearCookie("mode");
 
     // 7️⃣ Redirect to frontend
-    res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
+    res.redirect(`${env.FRONTEND_URL || "https://pkmanager.vercel.app"}/dashboard`);
     // if (user) {
     //   res.status(200).json({
     //     message: "User successfully register",
