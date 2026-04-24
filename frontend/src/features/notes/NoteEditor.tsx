@@ -14,8 +14,8 @@ import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import {
   FiArrowLeft,
   FiBold,
+  FiBookOpen,
   FiCheckSquare,
-  FiChevronDown,
   FiCpu,
   FiEdit3,
   FiEye,
@@ -48,10 +48,16 @@ import {
   NoteContentType,
   serializeRichTextDocument,
 } from "./noteContent";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  getBacklinkedNotes,
+  replaceWikiLinksWithMarkdown,
+} from "./noteLinks";
 
 const PREVIEW_SIZE_STORAGE_KEY = "pk-manager-note-preview-font-size";
-const DEFAULT_RICH_HTML = "<p dir=\"ltr\"></p>";
-const RICH_TEXT_BLOCK_SELECTOR = "p, div, h1, h2, h3, h4, h5, h6, li, ul, ol, blockquote";
+const DEFAULT_RICH_HTML = '<p dir="ltr"></p>';
+const RICH_TEXT_BLOCK_SELECTOR =
+  "p, div, h1, h2, h3, h4, h5, h6, li, ul, ol, blockquote";
 
 function normalizeRichEditorDirection(editor: HTMLDivElement) {
   editor.setAttribute("dir", "ltr");
@@ -59,12 +65,14 @@ function normalizeRichEditorDirection(editor: HTMLDivElement) {
   editor.style.textAlign = "left";
   editor.style.unicodeBidi = "normal";
 
-  editor.querySelectorAll<HTMLElement>(RICH_TEXT_BLOCK_SELECTOR).forEach((node) => {
-    node.setAttribute("dir", "ltr");
-    node.style.direction = "ltr";
-    node.style.textAlign = "left";
-    node.style.unicodeBidi = "normal";
-  });
+  editor
+    .querySelectorAll<HTMLElement>(RICH_TEXT_BLOCK_SELECTOR)
+    .forEach((node) => {
+      node.setAttribute("dir", "ltr");
+      node.style.direction = "ltr";
+      node.style.textAlign = "left";
+      node.style.unicodeBidi = "normal";
+    });
 }
 
 export default function NoteEditor() {
@@ -151,7 +159,8 @@ function NewNoteForm() {
       .split(",")
       .map((tag) => tag.trim())
       .filter(
-        (tag) => tag !== "" && !tags.some((existing) => existing.tag.name === tag),
+        (tag) =>
+          tag !== "" && !tags.some((existing) => existing.tag.name === tag),
       );
 
     if (newTags.length > 0) {
@@ -171,7 +180,9 @@ function NewNoteForm() {
   const handleMarkdownImageUpload = (image: { url: string }) => {
     const textarea = markdownRef.current;
     if (!textarea) {
-      setMarkdownContent((prev) => `${prev}\n![Uploaded Image](${image.url})\n`);
+      setMarkdownContent(
+        (prev) => `${prev}\n![Uploaded Image](${image.url})\n`,
+      );
       return;
     }
 
@@ -185,7 +196,10 @@ function NewNoteForm() {
     setMarkdownContent(inserted.value);
     requestAnimationFrame(() => {
       textarea.focus();
-      textarea.setSelectionRange(inserted.selectionStart, inserted.selectionEnd);
+      textarea.setSelectionRange(
+        inserted.selectionStart,
+        inserted.selectionEnd,
+      );
     });
   };
 
@@ -304,7 +318,9 @@ function NewNoteForm() {
                 <span className="text-[10px] uppercase tracking-[0.18em] text-brand-primary">
                   Editor
                 </span>
-                <span>{contentType === "markdown" ? "Developer Note" : "Smart Note"}</span>
+                <span>
+                  {contentType === "markdown" ? "Developer Note" : "Smart Note"}
+                </span>
               </div>
             ) : (
               <div className="grid gap-2 sm:grid-cols-2">
@@ -319,7 +335,9 @@ function NewNoteForm() {
                   <p className="text-xs font-black uppercase tracking-[0.18em]">
                     Developer Note
                   </p>
-                  <p className="mt-1 text-xs">Markdown, code blocks, technical writing.</p>
+                  <p className="mt-1 text-xs">
+                    Markdown, code blocks, technical writing.
+                  </p>
                 </button>
                 <button
                   type="button"
@@ -332,7 +350,9 @@ function NewNoteForm() {
                   <p className="text-xs font-black uppercase tracking-[0.18em]">
                     Smart Note
                   </p>
-                  <p className="mt-1 text-xs">Rich editor for non-technical writing.</p>
+                  <p className="mt-1 text-xs">
+                    Rich editor for non-technical writing.
+                  </p>
                 </button>
               </div>
             )}
@@ -352,7 +372,9 @@ function NewNoteForm() {
           {tags.map(({ tag }) => (
             <span
               key={tag.name}
-              onClick={() => setTags(tags.filter((t) => t.tag.name !== tag.name))}
+              onClick={() =>
+                setTags(tags.filter((t) => t.tag.name !== tag.name))
+              }
               className="text-xs font-bold px-2 py-1 rounded cursor-pointer transition-colors border"
               style={getTagColorStyle(tag.color)}
             >
@@ -432,7 +454,11 @@ function NewNoteForm() {
               onMouseUp={saveRichSelection}
               onBlur={saveRichSelection}
               className="flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm leading-7 text-text-main outline-none custom-scrollbar [&_blockquote]:text-left [&_div]:text-left [&_h1]:text-left [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-left [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-left [&_h3]:text-lg [&_h3]:font-bold [&_li]:text-left [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.75rem] [&_p]:text-left [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain"
-              style={{ direction: "ltr", textAlign: "left", unicodeBidi: "normal" }}
+              style={{
+                direction: "ltr",
+                textAlign: "left",
+                unicodeBidi: "normal",
+              }}
               dangerouslySetInnerHTML={{ __html: richHtml }}
             />
           </div>
@@ -449,7 +475,7 @@ function NewNoteForm() {
 }
 
 function NoteEditorContent({ note }: { note: Note }) {
-  const { updateNote } = useNotesStore();
+  const { updateNote, notes: allNotes } = useNotesStore();
   const {
     updateNote: syncWithBackend,
     deleteNote: deleteFromBackend,
@@ -458,7 +484,9 @@ function NoteEditorContent({ note }: { note: Note }) {
   const { tags: allTags } = useTags();
 
   const [title, setTitle] = useState(note.title);
-  const [contentType] = useState<NoteContentType>(note.contentType || "markdown");
+  const [contentType] = useState<NoteContentType>(
+    note.contentType || "markdown",
+  );
   const [markdownContent, setMarkdownContent] = useState(
     contentType === "markdown" ? note.content : "",
   );
@@ -473,6 +501,7 @@ function NoteEditorContent({ note }: { note: Note }) {
     contentType === "markdown" ? "preview" : "split",
   );
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isReaderMode, setIsReaderMode] = useState(false);
   const [analysis, setAnalysis] = useState<AiNoteAnalysis | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [previewFontSize, setPreviewFontSize] = useState(() => {
@@ -497,6 +526,14 @@ function NoteEditorContent({ note }: { note: Note }) {
     contentType === "markdown"
       ? markdownContent
       : serializeRichTextDocument(richHtml);
+  const resolvedMarkdownContent = useMemo(
+    () => replaceWikiLinksWithMarkdown(markdownContent, allNotes),
+    [allNotes, markdownContent],
+  );
+  const backlinks = useMemo(
+    () => getBacklinkedNotes(note, allNotes),
+    [allNotes, note],
+  );
 
   const suggestions = useMemo(
     () =>
@@ -543,7 +580,14 @@ function NoteEditorContent({ note }: { note: Note }) {
 
     lastSyncedTitleRef.current = normalizedTitle;
     lastSyncedContentRef.current = debouncedContent;
-  }, [contentType, debouncedContent, debouncedTitle, note.id, syncWithBackend, updateNote]);
+  }, [
+    contentType,
+    debouncedContent,
+    debouncedTitle,
+    note.id,
+    syncWithBackend,
+    updateNote,
+  ]);
 
   const handleAddTag = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -557,13 +601,16 @@ function NoteEditorContent({ note }: { note: Note }) {
       .map((tag) => tag.trim())
       .filter(
         (tag) =>
-          tag !== "" && !note.tags.some((existingTag) => existingTag.tag.name === tag),
+          tag !== "" &&
+          !note.tags.some((existingTag) => existingTag.tag.name === tag),
       );
 
     if (newTagsToAdd.length > 0) {
       const updatedTags = [
         ...note.tags,
-        ...newTagsToAdd.map((name) => ({ tag: { name } } as { tag: Partial<Tag> })),
+        ...newTagsToAdd.map(
+          (name) => ({ tag: { name } }) as { tag: Partial<Tag> },
+        ),
       ];
       const now = new Date().toISOString();
       updateNote(note.id, { tags: updatedTags, updatedAt: now });
@@ -632,7 +679,9 @@ function NoteEditorContent({ note }: { note: Note }) {
   const handleMarkdownImageUpload = (image: { url: string }) => {
     const textarea = markdownRef.current;
     if (!textarea) {
-      setMarkdownContent((prev) => `${prev}\n![Uploaded Image](${image.url})\n`);
+      setMarkdownContent(
+        (prev) => `${prev}\n![Uploaded Image](${image.url})\n`,
+      );
       return;
     }
 
@@ -646,7 +695,10 @@ function NoteEditorContent({ note }: { note: Note }) {
     setMarkdownContent(inserted.value);
     requestAnimationFrame(() => {
       textarea.focus();
-      textarea.setSelectionRange(inserted.selectionStart, inserted.selectionEnd);
+      textarea.setSelectionRange(
+        inserted.selectionStart,
+        inserted.selectionEnd,
+      );
     });
   };
 
@@ -694,13 +746,17 @@ function NoteEditorContent({ note }: { note: Note }) {
         ? "leading-6"
         : "leading-7";
 
+  const openLinkedNote = (noteId: string) => {
+    useNotesStore.getState().selectNote(noteId);
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full bg-surface-base overflow-hidden">
       <div className="p-4 border-b border-white/5 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => useNotesStore.getState().selectNote(null)}
-            className="md:hidden flex items-center justify-center p-2 -ml-2 rounded-xl text-text-muted hover:bg-white/5 transition-all"
+            className="-ml-2 md:hidden flex items-center justify-center p-2 rounded-xl text-text-muted hover:bg-white/5 transition-all"
           >
             <FiArrowLeft size={18} />
           </button>
@@ -740,25 +796,35 @@ function NoteEditorContent({ note }: { note: Note }) {
             >
               <FiMaximize2 size={14} />
             </button>
+            <button
+              onClick={() => setIsReaderMode(true)}
+              className="p-1.5 rounded-lg text-text-muted hover:text-brand-primary transition-all ml-1"
+              title="Enter Reader Mode"
+            >
+              <FiBookOpen size={15} />
+            </button>
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-2 py-1 mr-1">
-            <FiType size={14} className="text-text-muted" />
+          <div className="flex items-center gap-2 rounded-xl border border-white/5 bg-black/20 px-3 py-1 mr-1 h-9">
+            <FiType size={13} className="text-brand-primary" />
             <select
               value={previewFontSize}
               onChange={(e) => setPreviewFontSize(Number(e.target.value))}
-              className="bg-transparent text-[11px] font-bold text-text-main outline-none"
+              className="bg-transparent text-[11px] font-black text-text-main outline-none cursor-pointer hover:text-brand-primary transition-colors pr-1"
             >
               {[12, 13, 14, 16, 18].map((size) => (
-                <option key={size} value={size} className="bg-surface-base">
+                <option
+                  key={size}
+                  value={size}
+                  className="bg-surface-soft text-text-main"
+                >
                   {size}px
                 </option>
               ))}
             </select>
-            <FiChevronDown size={12} className="text-text-muted" />
           </div>
 
-          <div className="mr-1">
+          <div className="mr-0.5">
             <ImageUploader
               parentType="note"
               parentId={note.id}
@@ -768,6 +834,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                   : handleRichImageUpload
               }
               className="!gap-0"
+              iconOnly // Custom prop to show icon only
             />
           </div>
 
@@ -776,16 +843,15 @@ function NoteEditorContent({ note }: { note: Note }) {
               const result = await noteAi.mutateAsync(note.id);
               setAnalysis(result);
             }}
-            className="h-9 px-3 flex items-center justify-center gap-2 rounded-xl text-text-muted hover:bg-white/5 hover:text-brand-primary transition-all"
+            className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 hover:text-brand-primary transition-all"
+            title={noteAi.isPending ? "Analyzing..." : "AI Assist"}
           >
             <FiCpu size={16} />
-            <span className="hidden sm:inline text-xs font-bold uppercase tracking-widest">
-              {noteAi.isPending ? "Analyzing..." : "AI Assist"}
-            </span>
           </button>
           <button
             className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 hover:text-red-400 transition-all"
             onClick={() => setShowDeleteConfirm(true)}
+            title="Delete Note"
           >
             <FiTrash2 size={16} />
           </button>
@@ -795,9 +861,9 @@ function NoteEditorContent({ note }: { note: Note }) {
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8 pt-4 sm:pt-5 flex flex-col gap-3">
+      <div className="px-4 sm:px-6 lg:px-8 pt-3 sm:pt-4 flex flex-col gap-2">
         {viewMode === "preview" ? (
-          <h1 className="text-2xl sm:text-3xl font-display font-bold text-text-main tracking-tight">
+          <h1 className="text-4xl sm:text-5xl font-black text-text-main tracking-tighter leading-[0.95] mb-2">
             {title || "Untitled Note"}
           </h1>
         ) : (
@@ -806,27 +872,16 @@ function NoteEditorContent({ note }: { note: Note }) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Note Title"
-            className="text-2xl sm:text-3xl font-display font-bold bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/20 w-full tracking-tight"
+            className="text-4xl sm:text-5xl font-black bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/10 w-full tracking-tighter leading-[0.95] mb-2"
           />
         )}
 
-        <div className="flex flex-wrap gap-2 items-center">
-          {note.tags.map(({ tag }: { tag: any }) => (
-            <span
-              key={tag.id || tag.name}
-              onClick={() => handleRemoveTag(tag.name)}
-              className={`text-xs font-bold px-2 py-1 rounded transition-colors group border ${viewMode !== "preview" ? "cursor-pointer hover:opacity-90" : ""}`}
-              style={getTagColorStyle(tag.color)}
-              title={viewMode !== "preview" ? "Click to remove" : ""}
-            >
-              #{tag.name}
-              {viewMode !== "preview" ? (
-                <span className="ml-1 opacity-0 group-hover:opacity-100">
-                  &times;
-                </span>
-              ) : null}
-            </span>
-          ))}
+        <div className="flex flex-wrap gap-1.5 items-center">
+          <TagDisplay
+            tags={note.tags}
+            viewMode={viewMode}
+            onRemove={handleRemoveTag}
+          />
 
           {viewMode !== "preview" ? (
             isAddingTag ? (
@@ -869,6 +924,26 @@ function NoteEditorContent({ note }: { note: Note }) {
             )
           ) : null}
         </div>
+
+        {backlinks.length > 0 ? (
+          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">
+              Backlinks
+            </p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {backlinks.map((backlink) => (
+                <button
+                  key={backlink.id}
+                  type="button"
+                  onClick={() => openLinkedNote(backlink.id)}
+                  className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-left text-xs font-bold text-text-main transition hover:bg-black/30"
+                >
+                  {backlink.title || "Untitled Note"}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {analysis ? (
@@ -926,7 +1001,7 @@ function NoteEditorContent({ note }: { note: Note }) {
         </div>
       ) : null}
 
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden mt-3 p-4 sm:p-5 lg:p-6 pt-0 gap-3">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden mt-1.5 p-4 sm:p-5 lg:p-6 pt-0 gap-3">
         {viewMode === "edit" || viewMode === "split" ? (
           contentType === "markdown" ? (
             <textarea
@@ -959,7 +1034,11 @@ function NoteEditorContent({ note }: { note: Note }) {
                 onMouseUp={saveRichSelection}
                 onBlur={saveRichSelection}
                 className="flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm leading-7 text-text-main outline-none custom-scrollbar [&_blockquote]:text-left [&_div]:text-left [&_h1]:text-left [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-left [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-left [&_h3]:text-lg [&_h3]:font-bold [&_li]:text-left [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.75rem] [&_p]:text-left [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain"
-                style={{ direction: "ltr", textAlign: "left", unicodeBidi: "normal" }}
+                style={{
+                  direction: "ltr",
+                  textAlign: "left",
+                  unicodeBidi: "normal",
+                }}
                 dangerouslySetInnerHTML={{ __html: richHtml }}
               />
             </div>
@@ -968,11 +1047,13 @@ function NoteEditorContent({ note }: { note: Note }) {
 
         {viewMode === "preview" || viewMode === "split" ? (
           <div
-            className={`flex-1 overflow-y-auto custom-scrollbar rounded-[1.75rem] border border-white/10 bg-white/5 ${viewMode === "preview" ? "px-3 py-3 sm:px-4 sm:py-4 lg:px-5" : "px-3 py-3 sm:px-4"}`}
+            className={`flex-1 overflow-y-auto custom-scrollbar rounded-none border-x border-white/5 bg-white/5 ${viewMode === "preview" ? "px-3 py-3 sm:px-6 sm:py-6 lg:px-8" : "px-3 py-3 sm:px-4"}`}
             style={{ fontSize: `${previewFontSize}px` }}
           >
             {contentType === "markdown" ? (
-              <div className={`prose prose-invert max-w-none ${previewTextSizeClass} prose-p:my-2 prose-pre:my-3 prose-ul:my-2 prose-ol:my-2 prose-li:my-0.5 prose-headings:mb-2 prose-headings:mt-3 prose-img:my-3 prose-img:rounded-2xl`}>
+              <div
+                className={`prose prose-invert max-w-none ${previewTextSizeClass} prose-p:my-1.5 prose-p:leading-[1.45] prose-pre:my-2 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-headings:mb-1.5 prose-headings:mt-2.5 prose-headings:leading-tight prose-img:my-2.5 prose-img:rounded-xl`}
+              >
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm]}
                   components={{
@@ -981,9 +1062,12 @@ function NoteEditorContent({ note }: { note: Note }) {
                       const match = /language-(\w+)/.exec(className || "");
                       return match ? (
                         <SyntaxHighlighter
-                          style={atomDark as { [key: string]: React.CSSProperties }}
+                          style={
+                            atomDark as { [key: string]: React.CSSProperties }
+                          }
                           language={match[1]}
                           PreTag="div"
+                          customStyle={{ padding: "0.25rem 0.5rem" }} // px-1 (approx) and reduced py
                         >
                           {String(children).replace(/\n$/, "")}
                         </SyntaxHighlighter>
@@ -993,18 +1077,36 @@ function NoteEditorContent({ note }: { note: Note }) {
                         </code>
                       );
                     },
-                    img: ({ src, alt }) => (
+                    img: ({ src, alt }) =>
                       typeof src === "string" ? (
                         <ContentImage
                           src={src}
                           alt={alt}
                           onOpen={(srcValue) => setActiveImage(srcValue)}
                         />
-                      ) : null
-                    ),
+                      ) : null,
+                    a: ({ href, children }) =>
+                      href?.startsWith("note:") ? (
+                        <button
+                          type="button"
+                          onClick={() => openLinkedNote(href.replace("note:", ""))}
+                          className="font-semibold text-brand-primary underline underline-offset-4"
+                        >
+                          {children}
+                        </button>
+                      ) : (
+                        <a
+                          href={href}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="font-semibold text-brand-primary underline underline-offset-4"
+                        >
+                          {children}
+                        </a>
+                      ),
                   }}
                 >
-                  {markdownContent}
+                  {resolvedMarkdownContent}
                 </ReactMarkdown>
               </div>
             ) : (
@@ -1016,8 +1118,12 @@ function NoteEditorContent({ note }: { note: Note }) {
                     setActiveImage(src);
                   }
                 }}
-                className={`text-text-main ${previewTextSizeClass} [&_h1]:mb-2 [&_h1]:text-[1.8em] [&_h1]:font-bold [&_h2]:mb-2 [&_h2]:text-[1.5em] [&_h2]:font-bold [&_h3]:mb-2 [&_h3]:text-[1.25em] [&_h3]:font-bold [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5`}
-                style={{ direction: "ltr", textAlign: "left", unicodeBidi: "normal" }}
+                className={`text-text-main ${previewTextSizeClass} [&_h1]:mb-2 [&_h1]:text-[1.8em] [&_h1]:font-black [&_h1]:tracking-tighter [&_h1]:leading-none [&_h2]:mb-2 [&_h2]:text-[1.5em] [&_h2]:font-black [&_h2]:tracking-tighter [&_h2]:leading-none [&_h3]:mb-2 [&_h3]:text-[1.25em] [&_h3]:font-black [&_h3]:tracking-tighter [&_h3]:leading-none [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1.5 [&_p]:leading-[1.45] [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5`}
+                style={{
+                  direction: "ltr",
+                  textAlign: "left",
+                  unicodeBidi: "normal",
+                }}
                 dangerouslySetInnerHTML={{ __html: richHtml }}
               />
             )}
@@ -1035,13 +1141,19 @@ function NoteEditorContent({ note }: { note: Note }) {
             <FiCpu size={12} />{" "}
             {Math.max(
               1,
-              Math.ceil(getPlainTextFromNote(content, contentType).split(" ").filter(Boolean).length / 200),
+              Math.ceil(
+                getPlainTextFromNote(content, contentType)
+                  .split(" ")
+                  .filter(Boolean).length / 200,
+              ),
             )}{" "}
             min read
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <span>Linked in 2 notes</span>
+          <span>
+            Linked in {backlinks.length} {backlinks.length === 1 ? "note" : "notes"}
+          </span>
         </div>
       </div>
 
@@ -1058,6 +1170,83 @@ function NoteEditorContent({ note }: { note: Note }) {
         imageUrl={activeImage}
         onClose={() => setActiveImage(null)}
       />
+
+      {/* Reader Mode Overlay */}
+      <AnimatePresence>
+        {isReaderMode && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed inset-0 z-[100] bg-surface-base overflow-y-auto custom-scrollbar flex flex-col items-center pt-10 sm:pt-20 px-6"
+          >
+            <div className="w-full max-w-3xl flex flex-col gap-6 mb-20">
+              <button
+                onClick={() => setIsReaderMode(false)}
+                className="flex items-center gap-2 text-text-muted hover:text-white transition-colors text-xs font-black uppercase tracking-widest mb-4 group w-fit"
+              >
+                <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" />
+                Return to Editor
+              </button>
+
+              <h1 className="text-5xl sm:text-7xl font-black text-text-main tracking-tighter leading-[0.9] mb-4">
+                {title || "Untitled Note"}
+              </h1>
+
+              <div className="flex flex-wrap gap-2 items-center border-b border-white/5 pb-8 mb-4">
+                {note.tags.map(({ tag }) => (
+                  <span
+                    key={tag.id || tag.name}
+                    className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded border border-white/10"
+                    style={getTagColorStyle(tag.color)}
+                  >
+                    #{tag.name}
+                  </span>
+                ))}
+              </div>
+
+              <div
+                className={`prose prose-invert max-w-none ${previewTextSizeClass} prose-p:my-2 prose-p:leading-[1.5] prose-headings:font-black prose-headings:tracking-tighter prose-headings:leading-none mb-20`}
+                style={{ fontSize: `${previewFontSize}px` }}
+              >
+                {contentType === "markdown" ? (
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      a: ({ href, children }) =>
+                        href?.startsWith("note:") ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              openLinkedNote(href.replace("note:", ""));
+                              setIsReaderMode(false);
+                            }}
+                            className="font-semibold text-brand-primary underline underline-offset-4"
+                          >
+                            {children}
+                          </button>
+                        ) : (
+                          <a
+                            href={href}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-semibold text-brand-primary underline underline-offset-4"
+                          >
+                            {children}
+                          </a>
+                        ),
+                  }}
+                  >
+                    {resolvedMarkdownContent}
+                  </ReactMarkdown>
+                ) : (
+                  <div dangerouslySetInnerHTML={{ __html: richHtml }} />
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -1071,15 +1260,56 @@ function RichTextToolbar({
 }) {
   return (
     <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-white/5 p-2">
-      <ToolbarButton icon={<FiBold size={14} />} label="Bold" onClick={() => onCommand("bold")} />
-      <ToolbarButton icon={<FiItalic size={14} />} label="Italic" onClick={() => onCommand("italic")} />
-      <ToolbarButton icon={<span className="text-xs font-black">H1</span>} label="Heading 1" onClick={() => onCommand("formatBlock", "<h1>")} />
-      <ToolbarButton icon={<span className="text-xs font-black">H2</span>} label="Heading 2" onClick={() => onCommand("formatBlock", "<h2>")} />
-      <ToolbarButton icon={<FiList size={14} />} label="Bullet List" onClick={() => onCommand("insertUnorderedList")} />
-      <ToolbarButton icon={<span className="text-xs font-black">1.</span>} label="Numbered List" onClick={() => onCommand("insertOrderedList")} />
-      <ToolbarButton icon={<FiCheckSquare size={14} />} label="Checklist" onClick={() => onCommand("insertHTML", '<ul><li><input type="checkbox" /> Task item</li></ul>')} />
-      <ToolbarButton icon={<FiLink size={14} />} label="Link" onClick={onAddLink} />
-      <ToolbarButton icon={<FiImage size={14} />} label="Paragraph" onClick={() => onCommand("formatBlock", "<p>")} />
+      <ToolbarButton
+        icon={<FiBold size={14} />}
+        label="Bold"
+        onClick={() => onCommand("bold")}
+      />
+      <ToolbarButton
+        icon={<FiItalic size={14} />}
+        label="Italic"
+        onClick={() => onCommand("italic")}
+      />
+      <ToolbarButton
+        icon={<span className="text-xs font-black">H1</span>}
+        label="Heading 1"
+        onClick={() => onCommand("formatBlock", "<h1>")}
+      />
+      <ToolbarButton
+        icon={<span className="text-xs font-black">H2</span>}
+        label="Heading 2"
+        onClick={() => onCommand("formatBlock", "<h2>")}
+      />
+      <ToolbarButton
+        icon={<FiList size={14} />}
+        label="Bullet List"
+        onClick={() => onCommand("insertUnorderedList")}
+      />
+      <ToolbarButton
+        icon={<span className="text-xs font-black">1.</span>}
+        label="Numbered List"
+        onClick={() => onCommand("insertOrderedList")}
+      />
+      <ToolbarButton
+        icon={<FiCheckSquare size={14} />}
+        label="Checklist"
+        onClick={() =>
+          onCommand(
+            "insertHTML",
+            '<ul><li><input type="checkbox" /> Task item</li></ul>',
+          )
+        }
+      />
+      <ToolbarButton
+        icon={<FiLink size={14} />}
+        label="Link"
+        onClick={onAddLink}
+      />
+      <ToolbarButton
+        icon={<FiImage size={14} />}
+        label="Paragraph"
+        onClick={() => onCommand("formatBlock", "<p>")}
+      />
     </div>
   );
 }
@@ -1103,5 +1333,34 @@ function ToolbarButton({
       {icon}
       <span className="hidden sm:inline">{label}</span>
     </button>
+  );
+}
+function TagDisplay({
+  tags,
+  viewMode,
+  onRemove,
+}: {
+  tags: any[];
+  viewMode: string;
+  onRemove: (name: string) => void;
+}) {
+  return (
+    <div className="flex flex-wrap gap-1.5 items-center">
+      {tags.map(({ tag }) => (
+        <span
+          key={tag.id || tag.name}
+          onClick={() => onRemove(tag.name)}
+          className={`text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded transition-all group border whitespace-nowrap ${viewMode !== "preview" ? "cursor-pointer hover:opacity-90" : ""}`}
+          style={getTagColorStyle(tag.color)}
+        >
+          #{tag.name}
+          {viewMode !== "preview" && (
+            <span className="ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              &times;
+            </span>
+          )}
+        </span>
+      ))}
+    </div>
   );
 }
