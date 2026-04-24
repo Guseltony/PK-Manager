@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useEffect, useState } from "react";
-import api, { setManualCsrfToken } from "../libs/api";
+import { setManualCsrfToken } from "../libs/api";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -11,7 +11,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 60 * 1000, // 1 minute
+            staleTime: 60 * 1000,
             refetchOnWindowFocus: false,
             retry: 1,
           },
@@ -19,19 +19,26 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }),
   );
 
-  // Sync CSRF token on boot
   useEffect(() => {
     const bootstrapAuth = async () => {
       try {
-        const response = await api.post<{ data?: { csrfToken?: string }; csrfToken?: string }>("/auth/refresh");
-        const csrfToken = response.data.data?.csrfToken || response.data.csrfToken;
-        if (csrfToken) {
+        const response = await fetch("/api/refresh", {
+          method: "POST",
+          credentials: "include",
+        });
+
+        const data = await response.json().catch(() => ({}));
+        const csrfToken = data?.csrfToken || data?.data?.csrfToken;
+
+        if (response.ok && csrfToken) {
           setManualCsrfToken(csrfToken);
         }
       } catch (err) {
         console.warn("Auth bootstrap failed (user likely not logged in)");
+        console.error(err);
       }
     };
+
     bootstrapAuth();
   }, []);
 
