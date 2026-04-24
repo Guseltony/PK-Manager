@@ -53,7 +53,7 @@ export default function NoteList() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                 >
-                  <NoteItem note={note} />
+                  <NoteItem note={note} searchQuery={searchQuery} />
                 </motion.div>
               ))
             ) : (
