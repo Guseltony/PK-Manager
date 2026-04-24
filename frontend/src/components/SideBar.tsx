@@ -76,7 +76,7 @@ export function MobileSidebarDrawer() {
         </div>
 
         <div className="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2">
-          <div className="md:hidden mb-6 px-4">
+          <div className="mb-6 px-4">
              <p className="text-[10px] font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">Workspace Menu</p>
              <NavLinks onLinkClick={() => setOpen(false)} />
           </div>
