@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import dayjs from "dayjs";
-import { FiArrowRight, FiCalendar, FiPlus, FiZap } from "react-icons/fi";
+import { FiArrowRight, FiBookOpen, FiCalendar, FiPlus, FiZap } from "react-icons/fi";
 import { useCalendar } from "../../hooks/useCalendar";
 import { CalendarDayCell, CalendarEvent, CalendarView } from "../../types/calendar";
 
@@ -113,8 +113,12 @@ export default function CalendarPage() {
         <div className="rounded-[28px] border border-white/10 bg-surface-soft p-6">
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-primary">Timeline View</p>
-              <p className="mt-2 text-sm text-text-muted">Drag task or planned focus cards onto another date to reschedule them.</p>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-primary">{view === "month" ? "Calendar Intelligence Dashboard" : "Timeline View"}</p>
+              <p className="mt-2 text-sm text-text-muted">
+                {view === "month"
+                  ? "Scan the month first, then jump into a specific day when the signal looks interesting."
+                  : "Drag task or planned focus cards onto another date to reschedule them."}
+              </p>
             </div>
             <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-right">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Visible Events</p>
@@ -122,66 +126,78 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          <div className={`grid gap-4 ${view === "month" ? "md:grid-cols-7" : view === "week" ? "md:grid-cols-7" : "grid-cols-1"}`}>
-            {isLoading ? Array.from({ length: view === "day" ? 1 : 7 }).map((_, index) => (
-              <div key={index} className="h-72 animate-pulse rounded-2xl border border-white/10 bg-black/20" />
-            )) : visibleDays.map((day) => (
-              <div
-                key={day.date}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={() => handleDropOnDay(day)}
-                className={`rounded-[22px] border p-4 transition ${
-                  day.date === selectedDate
-                    ? "border-brand-primary/30 bg-brand-primary/10"
-                    : "border-white/10 bg-black/20 hover:border-white/20"
-                }`}
-              >
-                <button
-                  type="button"
-                  onClick={() => setSelectedDate(day.date)}
-                  className="flex w-full items-start justify-between text-left"
+          {view === "month" ? (
+            <MonthOverviewGrid
+              days={visibleDays}
+              isLoading={isLoading}
+              selectedDate={selectedDate}
+              onSelectDay={(date) => {
+                setSelectedDate(date);
+                setView("day");
+              }}
+            />
+          ) : (
+            <div className={`grid gap-4 ${view === "week" ? "md:grid-cols-7" : "grid-cols-1"}`}>
+              {isLoading ? Array.from({ length: view === "day" ? 1 : 7 }).map((_, index) => (
+                <div key={index} className="h-72 animate-pulse rounded-2xl border border-white/10 bg-black/20" />
+              )) : visibleDays.map((day) => (
+                <div
+                  key={day.date}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={() => handleDropOnDay(day)}
+                  className={`rounded-[22px] border p-4 transition ${
+                    day.date === selectedDate
+                      ? "border-brand-primary/30 bg-brand-primary/10"
+                      : "border-white/10 bg-black/20 hover:border-white/20"
+                  }`}
                 >
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-primary">
-                      {dayjs(day.date).format(view === "month" ? "ddd" : "dddd")}
-                    </p>
-                    <p className="mt-2 text-lg font-black text-white">{dayjs(day.date).format("MMM D")}</p>
-                  </div>
-                  <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-right">
-                    <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Score</p>
-                    <p className="mt-1 text-sm font-bold text-white">{day.productivityScore}</p>
-                  </div>
-                </button>
-
-                <div className="mt-4 space-y-2">
-                  {day.events.slice(0, view === "month" ? 3 : 8).map((event) => (
-                    <button
-                      key={event.id}
-                      type="button"
-                      draggable={event.editable}
-                      onDragStart={() => setDraggingEvent(event)}
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-left"
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="text-sm font-bold text-white">{event.title}</p>
-                        <span className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
-                          {event.eventType}
-                        </span>
-                      </div>
-                      <p className="mt-2 text-xs text-text-muted">
-                        {dayjs(event.startsAt).format("HH:mm")} to {dayjs(event.endsAt).format("HH:mm")}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedDate(day.date)}
+                    className="flex w-full items-start justify-between text-left"
+                  >
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-primary">
+                        {dayjs(day.date).format("dddd")}
                       </p>
-                    </button>
-                  ))}
-                  {!day.events.length ? (
-                    <div className="rounded-2xl border border-dashed border-white/10 px-3 py-6 text-center text-xs text-text-muted">
-                      Drop a task or focus block here.
+                      <p className="mt-2 text-lg font-black text-white">{dayjs(day.date).format("MMM D")}</p>
                     </div>
-                  ) : null}
+                    <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-right">
+                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Score</p>
+                      <p className="mt-1 text-sm font-bold text-white">{day.productivityScore}</p>
+                    </div>
+                  </button>
+
+                  <div className="mt-4 space-y-2">
+                    {day.events.slice(0, 8).map((event) => (
+                      <button
+                        key={event.id}
+                        type="button"
+                        draggable={event.editable}
+                        onDragStart={() => setDraggingEvent(event)}
+                        className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-left"
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-bold text-white">{event.title}</p>
+                          <span className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                            {event.eventType}
+                          </span>
+                        </div>
+                        <p className="mt-2 text-xs text-text-muted">
+                          {dayjs(event.startsAt).format("HH:mm")} to {dayjs(event.endsAt).format("HH:mm")}
+                        </p>
+                      </button>
+                    ))}
+                    {!day.events.length ? (
+                      <div className="rounded-2xl border border-dashed border-white/10 px-3 py-6 text-center text-xs text-text-muted">
+                        Drop a task or focus block here.
+                      </div>
+                    ) : null}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="space-y-6">
@@ -335,6 +351,104 @@ function MetricCard({ label, value }: { label: string; value: number }) {
     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">{label}</p>
       <p className="mt-2 text-2xl font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function MonthOverviewGrid({
+  days,
+  isLoading,
+  selectedDate,
+  onSelectDay,
+}: {
+  days: CalendarDayCell[];
+  isLoading: boolean;
+  selectedDate: string;
+  onSelectDay: (date: string) => void;
+}) {
+  const weeks = [];
+
+  for (let index = 0; index < days.length; index += 7) {
+    weeks.push(days.slice(index, index + 7));
+  }
+
+  return (
+    <div className="overflow-hidden rounded-[24px] border border-white/10 bg-black/20">
+      <div className="grid grid-cols-7 border-b border-white/10">
+        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((label) => (
+          <div
+            key={label}
+            className="border-r border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted last:border-r-0"
+          >
+            {label}
+          </div>
+        ))}
+      </div>
+
+      {isLoading
+        ? Array.from({ length: 5 }).map((_, rowIndex) => (
+            <div key={rowIndex} className="grid grid-cols-7">
+              {Array.from({ length: 7 }).map((__, columnIndex) => (
+                <div
+                  key={`${rowIndex}-${columnIndex}`}
+                  className="h-28 animate-pulse border-r border-b border-white/10 bg-white/5 last:border-r-0"
+                />
+              ))}
+            </div>
+          ))
+        : weeks.map((week, weekIndex) => (
+            <div key={weekIndex} className="grid grid-cols-7">
+              {week.map((day) => {
+                const taskCount = day.events.filter((event) => event.eventType === "task").length;
+                const noteCount = day.events.filter((event) => event.eventType === "ledger").length;
+                const focusCount = day.events.filter((event) => event.eventType === "focus").length;
+                const isSelected = day.date === selectedDate;
+
+                return (
+                  <button
+                    key={day.date}
+                    type="button"
+                    onClick={() => onSelectDay(day.date)}
+                    className={`relative flex h-28 flex-col justify-between border-r border-b border-white/10 p-3 text-left transition last:border-r-0 ${
+                      isSelected
+                        ? "bg-brand-primary/10"
+                        : taskCount >= 5
+                          ? "bg-amber-400/10 hover:bg-amber-400/15"
+                          : "hover:bg-white/5"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="text-xs font-black text-white">
+                        {dayjs(day.date).date()}
+                      </span>
+                      <span className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                        {day.productivityScore}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-end gap-1">
+                        {Array.from({ length: Math.min(noteCount, 4) }).map((_, index) => (
+                          <span key={`note-${day.date}-${index}`} className="h-4 w-1 rounded-full bg-sky-400/80" />
+                        ))}
+                        {Array.from({ length: Math.min(taskCount, 4) }).map((_, index) => (
+                          <span key={`task-${day.date}-${index}`} className="h-6 w-1 rounded-full bg-amber-400/80" />
+                        ))}
+                        {Array.from({ length: Math.min(focusCount, 4) }).map((_, index) => (
+                          <span key={`focus-${day.date}-${index}`} className="h-5 w-1 rounded-full bg-emerald-400/80" />
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-[0.18em] text-text-muted">
+                        <span>{day.events.length} signals</span>
+                        {day.hasJournal ? <FiBookOpen className="text-brand-primary" /> : null}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
     </div>
   );
 }

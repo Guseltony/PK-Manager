@@ -5,24 +5,24 @@ import { useNotesStore } from "../../store/notesStore";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { FiTag, FiClock } from "react-icons/fi";
-import { getPreviewTextFromNote } from "./noteContent";
 import { getTagColorStyle } from "../../utils/tagColor";
+import { getSearchSnippet } from "./noteLinks";
 
 dayjs.extend(relativeTime);
 
 interface NoteItemProps {
   note: Note;
+  searchQuery?: string;
 }
 
-export default function NoteItem({ note }: NoteItemProps) {
+export default function NoteItem({ note, searchQuery = "" }: NoteItemProps) {
   const { selectedNoteId, selectNote } = useNotesStore();
   const isSelected = selectedNoteId === note.id;
-
-  const previewText = getPreviewTextFromNote(
-    note.content,
-    note.contentType || "markdown",
-    60,
-  );
+  const snippet = getSearchSnippet(note, searchQuery, 100);
+  const snippetText = typeof snippet === "string" ? snippet : snippet.text;
+  const titleMatch =
+    searchQuery.trim() &&
+    note.title.toLowerCase().includes(searchQuery.trim().toLowerCase());
 
   return (
     <div
@@ -35,7 +35,10 @@ export default function NoteItem({ note }: NoteItemProps) {
     >
       <div className="flex items-center justify-between gap-2">
         <h4 className={`text-[11px] font-extrabold truncate uppercase tracking-wider ${isSelected ? "text-brand-primary" : "text-text-main group-hover:text-brand-primary"}`}>
-          {note.title || "UNTITLED NOTE"}
+          <HighlightedText
+            text={note.title || "UNTITLED NOTE"}
+            query={titleMatch ? searchQuery : ""}
+          />
         </h4>
         <div className="flex items-center gap-1 text-[10px] text-text-muted shrink-0">
           <FiClock size={10} />
@@ -44,7 +47,15 @@ export default function NoteItem({ note }: NoteItemProps) {
       </div>
       
       <p className="text-xs text-text-muted line-clamp-2 leading-relaxed">
-        {previewText || "No content yet..."}
+        {typeof snippet === "string" ? (
+          snippetText || "No content yet..."
+        ) : (
+          <>
+            {snippet.startsTrimmed ? "..." : ""}
+            <HighlightedText text={snippet.text} query={snippet.highlight} />
+            {snippet.endsTrimmed ? "..." : ""}
+          </>
+        )}
       </p>
 
       <div className="flex flex-wrap gap-1.5 mt-1">
@@ -63,5 +74,39 @@ export default function NoteItem({ note }: NoteItemProps) {
         )}
       </div>
     </div>
+  );
+}
+
+function HighlightedText({
+  text,
+  query,
+}: {
+  text: string;
+  query: string;
+}) {
+  if (!query.trim()) {
+    return <>{text}</>;
+  }
+
+  const normalizedText = text.toLowerCase();
+  const normalizedQuery = query.toLowerCase();
+  const matchIndex = normalizedText.indexOf(normalizedQuery);
+
+  if (matchIndex === -1) {
+    return <>{text}</>;
+  }
+
+  const before = text.slice(0, matchIndex);
+  const match = text.slice(matchIndex, matchIndex + query.length);
+  const after = text.slice(matchIndex + query.length);
+
+  return (
+    <>
+      {before}
+      <mark className="rounded bg-brand-primary/20 px-0.5 text-brand-primary">
+        {match}
+      </mark>
+      {after}
+    </>
   );
 }
