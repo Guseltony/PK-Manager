@@ -32,15 +32,18 @@ connectDB();
 startLedgerCron();
 
 // setup our app
-
 const app = express();
 
 // express middleware
-
 app.use(
   cors({
-    origin: ["http://localhost:3000", "http://localhost:5000"],
-    credentials: true, // IMPORTANT if using cookies
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5000",
+      "https://pkmanager.vercel.app",
+      env.FRONTEND_URL,
+    ].filter(Boolean),
+    credentials: true,
   }),
 );
 app.use(express.json());
@@ -48,7 +51,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // api endpoints
-
 app.use("/auth", authRoute);
 app.use("/note", authMiddleware, noteRoutes);
 app.use("/tag", authMiddleware, tagRoutes);
@@ -69,7 +71,6 @@ app.use("/project", authMiddleware, projectRoutes);
 app.use("/settings", authMiddleware, settingsRoutes);
 
 // port and listening
-
 const server = app.listen(env.PORT || 5555, () => {
   console.log(`server connected on port ${env.PORT}`);
 });
@@ -94,7 +95,7 @@ process.on("uncaughtException", async (err) => {
 
 // Graceful shutdown (signal err)
 process.on("SIGTERM", async () => {
-  console.log("SIGTERMreceived, shutting down gracefully");
+  console.log("SIGTERM received, shutting down gracefully");
   server.close(async () => {
     await disconnectDB();
     process.exit(0);

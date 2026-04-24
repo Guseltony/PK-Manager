@@ -13,6 +13,7 @@ const envSchema = z.object({
   CLOUDINARY_API_SECRET: z.string().min(1).optional(),
   GROQ_API_KEY: z.string().min(1).optional(),
   GROQ_MODEL: z.string().min(1).optional(),
+  FRONTEND_URL: z.string().url().optional(),
 });
 
 export const env = envSchema.parse(process.env);
