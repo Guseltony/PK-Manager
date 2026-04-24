@@ -39,6 +39,7 @@ export default function IdeasPage() {
   const [description, setDescription] = useState("");
   const [content, setContent] = useState(""); // Used to store images (markdown)
   const [searchQuery, setSearchQuery] = useState("");
+  const [showConverted, setShowConverted] = useState(true);
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<{ id: string; url: string }[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -103,17 +104,25 @@ export default function IdeasPage() {
     }
   };
 
-  const filteredIdeas = ideas.filter(
-    (idea) =>
-      idea.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      idea.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+  const filteredIdeas = ideas.filter((idea) => {
+    if (!showConverted && idea.status === "converted") {
+      return false;
+    }
+
+    const normalizedQuery = searchQuery.toLowerCase();
+
+    return (
+      idea.title?.toLowerCase().includes(normalizedQuery) ||
+      idea.description?.toLowerCase().includes(normalizedQuery) ||
       idea.tags?.some((t) =>
-        t.tag.name.toLowerCase().includes(searchQuery.toLowerCase()),
-      ),
-  );
+        t.tag.name.toLowerCase().includes(normalizedQuery),
+      )
+    );
+  });
+  const convertedCount = ideas.filter((idea) => idea.status === "converted").length;
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10">
+    <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 md:px-6">
       {/* Header Section */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div>
@@ -141,7 +150,7 @@ export default function IdeasPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="text-text-muted mt-3 max-w-md text-lg leading-relaxed"
+            className="text-text-muted mt-2 max-w-md text-sm leading-relaxed"
           >
             Capture your raw thoughts instantly. Incubate them into notes,
             tasks, or long-term goals. Add images to form an inspiration board.
@@ -168,10 +177,29 @@ export default function IdeasPage() {
         </div>
       </div>
 
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setShowConverted((current) => !current)}
+          className={`rounded-xl border px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition ${
+            showConverted
+              ? "border-white/10 bg-white/5 text-text-main"
+              : "border-brand-primary/30 bg-brand-primary/10 text-brand-primary"
+          }`}
+        >
+          {showConverted ? "Hide converted" : "Show converted"}
+        </button>
+        {convertedCount > 0 ? (
+          <p className="text-xs text-text-muted">
+            {convertedCount} converted idea{convertedCount === 1 ? "" : "s"} can be hidden to keep the feed clean.
+          </p>
+        ) : null}
+      </div>
+
       {/* Quick Capture Bar */}
       <motion.div layout className="relative group h-fit">
         <div className="absolute -inset-1 bg-linear-to-r from-brand-primary/20 via-brand-secondary/20 to-brand-primary/20 rounded-3xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-700" />
-        <div className="relative bg-surface-soft border border-white/10 rounded-2xl p-4 shadow-2xl transition-all duration-300 group-focus-within:border-brand-primary/30 flex flex-col gap-3">
+        <div className="relative bg-surface-soft border border-white/10 rounded-2xl p-5 sm:p-6 max-sm:px-2 shadow-2xl transition-all duration-300 group-focus-within:border-brand-primary/30 flex flex-col gap-3">
           <input
             ref={inputRef}
             type="text"
@@ -308,6 +336,7 @@ function IdeaCard({ idea, idx, onDelete, onConvert, isHighlighted = false }: { i
     const result = await ideaAi.mutateAsync(idea.id);
     setAiPlan(result);
   };
+  const isFresh = dayjs().diff(dayjs(idea.createdAt), "minute") < 60;
 
   return (
     <motion.div
@@ -317,12 +346,17 @@ function IdeaCard({ idea, idx, onDelete, onConvert, isHighlighted = false }: { i
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.8, filter: "blur(10px)" }}
       transition={{ delay: idx * 0.05 }}
-      className={`relative group bg-surface-soft border rounded-2xl p-6 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col ${idea.status === "converted" ? "opacity-50 grayscale-[0.5]" : ""} ${isHighlighted ? "border-brand-primary/40 shadow-[0_0_0_1px_rgba(var(--brand-primary-rgb),0.25)]" : "border-white/5 hover:border-brand-primary/20"}`}
+      className={`relative group bg-surface-soft border rounded-2xl p-5 sm:p-6 max-sm:px-2 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col ${idea.status === "converted" ? "opacity-50 grayscale-[0.5]" : ""} ${isFresh ? "shadow-[0_0_0_1px_rgba(var(--brand-primary-rgb),0.18),0_0_28px_rgba(var(--brand-primary-rgb),0.12)]" : ""} ${isHighlighted ? "border-brand-primary/40 shadow-[0_0_0_1px_rgba(var(--brand-primary-rgb),0.25)]" : "border-white/5 hover:border-brand-primary/20"}`}
     >
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-text-muted/60">
           <FiClock className="text-brand-primary" />
           {dayjs(idea.createdAt).fromNow()}
+          {isFresh ? (
+            <span className="rounded-full border border-brand-primary/20 bg-brand-primary/10 px-2 py-0.5 text-[9px] text-brand-primary">
+              New
+            </span>
+          ) : null}
         </div>
         <div className="flex items-center gap-2 z-10">
           {idea.links.length > 0 && (
@@ -351,7 +385,7 @@ function IdeaCard({ idea, idx, onDelete, onConvert, isHighlighted = false }: { i
       </div>
 
       <h3 className="text-xl font-bold text-white mb-2">{idea.title}</h3>
-      <p className="text-text-muted font-medium leading-relaxed mb-4 whitespace-pre-wrap">
+      <p className="text-text-muted font-medium text-xs leading-5 mb-4 whitespace-pre-wrap">
         {idea.description}
       </p>
 
