@@ -14,12 +14,28 @@ export default function DreamCard({ dream }: DreamCardProps) {
   const isHigh = dream.priority === "high";
   const isMedium = dream.priority === "medium";
   const isLow = dream.priority === "low";
+  const healthTone =
+    dream.healthScore >= 75
+      ? "border-emerald-400/25 bg-emerald-400/10 text-emerald-200"
+      : dream.healthScore >= 45
+        ? "border-amber-400/25 bg-amber-400/10 text-amber-200"
+        : "border-rose-400/25 bg-rose-400/10 text-rose-200";
+  const healthLabel =
+    dream.healthScore >= 75
+      ? "thriving"
+      : dream.healthScore >= 45
+        ? "watch"
+        : "stagnating";
 
   return (
     <Link href={`/dreams/${dream.id}`}>
       <motion.div
         whileHover={{ y: -5 }}
-        className="glass group relative overflow-hidden rounded-xl border border-white/5 hover:border-white/10 transition-all p-6 sm:p-8 flex flex-col h-[320px] cursor-pointer"
+        className={`glass group relative overflow-hidden rounded-xl border transition-all p-4 sm:p-5 flex flex-col h-[320px] cursor-pointer ${
+          dream.healthScore < 45
+            ? "border-rose-400/20 bg-rose-400/5"
+            : "border-white/5 hover:border-white/10"
+        }`}
       >
         {/* Background Accent */}
         <div className={`absolute top-0 right-0 w-32 h-32 blur-[100px] opacity-20 -mr-10 -mt-10 transition-colors duration-500 ${
@@ -31,14 +47,19 @@ export default function DreamCard({ dream }: DreamCardProps) {
 
         {/* Header */}
         <div className="flex justify-between items-start mb-6">
-          <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full border ${
             isUrgent ? "border-red-500/30 text-red-500 bg-red-500/5" :
             isHigh ? "border-amber-500/30 text-amber-500 bg-amber-500/5" :
             isMedium ? "border-emerald-500/30 text-emerald-500 bg-emerald-500/5" :
             "border-blue-500/30 text-blue-400 bg-blue-500/5"
           }`}>
             {dream.priority}
-          </span>
+            </span>
+            <span className={`text-[10px] font-black uppercase tracking-[0.18em] px-3 py-1 rounded-full border ${healthTone}`}>
+              {healthLabel}
+            </span>
+          </div>
           {dream.category && (
             <span className="text-[10px] font-black text-text-muted uppercase tracking-[0.1em]">
               {dream.category}
@@ -71,6 +92,15 @@ export default function DreamCard({ dream }: DreamCardProps) {
             </div>
             <span className="text-sm font-display font-black text-text-main">
               {Math.round(dream.progress)}%
+            </span>
+          </div>
+          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+            <span className="inline-flex items-center gap-1.5">
+              <FiActivity size={11} />
+              Dream health
+            </span>
+            <span className={dream.healthScore < 45 ? "text-rose-300" : dream.healthScore < 75 ? "text-amber-300" : "text-emerald-300"}>
+              {dream.healthScore}/100
             </span>
           </div>
           
