@@ -33,6 +33,7 @@ startLedgerCron();
 
 // setup our app
 const app = express();
+app.set("trust proxy", 1);
 
 // express middleware
 app.use(

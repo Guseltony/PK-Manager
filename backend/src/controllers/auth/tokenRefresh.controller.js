@@ -5,6 +5,7 @@ import { fetchUsrIpandAgent } from "../../utils/userAgent.ip.js";
 export const refresh = async (req, res) => {
   try {
     const token = req.cookies.refreshToken;
+    console.log("[AuthRefresh] Token received:", token ? "YES (masked: " + token.slice(-5) + ")" : "NO");
 
     if (!token) {
       return res.status(401).json({ error: "No refresh token present." });
