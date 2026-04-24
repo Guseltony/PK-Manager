@@ -142,7 +142,7 @@ export const authCallback = async (req, res) => {
     res.clearCookie("mode");
 
     // 7️⃣ Redirect to frontend
-    res.redirect("http://localhost:3000/dashboard");
+    res.redirect(`${process.env.FRONTEND_URL}/dashboard`);
     // if (user) {
     //   res.status(200).json({
     //     message: "User successfully register",
