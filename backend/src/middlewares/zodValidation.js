@@ -39,8 +39,18 @@ export const validateRequest = (schema, property = "body") => {
       return res.status(400).json({ message: flatErrors.join(", ") });
     }
 
-    // replace request property with parsed value (optional)
-    req[property] = result.data;
+    // replace request property with parsed value
+    try {
+      req[property] = result.data;
+    } catch (err) {
+      // If req.query or another property is a getter (common in Express 5), force override
+      Object.defineProperty(req, property, {
+        value: result.data,
+        enumerable: true,
+        writable: true,
+        configurable: true,
+      });
+    }
 
     next();
   };
