@@ -89,6 +89,7 @@ model Note {
   content    String
   contentType String             @default("markdown")
   isArchived Boolean             @default(false)
+  sourceInboxId String?
   userId     String
   user       User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   tags       NoteTag[]
@@ -97,6 +98,7 @@ model Note {
   dreamId    String?
   dream      Dream?              @relation(fields: [dreamId], references: [id], onDelete: SetNull)
   taskLogs   TaskCompletionLog[]
+  versions   NoteVersion[]
   createdAt  DateTime            @default(now())
   updatedAt  DateTime            @updatedAt
 }
@@ -291,6 +293,7 @@ model Task {
   id          String  @id @default(uuid())
   title       String
   description String?
+  sourceInboxId String?
 
   status   TaskStatus @default(todo)
   priority Priority   @default(medium)
@@ -359,6 +362,7 @@ model Dream {
   id          String  @id @default(uuid())
   title       String
   description String?
+  sourceInboxId String?
 
   status   DreamStatus @default(active)
   category String?
@@ -663,6 +667,7 @@ model Idea {
   description String?    @db.Text
   content     String     @db.Text
   status      IdeaStatus @default(raw)
+  sourceInboxId String?
   userId      String
   user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   tags      IdeaTag[]
@@ -771,4 +776,16 @@ model InboxItem {
 
   @@index([userId, status, createdAt])
   @@index([userId, createdAt])
+}
+
+model NoteVersion {
+  id          String   @id @default(uuid())
+  noteId       String
+  note         Note     @relation(fields: [noteId], references: [id], onDelete: Cascade)
+  title        String
+  content      String   @db.Text
+  contentType  String   @default("markdown")
+  createdAt    DateTime @default(now())
+
+  @@index([noteId, createdAt])
 }
