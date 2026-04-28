@@ -81,16 +81,6 @@ export function MobileSidebarDrawer() {
              <NavLinks onLinkClick={() => setOpen(false)} />
           </div>
         </div>
-
-        <div className="mt-auto pt-6 border-t border-white/5 shrink-0">
-          <div className="bg-brand-primary/10 rounded-2xl p-4 border border-brand-primary/20">
-            <p className="text-xs text-brand-primary font-semibold mb-1">Status</p>
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-              <p className="text-[11px] text-text-main font-medium">System Synchronized</p>
-            </div>
-          </div>
-        </div>
       </div>
     </>
   );
@@ -101,9 +91,9 @@ export function MobileSidebarDrawer() {
 // ============================================================
 const SideBar = () => {
   return (
-    <div className="hidden lg:flex bg-surface-soft w-64 xl:w-72 min-h-screen border-r border-white/5 flex-col p-6 flex-shrink-0">
+    <div className="hidden lg:flex bg-surface-soft w-64 xl:w-72 h-screen sticky top-0 border-r border-white/5 flex-col p-6 flex-shrink-0 overflow-hidden">
       {/* Logo */}
-      <div className="flex items-center gap-3 mb-10 px-2">
+      <div className="flex items-center gap-3 mb-10 px-2 shrink-0">
         <div className="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center shadow-lg shadow-brand-primary/20">
           <HiLightningBolt className="text-white text-2xl" />
         </div>
@@ -121,17 +111,6 @@ const SideBar = () => {
       <nav className="flex-1 overflow-y-auto custom-scrollbar">
         <NavLinks />
       </nav>
-
-      {/* Footer status */}
-      <div className="mt-auto pt-6 border-t border-white/5">
-        <div className="bg-brand-primary/10 rounded-2xl p-4 border border-brand-primary/20">
-          <p className="text-xs text-brand-primary font-semibold mb-1">Status</p>
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-            <p className="text-[11px] text-text-main font-medium">System Synchronized</p>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

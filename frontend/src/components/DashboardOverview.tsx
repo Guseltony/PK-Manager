@@ -10,6 +10,7 @@ import {
   FiChevronRight,
   FiBookOpen,
   FiActivity,
+  FiCheck,
 } from "react-icons/fi";
 import NextLink from "next/link";
 import { IconType } from "react-icons";
@@ -91,7 +92,7 @@ function StatCard({
 
 export default function DashboardOverview() {
   const { notes, isLoading: loadingNotes } = useNotes();
-  const { tasks, isLoading: loadingTasks } = useTasks();
+  const { tasks, isLoading: loadingTasks, updateTaskAsync } = useTasks();
   const { dreams, isLoading: loadingDreams } = useDreams();
   const { entry: todayEntry } = useJournal(new Date());
   const { data: dashboardSummary } = useDashboardSummary();
@@ -173,6 +174,38 @@ export default function DashboardOverview() {
   const inboxSignalCount = queue.filter(
     (item) => item.status === "queued" || item.status === "failed",
   ).length;
+  const spotlightTasks = [...filteredTasks]
+    .filter((task) => task.status !== "done")
+    .sort((left, right) => {
+      const priorityRank = { urgent: 0, high: 1, medium: 2, low: 3 };
+      return priorityRank[left.priority] - priorityRank[right.priority];
+    })
+    .slice(0, 3);
+  const activityFeed = [
+    ...filteredTasks.slice(0, 3).map((task) => ({
+      id: `task-${task.id}`,
+      label: task.title,
+      meta: `Task ${task.status.replace("_", " ")}`,
+      href: "/tasks",
+      createdAt: task.updatedAt,
+    })),
+    ...filteredNotes.slice(0, 2).map((note) => ({
+      id: `note-${note.id}`,
+      label: note.title || "Untitled note",
+      meta: "Note updated",
+      href: `/notes?note=${note.id}`,
+      createdAt: note.updatedAt,
+    })),
+    ...filteredDreams.slice(0, 2).map((dream) => ({
+      id: `dream-${dream.id}`,
+      label: dream.title,
+      meta: "Dream active",
+      href: `/dreams/${dream.id}`,
+      createdAt: dream.updatedAt,
+    })),
+  ]
+    .sort((left, right) => dayjs(right.createdAt).valueOf() - dayjs(left.createdAt).valueOf())
+    .slice(0, 6);
 
   const stats = [
     {
@@ -298,17 +331,39 @@ export default function DashboardOverview() {
               Priority Stack
             </p>
             <div className="space-y-2">
-              {(dashboardSummary.priorities.length
-                ? dashboardSummary.priorities
-                : ["No urgent priorities surfaced right now."]
-              ).map((item, i) => (
-                <div
-                  key={`priority-${i}-${item}`}
-                  className="rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-sm text-text-main"
-                >
-                  {item}
-                </div>
-              ))}
+              {spotlightTasks.length > 0
+                ? spotlightTasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className="flex items-center justify-between gap-3 rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-sm text-text-main"
+                    >
+                      <div>
+                        <p className="font-semibold">{task.title}</p>
+                        <p className="mt-1 text-xs text-text-muted">
+                          {task.priority} priority
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => updateTaskAsync({ id: task.id, updates: { status: "done" } })}
+                        className="inline-flex items-center gap-2 rounded-lg border border-emerald-400/20 bg-emerald-400/10 px-2.5 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-100 transition hover:bg-emerald-400/15"
+                      >
+                        <FiCheck />
+                        Done
+                      </button>
+                    </div>
+                  ))
+                : (dashboardSummary.priorities.length
+                    ? dashboardSummary.priorities
+                    : ["No urgent priorities surfaced right now."]
+                  ).map((item, i) => (
+                    <div
+                      key={`priority-${i}-${item}`}
+                      className="rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-sm text-text-main"
+                    >
+                      {item}
+                    </div>
+                  ))}
               {dashboardSummary.blockers.map((item, i) => (
                 <div
                   key={`blocker-${i}-${item}`}
@@ -327,6 +382,30 @@ export default function DashboardOverview() {
                 <FiChevronRight />
               </NextLink>
             ) : null}
+            <div className="mt-5 border-t border-white/5 pt-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted mb-3">
+                Activity Feed
+              </p>
+              <div className="space-y-2">
+                {activityFeed.map((item) => (
+                  <NextLink
+                    key={item.id}
+                    href={item.href}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-white/5 px-3 py-2 text-sm text-text-main transition hover:bg-white/7"
+                  >
+                    <div>
+                      <p className="font-medium">{item.label}</p>
+                      <p className="mt-1 text-[11px] text-text-muted">
+                        {item.meta}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                      {dayjs(item.createdAt).fromNow()}
+                    </span>
+                  </NextLink>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       ) : null}
