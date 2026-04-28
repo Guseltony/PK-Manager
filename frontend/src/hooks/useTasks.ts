@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../libs/api";
-import { Task, NewTask, Subtask } from "../types/task";
+import { Task, NewTask, ReadingSessionPayload, Subtask } from "../types/task";
 import { useTasksStore } from "../store/tasksStore";
 import { useEffect } from "react";
 
@@ -265,6 +265,34 @@ export function useTasks(activeFilter = "all") {
     },
   });
 
+  const logReadingSessionMutation = useMutation({
+    mutationFn: async ({
+      taskId,
+      payload,
+    }: {
+      taskId: string;
+      payload: ReadingSessionPayload;
+    }) => {
+      const { data } = await api.post<{ data: { task: Task } }>(
+        `/task/${taskId}/reading-sessions`,
+        payload,
+      );
+      return data.data.task;
+    },
+    onSuccess: (task) => {
+      updateInStore(task.id, task);
+      queryClient.invalidateQueries({ queryKey: ["task", task.id] });
+      queryClient.invalidateQueries({ queryKey: ["tasks"] });
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+      queryClient.invalidateQueries({ queryKey: ["ledgerLogs"] });
+      queryClient.invalidateQueries({ queryKey: ["ledgerSummaries"] });
+      queryClient.invalidateQueries({ queryKey: ["dreams"] });
+      if (task.dreamId) {
+        queryClient.invalidateQueries({ queryKey: ["dream", task.dreamId] });
+      }
+    },
+  });
+
   return {
     tasks: fetchedTasks || [],
     isLoading,
@@ -278,12 +306,14 @@ export function useTasks(activeFilter = "all") {
     addSubtask: addSubtaskMutation.mutate,
     updateSubtask: updateSubtaskMutation.mutate,
     deleteSubtask: deleteSubtaskMutation.mutate,
+    logReadingSessionAsync: logReadingSessionMutation.mutateAsync,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
     isAddingSubtask: addSubtaskMutation.isPending,
     isUpdatingSubtask: updateSubtaskMutation.isPending,
     isDeletingSubtask: deleteSubtaskMutation.isPending,
+    isLoggingReadingSession: logReadingSessionMutation.isPending,
   };
 }
 

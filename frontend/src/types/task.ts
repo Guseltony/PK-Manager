@@ -17,10 +17,33 @@ export interface ActivityLog {
   timestamp: string;
 }
 
+export interface TaskLog {
+  id: string;
+  title: string;
+  description?: string | null;
+  status: string;
+  duration?: number | null;
+  completedAt: string;
+  noteId?: string | null;
+}
+
+export interface ReadingSessionPayload {
+  activeDurationMinutes: number;
+  requiredMinutes?: number;
+  sourceTitle?: string;
+  sourceUrl?: string | null;
+  lastPage?: string | null;
+  highlight?: string | null;
+  takeaway?: string | null;
+  noteTitle?: string | null;
+  engagementCount?: number;
+}
+
 export interface Task {
   id: string;
   title: string;
   description: string | null;
+  sourceInboxId?: string | null;
   status: TaskStatus;
   priority: Priority;
   dueDate: string | null;
@@ -40,6 +63,7 @@ export interface Task {
   updatedAt: string;
   subtasks?: Subtask[];
   activities?: ActivityLog[];
+  taskLogs?: TaskLog[];
   note?: { id: string; title: string };
   notes?: { note: { id: string; title: string; updatedAt?: string; contentType?: string } }[];
   dream?: { id: string; title: string };
