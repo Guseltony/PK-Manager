@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../libs/api";
-import { Idea, IdeaCreationData } from "../types/idea";
+import { Idea, IdeaCreationData, IdeaMergePayload } from "../types/idea";
 
 export function useIdeas() {
   const queryClient = useQueryClient();
@@ -56,6 +56,16 @@ export function useIdeas() {
     },
   });
 
+  const mergeIdeasMutation = useMutation({
+    mutationFn: async (payload: IdeaMergePayload) => {
+      const response = await api.post<{ data: Idea }>("/idea/merge", payload);
+      return response.data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ideas"] });
+    },
+  });
+
   return {
     ideas: ideas || [],
     isLoading,
@@ -64,7 +74,9 @@ export function useIdeas() {
     updateIdea: updateIdeaMutation.mutateAsync,
     deleteIdea: deleteIdeaMutation.mutateAsync,
     convertIdea: convertIdeaMutation.mutateAsync,
+    mergeIdeas: mergeIdeasMutation.mutateAsync,
     isCreating: createIdeaMutation.isPending,
     isConverting: convertIdeaMutation.isPending,
+    isMerging: mergeIdeasMutation.isPending,
   };
 }

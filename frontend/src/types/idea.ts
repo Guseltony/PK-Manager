@@ -9,6 +9,7 @@ export interface Idea {
   description?: string;
   content: string;
   status: IdeaStatus;
+  sourceInboxId?: string | null;
   userId: string;
   tags: { tag: Tag }[];
   links: IdeaLink[];
@@ -41,4 +42,9 @@ export interface IdeaCreationData {
   description?: string;
   content: string; // the markdown / image content
   tags?: { name: string; color?: string }[];
+}
+
+export interface IdeaMergePayload {
+  primaryIdeaId: string;
+  secondaryIdeaId: string;
 }

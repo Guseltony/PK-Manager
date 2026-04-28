@@ -14,6 +14,10 @@ import {
   FiSearch,
   FiImage,
   FiX,
+  FiMic,
+  FiGrid,
+  FiLayers,
+  FiGitMerge,
 } from "react-icons/fi";
 import { useIdeas } from "../../../hooks/useIdeas";
 import { useIdeaAI, useTaskPlanner } from "../../../hooks/useAI";
@@ -34,15 +38,28 @@ dayjs.extend(relativeTime);
 
 export default function IdeasPage() {
   const searchParams = useSearchParams();
-  const { ideas, isLoading, createIdea, deleteIdea, convertIdea, isCreating } = useIdeas();
+  const {
+    ideas,
+    isLoading,
+    createIdea,
+    deleteIdea,
+    convertIdea,
+    mergeIdeas,
+    isCreating,
+    isMerging,
+  } = useIdeas();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [content, setContent] = useState(""); // Used to store images (markdown)
   const [searchQuery, setSearchQuery] = useState("");
   const [showConverted, setShowConverted] = useState(true);
+  const [viewMode, setViewMode] = useState<"feed" | "canvas">("feed");
+  const [selectedMergeIds, setSelectedMergeIds] = useState<string[]>([]);
+  const [isListening, setIsListening] = useState(false);
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [uploadedImages, setUploadedImages] = useState<{ id: string; url: string }[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const highlightedIdeaId = searchParams.get("idea");
 
   useEffect(() => {
@@ -52,6 +69,12 @@ export default function IdeasPage() {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   }, [highlightedIdeaId, ideas.length]);
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop();
+    };
+  }, []);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -74,10 +97,66 @@ export default function IdeasPage() {
       setDescription("");
       setContent("");
       setUploadedImages([]);
+      setSelectedMergeIds([]);
       inputRef.current?.focus();
     } catch (err) {
       console.error("Failed to create idea:", err);
     }
+  };
+
+  const toggleIdeaSelection = (ideaId: string) => {
+    setSelectedMergeIds((current) => {
+      if (current.includes(ideaId)) {
+        return current.filter((id) => id !== ideaId);
+      }
+
+      return [...current, ideaId].slice(-2);
+    });
+  };
+
+  const handleMergeIdeas = async () => {
+    if (selectedMergeIds.length !== 2) return;
+
+    try {
+      await mergeIdeas({
+        primaryIdeaId: selectedMergeIds[0],
+        secondaryIdeaId: selectedMergeIds[1],
+      });
+      setSelectedMergeIds([]);
+    } catch (error) {
+      console.error("Failed to merge ideas:", error);
+    }
+  };
+
+  const handleVoiceCapture = () => {
+    const Recognition = getSpeechRecognition();
+    if (!Recognition || isListening) return;
+
+    const recognition = new Recognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onresult = (event) => {
+      const transcript = event.results?.[0]?.[0]?.transcript?.trim();
+      if (!transcript) return;
+
+      setDescription((current) =>
+        current.trim() ? `${current.trim()} ${transcript}` : transcript,
+      );
+      if (!title.trim()) {
+        setTitle(transcript.split(/[.!?]/)[0]?.slice(0, 60) || "Voice Idea");
+      }
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -189,12 +268,60 @@ export default function IdeasPage() {
         >
           {showConverted ? "Hide converted" : "Show converted"}
         </button>
+        <button
+          type="button"
+          onClick={() =>
+            setViewMode((current) => (current === "feed" ? "canvas" : "feed"))
+          }
+          className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition ${
+            viewMode === "canvas"
+              ? "border-brand-primary/30 bg-brand-primary/10 text-brand-primary"
+              : "border-white/10 bg-white/5 text-text-main"
+          }`}
+        >
+          {viewMode === "canvas" ? <FiLayers /> : <FiGrid />}
+          {viewMode === "canvas" ? "Feed view" : "Canvas view"}
+        </button>
         {convertedCount > 0 ? (
           <p className="text-xs text-text-muted">
             {convertedCount} converted idea{convertedCount === 1 ? "" : "s"} can be hidden to keep the feed clean.
           </p>
         ) : null}
       </div>
+
+      {selectedMergeIds.length > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-amber-400/20 bg-amber-400/10 px-4 py-3">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-200">
+              Merge queue
+            </p>
+            <p className="mt-1 text-sm text-amber-50/90">
+              Select two ideas to combine overlapping thinking without losing momentum.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+              {selectedMergeIds.length}/2 selected
+            </span>
+            <button
+              type="button"
+              onClick={() => setSelectedMergeIds([])}
+              className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30"
+            >
+              Clear
+            </button>
+            <button
+              type="button"
+              onClick={handleMergeIdeas}
+              disabled={selectedMergeIds.length !== 2 || isMerging}
+              className="inline-flex items-center gap-2 rounded-xl border border-amber-300/30 bg-amber-300/15 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-amber-100 transition hover:bg-amber-300/20 disabled:opacity-50"
+            >
+              <FiGitMerge />
+              {isMerging ? "Merging..." : "Merge ideas"}
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {/* Quick Capture Bar */}
       <motion.div layout className="relative group h-fit">
@@ -259,6 +386,19 @@ export default function IdeasPage() {
                 parentType="idea"
                 onUploadComplete={handleUploadComplete}
               />
+              <button
+                type="button"
+                onClick={handleVoiceCapture}
+                disabled={isListening}
+                className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition ${
+                  isListening
+                    ? "border-rose-400/20 bg-rose-500/10 text-rose-200"
+                    : "border-white/10 bg-white/5 text-text-main hover:bg-white/10"
+                }`}
+              >
+                <FiMic className={isListening ? "animate-pulse" : ""} />
+                {isListening ? "Listening..." : "Voice"}
+              </button>
               <span className="text-[10px] text-brand-primary/60 font-medium tracking-tighter items-center gap-1 hidden sm:flex">
                 <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 uppercase">
                   Enter
@@ -284,7 +424,13 @@ export default function IdeasPage() {
       </motion.div>
 
       {/* Ideas Feed */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div
+        className={
+          viewMode === "canvas"
+            ? "relative min-h-[720px] overflow-hidden rounded-[30px] border border-white/10 bg-surface-soft/60 p-4"
+            : "grid grid-cols-1 gap-6 md:grid-cols-2"
+        }
+      >
         <AnimatePresence mode="popLayout">
           {filteredIdeas.map((idea, idx) => (
             <IdeaCard
@@ -292,10 +438,13 @@ export default function IdeasPage() {
               idea={idea}
               idx={idx}
               isHighlighted={idea.id === highlightedIdeaId}
+              isSelected={selectedMergeIds.includes(idea.id)}
+              viewMode={viewMode}
               onDelete={() => deleteIdea(idea.id)}
               onConvert={(type) =>
                 convertIdea({ id: idea.id, targetType: type })
               }
+              onToggleSelect={() => toggleIdeaSelection(idea.id)}
             />
           ))}
         </AnimatePresence>
@@ -326,7 +475,25 @@ export default function IdeasPage() {
   );
 }
 
-function IdeaCard({ idea, idx, onDelete, onConvert, isHighlighted = false }: { idea: Idea; idx: number; onDelete: () => void; onConvert: (type: string) => void; isHighlighted?: boolean }) {
+function IdeaCard({
+  idea,
+  idx,
+  onDelete,
+  onConvert,
+  onToggleSelect,
+  isHighlighted = false,
+  isSelected = false,
+  viewMode = "feed",
+}: {
+  idea: Idea;
+  idx: number;
+  onDelete: () => void;
+  onConvert: (type: string) => void;
+  onToggleSelect: () => void;
+  isHighlighted?: boolean;
+  isSelected?: boolean;
+  viewMode?: "feed" | "canvas";
+}) {
   const [aiPlan, setAiPlan] = useState<AiIdeaPlan | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const ideaAi = useIdeaAI();
@@ -337,6 +504,15 @@ function IdeaCard({ idea, idx, onDelete, onConvert, isHighlighted = false }: { i
     setAiPlan(result);
   };
   const isFresh = dayjs().diff(dayjs(idea.createdAt), "minute") < 60;
+  const canvasStyle =
+    viewMode === "canvas"
+      ? {
+          position: "absolute" as const,
+          width: "min(100%, 340px)",
+          left: `${8 + (idx % 3) * 31}%`,
+          top: `${4 + Math.floor(idx / 3) * 31}%`,
+        }
+      : undefined;
 
   return (
     <motion.div
@@ -346,12 +522,18 @@ function IdeaCard({ idea, idx, onDelete, onConvert, isHighlighted = false }: { i
       animate={{ opacity: 1, scale: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.8, filter: "blur(10px)" }}
       transition={{ delay: idx * 0.05 }}
-      className={`relative group bg-surface-soft border rounded-2xl p-5 sm:p-6 max-sm:px-2 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col ${idea.status === "converted" ? "opacity-50 grayscale-[0.5]" : ""} ${isFresh ? "shadow-[0_0_0_1px_rgba(var(--brand-primary-rgb),0.18),0_0_28px_rgba(var(--brand-primary-rgb),0.12)]" : ""} ${isHighlighted ? "border-brand-primary/40 shadow-[0_0_0_1px_rgba(var(--brand-primary-rgb),0.25)]" : "border-white/5 hover:border-brand-primary/20"}`}
+      style={canvasStyle}
+      className={`relative group bg-surface-soft border rounded-2xl p-5 sm:p-6 max-sm:px-2 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col ${idea.status === "converted" ? "opacity-50 grayscale-[0.5]" : ""} ${isFresh ? "shadow-[0_0_0_1px_rgba(var(--brand-primary-rgb),0.18),0_0_28px_rgba(var(--brand-primary-rgb),0.12)]" : ""} ${isSelected ? "border-amber-300/40 shadow-[0_0_0_1px_rgba(252,211,77,0.22)]" : isHighlighted ? "border-brand-primary/40 shadow-[0_0_0_1px_rgba(var(--brand-primary-rgb),0.25)]" : "border-white/5 hover:border-brand-primary/20"}`}
     >
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-text-muted/60">
           <FiClock className="text-brand-primary" />
           {dayjs(idea.createdAt).fromNow()}
+          {idea.sourceInboxId ? (
+            <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2 py-0.5 text-[9px] text-sky-200">
+              Inbox
+            </span>
+          ) : null}
           {isFresh ? (
             <span className="rounded-full border border-brand-primary/20 bg-brand-primary/10 px-2 py-0.5 text-[9px] text-brand-primary">
               New
@@ -359,6 +541,18 @@ function IdeaCard({ idea, idx, onDelete, onConvert, isHighlighted = false }: { i
           ) : null}
         </div>
         <div className="flex items-center gap-2 z-10">
+          <button
+            type="button"
+            onClick={onToggleSelect}
+            className={`rounded-lg border px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] transition ${
+              isSelected
+                ? "border-amber-300/30 bg-amber-300/10 text-amber-100"
+                : "border-white/10 bg-black/20 text-text-muted hover:text-text-main"
+            }`}
+            title="Select for merge"
+          >
+            Merge
+          </button>
           {idea.links.length > 0 && (
             <div className="px-2 py-0.5 rounded bg-brand-primary/10 text-brand-primary text-[9px] font-black uppercase">
               Converted to {idea.links[0].entityType}
@@ -516,5 +710,42 @@ function IdeaCard({ idea, idx, onDelete, onConvert, isHighlighted = false }: { i
         onClose={() => setActiveImage(null)}
       />
     </motion.div>
+  );
+}
+
+type SpeechRecognitionResultLike = {
+  transcript?: string;
+};
+
+type SpeechRecognitionEventLike = {
+  results?: ArrayLike<ArrayLike<SpeechRecognitionResultLike>>;
+};
+
+type SpeechRecognitionLike = {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+function getSpeechRecognition(): SpeechRecognitionConstructor | null {
+  if (typeof window === "undefined") return null;
+
+  const windowWithSpeech = window as Window & {
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    SpeechRecognition?: SpeechRecognitionConstructor;
+  };
+
+  return (
+    windowWithSpeech.SpeechRecognition ||
+    windowWithSpeech.webkitSpeechRecognition ||
+    null
   );
 }
