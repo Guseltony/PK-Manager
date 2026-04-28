@@ -1,8 +1,18 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { useTasks } from "../../hooks/useTasks";
+import { useDreams } from "../../hooks/useDreams";
+import { useProjects } from "../../hooks/useProjects";
 import TaskItem from "./TaskItem";
-import { FiInbox } from "react-icons/fi";
+import { FiArrowRight, FiInbox } from "react-icons/fi";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 
 interface TaskListViewProps {
   activeFilter: string;
@@ -11,7 +21,45 @@ interface TaskListViewProps {
 }
 
 export default function TaskListView({ activeFilter, selectedTaskId, onTaskSelect }: TaskListViewProps) {
-  const { tasks, isLoading, error } = useTasks(activeFilter);
+  const { tasks, isLoading, error, updateTaskAsync, isUpdating } = useTasks(activeFilter);
+  const { dreams } = useDreams();
+  const { projects } = useProjects();
+  const [selectedBulkIds, setSelectedBulkIds] = useState<string[]>([]);
+  const [bulkDreamId, setBulkDreamId] = useState("");
+  const [bulkProjectId, setBulkProjectId] = useState("");
+
+  const availableProjects = useMemo(
+    () => projects.filter((project) => !bulkDreamId || project.dreamId === bulkDreamId),
+    [bulkDreamId, projects],
+  );
+
+  const toggleTaskSelection = (taskId: string) => {
+    setSelectedBulkIds((current) =>
+      current.includes(taskId)
+        ? current.filter((id) => id !== taskId)
+        : [...current, taskId],
+    );
+  };
+
+  const applyBulkAssignment = async () => {
+    if (!selectedBulkIds.length) return;
+
+    await Promise.all(
+      selectedBulkIds.map((id) =>
+        updateTaskAsync({
+          id,
+          updates: {
+            dreamId: bulkDreamId || null,
+            projectId: bulkProjectId || null,
+          },
+        }),
+      ),
+    );
+
+    setSelectedBulkIds([]);
+    setBulkDreamId("");
+    setBulkProjectId("");
+  };
 
   if (isLoading) {
     return (
@@ -52,13 +100,89 @@ export default function TaskListView({ activeFilter, selectedTaskId, onTaskSelec
         <div className="h-px flex-1 bg-white/5 mx-4" />
       </div>
 
+      <div className="rounded-2xl border border-white/10 bg-surface-soft/60 p-3 sm:p-4">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+              Bulk Shift
+            </p>
+            <p className="mt-1 text-xs text-text-muted">
+              Select tasks and move them into a dream or project without leaving the list.
+            </p>
+          </div>
+          <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+            {selectedBulkIds.length} selected
+          </span>
+        </div>
+        <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
+          <Select
+            value={bulkDreamId || "none"}
+            onValueChange={(value) => {
+              setBulkDreamId(value === "none" ? "" : value);
+              setBulkProjectId("");
+            }}
+          >
+            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-6 text-sm text-text-main outline-none">
+              <SelectValue placeholder="No dream" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
+              <SelectItem value="none">No dream</SelectItem>
+              {dreams.map((dream) => (
+                <SelectItem key={dream.id} value={dream.id}>
+                  {dream.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={bulkProjectId || "none"}
+            onValueChange={(value) => setBulkProjectId(value === "none" ? "" : value)}
+          >
+            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-6 text-sm text-text-main outline-none">
+              <SelectValue placeholder="No project" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
+              <SelectItem value="none">No project</SelectItem>
+              {availableProjects.map((project) => (
+                <SelectItem key={project.id} value={project.id}>
+                  {project.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <button
+            type="button"
+            onClick={applyBulkAssignment}
+            disabled={!selectedBulkIds.length || isUpdating}
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+          >
+            <FiArrowRight />
+            {isUpdating ? "Applying..." : "Apply"}
+          </button>
+        </div>
+      </div>
+
       {tasks.map((task) => (
-        <TaskItem 
-          key={task.id} 
-          task={task} 
-          isSelected={selectedTaskId === task.id}
-          onClick={() => onTaskSelect(task.id)}
-        />
+        <div key={task.id} className="flex items-stretch gap-3">
+          <button
+            type="button"
+            onClick={() => toggleTaskSelection(task.id)}
+            className={`mt-4 h-5 w-5 shrink-0 rounded-md border transition ${
+              selectedBulkIds.includes(task.id)
+                ? "border-brand-primary bg-brand-primary"
+                : "border-white/15 bg-black/20"
+            }`}
+            aria-label={`Select ${task.title}`}
+          />
+          <div className="min-w-0 flex-1">
+            <TaskItem 
+              task={task} 
+              isSelected={selectedTaskId === task.id}
+              onClick={() => onTaskSelect(task.id)}
+            />
+          </div>
+        </div>
       ))}
     </div>
   );

@@ -14,8 +14,9 @@ import {
   FiCheckCircle,
   FiZap,
   FiArrowLeft,
+  FiBookOpen,
 } from "react-icons/fi";
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTags } from "../../hooks/useTags";
@@ -24,7 +25,8 @@ import { ImageGallery } from "../../components/ImageGallery";
 import { useTasksStore } from "../../store/tasksStore";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import PromptModal from "../../components/ui/PromptModal";
-import { TaskStatus, Priority } from "../../types/task";
+import Modal from "../../components/ui/Modal";
+import { TaskStatus, Priority, ReadingSessionPayload, Task } from "../../types/task";
 import { useTaskEnrichmentAI, useTaskSubtasksAI } from "../../hooks/useAI";
 import { getTagColorStyle } from "../../utils/tagColor";
 import { useRouter } from "next/navigation";
@@ -49,10 +51,12 @@ export default function TaskDetailView({
     addSubtask,
     updateSubtask,
     deleteSubtask,
+    logReadingSessionAsync,
     isUpdating,
     isDeleting,
     isAddingSubtask,
     isUpdatingSubtask,
+    isLoggingReadingSession,
   } = useTasks();
   const { tags: allTags } = useTags();
   const taskSubtasksAi = useTaskSubtasksAI();
@@ -69,6 +73,7 @@ export default function TaskDetailView({
   const [localDescription, setLocalDescription] = useState("");
   const [isEditingDesc, setIsEditingDesc] = useState(false);
   const [showDurationPrompt, setShowDurationPrompt] = useState(false);
+  const [showReadingSession, setShowReadingSession] = useState(false);
 
   const [prevTaskId, setPrevTaskId] = useState<string | null>(null);
 
@@ -289,6 +294,25 @@ export default function TaskDetailView({
         { id: string; title: string; updatedAt?: string; contentType?: string }
       >(linkedNoteEntries).values(),
     );
+  const shouldShowReadingSession = useMemo(() => {
+    const lowerTitle = task.title.toLowerCase();
+    const tagNames = (task.tags || [])
+      .map(getTagName)
+      .filter((value): value is string => Boolean(value))
+      .map((value) => value.toLowerCase());
+
+    return (
+      lowerTitle.includes("read") ||
+      lowerTitle.includes("study") ||
+      tagNames.some((tag) =>
+        ["reading", "book", "study", "research", "knowledge"].includes(tag),
+      ) ||
+      linkedNotes.length > 0
+    );
+  }, [linkedNotes.length, task.tags, task.title]);
+  const readingLogs = (task.taskLogs || []).filter((log) =>
+    log.title.toLowerCase().includes("reading session"),
+  );
 
   return (
     <div className="w-full md:w-96 lg:w-112.5 absolute md:relative inset-0 border-l border-white/5 bg-surface-soft flex flex-col h-full animate-in slide-in-from-right duration-500 ease-out z-20 shadow-2xl shadow-black/50">
@@ -698,6 +722,54 @@ export default function TaskDetailView({
           </div>
         </div>
 
+        {shouldShowReadingSession ? (
+          <div className="mb-10 rounded-3xl border border-white/10 bg-white/5 p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
+                  Active Reading
+                </p>
+                <p className="mt-2 text-sm leading-6 text-text-muted">
+                  Run a presence-aware reading session and log real engagement
+                  into execution history instead of just checking the task off.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowReadingSession(true)}
+                disabled={isCompleted}
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+              >
+                <FiBookOpen size={14} />
+                Start Reading
+              </button>
+            </div>
+
+            {readingLogs.length ? (
+              <div className="mt-4 grid gap-3">
+                {readingLogs.slice(0, 3).map((log) => (
+                  <div
+                    key={log.id}
+                    className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-bold text-white">
+                        {log.duration || 0} mins active
+                      </p>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                        {log.status}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-text-muted">
+                      {dayjs(log.completedAt).fromNow()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
         {/* Knowledge & Goals Links */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
@@ -915,6 +987,228 @@ export default function TaskDetailView({
         placeholder="e.g. 3"
         defaultValue={task.duration?.toString() || "0"}
       />
+
+      <ReadingSessionModal
+        task={task}
+        linkedSourceTitle={linkedNotes[0]?.title || task.note?.title || task.title}
+        isOpen={showReadingSession}
+        onClose={() => setShowReadingSession(false)}
+        onSubmit={async (payload) => {
+          await logReadingSessionAsync({ taskId: task.id, payload });
+          setShowReadingSession(false);
+        }}
+        isSubmitting={isLoggingReadingSession}
+      />
     </div>
   );
+}
+
+function ReadingSessionModal({
+  task,
+  linkedSourceTitle,
+  isOpen,
+  onClose,
+  onSubmit,
+  isSubmitting,
+}: {
+  task: Task;
+  linkedSourceTitle: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (payload: ReadingSessionPayload) => Promise<void>;
+  isSubmitting: boolean;
+}) {
+  const [sourceTitle, setSourceTitle] = useState(linkedSourceTitle);
+  const [sourceUrl, setSourceUrl] = useState("");
+  const [lastPage, setLastPage] = useState("");
+  const [highlight, setHighlight] = useState("");
+  const [takeaway, setTakeaway] = useState("");
+  const [noteTitle, setNoteTitle] = useState(`${task.title} Reading Insight`);
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [activeSeconds, setActiveSeconds] = useState(0);
+  const [engagementCount, setEngagementCount] = useState(0);
+  const lastInteractionRef = useRef(Date.now());
+  const lastSignalRef = useRef(0);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setSourceTitle(linkedSourceTitle);
+    setSourceUrl("");
+    setLastPage("");
+    setHighlight("");
+    setTakeaway("");
+    setNoteTitle(`${task.title} Reading Insight`);
+    setElapsedSeconds(0);
+    setActiveSeconds(0);
+    setEngagementCount(0);
+    lastInteractionRef.current = Date.now();
+    lastSignalRef.current = 0;
+  }, [isOpen, linkedSourceTitle, task.title]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const registerSignal = () => {
+      const now = Date.now();
+      lastInteractionRef.current = now;
+      if (now - lastSignalRef.current > 4000) {
+        setEngagementCount((current) => current + 1);
+        lastSignalRef.current = now;
+      }
+    };
+
+    const interval = window.setInterval(() => {
+      setElapsedSeconds((current) => current + 1);
+      const visible = !document.hidden;
+      const recentlyActive = Date.now() - lastInteractionRef.current < 60000;
+      if (visible && recentlyActive) {
+        setActiveSeconds((current) => current + 1);
+      }
+    }, 1000);
+
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        lastInteractionRef.current = Date.now();
+      }
+    };
+
+    window.addEventListener("mousemove", registerSignal);
+    window.addEventListener("keydown", registerSignal);
+    window.addEventListener("scroll", registerSignal, true);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("mousemove", registerSignal);
+      window.removeEventListener("keydown", registerSignal);
+      window.removeEventListener("scroll", registerSignal, true);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [isOpen]);
+
+  const requiredMinutes = Math.max(task.estimatedTime || 30, 1);
+  const activeDurationMinutes = Math.round((activeSeconds / 60) * 10) / 10;
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Active Reading Session"
+      panelClassName="max-w-3xl"
+      contentClassName="space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar"
+    >
+      <div className="grid gap-4 sm:grid-cols-3">
+        <ReadingMetric label="Elapsed" value={formatTimer(elapsedSeconds)} />
+        <ReadingMetric label="Active" value={formatTimer(activeSeconds)} />
+        <ReadingMetric label="Signals" value={String(engagementCount)} />
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-primary">
+          Smart Completion
+        </p>
+        <p className="mt-2 text-sm leading-6 text-text-muted">
+          The task completes only if active engagement reaches about{" "}
+          {Math.min(Math.max(requiredMinutes, 25), 30)} minutes and the session
+          stayed visible with real interaction.
+        </p>
+      </div>
+
+      <div className="grid gap-3 sm:grid-cols-2">
+        <input
+          value={sourceTitle}
+          onChange={(event) => setSourceTitle(event.target.value)}
+          placeholder="Source title"
+          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-main outline-none"
+        />
+        <input
+          value={sourceUrl}
+          onChange={(event) => setSourceUrl(event.target.value)}
+          placeholder="Optional source link"
+          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-main outline-none"
+        />
+        <input
+          value={lastPage}
+          onChange={(event) => setLastPage(event.target.value)}
+          placeholder="Last page / resume point"
+          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-main outline-none"
+        />
+        <input
+          value={noteTitle}
+          onChange={(event) => setNoteTitle(event.target.value)}
+          placeholder="Insight note title"
+          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-main outline-none"
+        />
+      </div>
+
+      <textarea
+        value={highlight}
+        onChange={(event) => setHighlight(event.target.value)}
+        placeholder="Highlight or quote to save..."
+        className="min-h-24 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-text-main outline-none"
+      />
+
+      <textarea
+        value={takeaway}
+        onChange={(event) => setTakeaway(event.target.value)}
+        placeholder="What did you learn from this session?"
+        className="min-h-28 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-text-main outline-none"
+      />
+
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() =>
+            onSubmit({
+              activeDurationMinutes,
+              requiredMinutes,
+              sourceTitle,
+              sourceUrl: sourceUrl || null,
+              lastPage: lastPage || null,
+              highlight: highlight || null,
+              takeaway: takeaway || null,
+              noteTitle: noteTitle || null,
+              engagementCount,
+            })
+          }
+          disabled={isSubmitting || activeSeconds === 0}
+          className="inline-flex items-center gap-2 rounded-2xl bg-brand-primary px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-black transition disabled:opacity-50"
+        >
+          <FiBookOpen size={15} />
+          {isSubmitting ? "Logging..." : "End Session"}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
+        >
+          Cancel
+        </button>
+      </div>
+
+      <p className="text-xs leading-5 text-text-muted">
+        Active time tracked so far: {activeDurationMinutes} mins. When you end
+        the session, the system will log it, create an insight note if you
+        entered content, and mark the task partial or complete based on valid
+        engagement.
+      </p>
+    </Modal>
+  );
+}
+
+function ReadingMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+        {label}
+      </p>
+      <p className="mt-2 text-xl font-extrabold text-white">{value}</p>
+    </div>
+  );
+}
+
+function formatTimer(totalSeconds: number) {
+  const mins = Math.floor(totalSeconds / 60);
+  const secs = totalSeconds % 60;
+  return `${mins}:${secs.toString().padStart(2, "0")}`;
 }

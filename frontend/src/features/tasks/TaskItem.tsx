@@ -110,6 +110,11 @@ export default function TaskItem({ task, isSelected, onClick }: TaskItemProps) {
           {task.title}
         </h4>
         <div className="flex items-center gap-3 mt-1.5 text-[10px] text-text-muted font-bold uppercase tracking-wider">
+          {task.sourceInboxId ? (
+            <div className="flex items-center gap-1 bg-sky-400/10 px-2 py-0.5 rounded-lg border border-sky-400/20 text-sky-200">
+              Inbox
+            </div>
+          ) : null}
           {task.dueDate && (
             <div className="flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded-lg border border-white/5">
               <FiClock size={10} className="text-brand-primary/70" />
