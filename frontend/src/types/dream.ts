@@ -13,6 +13,16 @@ export interface Milestone {
   updatedAt?: string;
 }
 
+export interface MilestoneArchitecture {
+  milestoneId: string;
+  taskIds: string[];
+  noteIds: string[];
+  requireLinkedTasksComplete: boolean;
+  requireNotesOnLinkedTasks: boolean;
+}
+
+export type MilestoneArchitectureMap = Record<string, MilestoneArchitecture>;
+
 export interface DreamInsight {
   id: string;
   message: string;
@@ -37,6 +47,7 @@ export interface Dream {
   id: string;
   title: string;
   description?: string;
+  sourceInboxId?: string | null;
   status: "active" | "paused" | "completed";
   category?: string;
   priority: "low" | "medium" | "high" | "urgent";

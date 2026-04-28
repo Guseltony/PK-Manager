@@ -126,14 +126,54 @@ export function useDream(id: string | null) {
     },
   });
 
+  const deleteMilestoneMutation = useMutation<
+    string,
+    Error,
+    string,
+    { previousDream?: Dream }
+  >({
+    mutationFn: async (milestoneId: string) => {
+      await api.delete(`/dream/${id}/milestones/${milestoneId}`);
+      return milestoneId;
+    },
+    onMutate: async (milestoneId) => {
+      await queryClient.cancelQueries({ queryKey: ["dream", id] });
+      const previousDream = queryClient.getQueryData<Dream>(["dream", id]);
+
+      if (previousDream) {
+        queryClient.setQueryData<Dream>(["dream", id], {
+          ...previousDream,
+          milestones: (previousDream.milestones || []).filter(
+            (milestone) => milestone.id !== milestoneId,
+          ),
+        });
+      }
+
+      return { previousDream };
+    },
+    onError: (_error, _milestoneId, context) => {
+      if (context?.previousDream) {
+        queryClient.setQueryData(["dream", id], context.previousDream);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dream", id] });
+      queryClient.invalidateQueries({ queryKey: ["dreams"] });
+    },
+  });
+
   return {
     dream,
     isLoading,
     error,
     updateDream: updateMutation.mutate,
     addMilestone: addMilestoneMutation.mutate,
+    addMilestoneAsync: addMilestoneMutation.mutateAsync,
     toggleMilestone: toggleMilestoneMutation.mutate,
+    deleteMilestone: deleteMilestoneMutation.mutate,
+    deleteMilestoneAsync: deleteMilestoneMutation.mutateAsync,
     isUpdating: updateMutation.isPending,
     isAddingMilestone: addMilestoneMutation.isPending,
+    isDeletingMilestone: deleteMilestoneMutation.isPending,
   };
 }
