@@ -25,7 +25,10 @@ import {
   FiLink,
   FiList,
   FiMaximize2,
+  FiMic,
   FiMoreHorizontal,
+  FiRadio,
+  FiRotateCcw,
   FiSave,
   FiTrash2,
   FiType,
@@ -33,13 +36,24 @@ import {
 } from "react-icons/fi";
 import dayjs from "dayjs";
 import { Note } from "../../types/note";
+import type { NoteVersion } from "../../types/note";
 import { Tag } from "../../types/tag";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import { ImageUploader } from "../../components/ImageUploader";
 import { ContentImage } from "../../components/ContentImage";
 import { ImageLightbox } from "../../components/ImageLightbox";
 import { useNoteAI, useTaskPlanner } from "../../hooks/useAI";
+import { useDreams } from "../../hooks/useDreams";
+import { useTasks } from "../../hooks/useTasks";
+import { useInbox } from "../../hooks/useInbox";
 import { AiNoteAnalysis } from "../../types/ai";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 import { getTagColorStyle } from "../../utils/tagColor";
 import {
   getPlainTextFromNote,
@@ -50,7 +64,9 @@ import {
 } from "./noteContent";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  extractWikiLinks,
   getBacklinkedNotes,
+  resolveWikiTarget,
   replaceWikiLinksWithMarkdown,
 } from "./noteLinks";
 
@@ -73,6 +89,53 @@ function normalizeRichEditorDirection(editor: HTMLDivElement) {
       node.style.textAlign = "left";
       node.style.unicodeBidi = "normal";
     });
+}
+
+function useVoiceCapture(onTranscript: (transcript: string) => void) {
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const transcriptHandlerRef = useRef(onTranscript);
+
+  useEffect(() => {
+    transcriptHandlerRef.current = onTranscript;
+  }, [onTranscript]);
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.stop();
+    };
+  }, []);
+
+  const startListening = () => {
+    const Recognition = getSpeechRecognition();
+    if (!Recognition || isListening) return;
+
+    const recognition = new Recognition();
+    recognition.lang = "en-US";
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => {
+      setIsListening(false);
+      recognitionRef.current = null;
+    };
+    recognition.onerror = () => setIsListening(false);
+    recognition.onresult = (event) => {
+      const transcript = event.results?.[0]?.[0]?.transcript?.trim();
+      if (transcript) {
+        transcriptHandlerRef.current(transcript);
+      }
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  };
+
+  return {
+    isListening,
+    startListening,
+    isSupported: Boolean(getSpeechRecognition()),
+  };
 }
 
 export default function NoteEditor() {
@@ -107,6 +170,9 @@ function NewNoteForm() {
   const { setIsCreating } = useNotesStore();
   const { createNote, isCreating: isSaving } = useNotes();
   const { tags: allTags } = useTags();
+  const { dreams } = useDreams();
+  const { tasks, updateTask: updateLinkedTask, createTaskAsync } = useTasks();
+  const { items: inboxItems } = useInbox();
 
   const [title, setTitle] = useState("");
   const [contentType, setContentType] = useState<NoteContentType>("markdown");
@@ -120,6 +186,34 @@ function NewNoteForm() {
   const markdownRef = useRef<HTMLTextAreaElement | null>(null);
   const richEditorRef = useRef<HTMLDivElement | null>(null);
   const richSelectionRef = useRef<Range | null>(null);
+  const lastSetRichHtmlRef = useRef(richHtml);
+  const voiceCapture = useVoiceCapture((transcript) => {
+    if (contentType === "markdown") {
+      const textarea = markdownRef.current;
+      if (!textarea) {
+        setMarkdownContent((prev) => `${prev}${prev ? "\n" : ""}${transcript}`);
+        return;
+      }
+
+      const inserted = insertMarkdownAtCursor(
+        markdownContent,
+        textarea.selectionStart,
+        textarea.selectionEnd,
+        `${transcript} `,
+      );
+
+      setMarkdownContent(inserted.value);
+      requestAnimationFrame(() => {
+        textarea.focus();
+        textarea.setSelectionRange(inserted.selectionStart, inserted.selectionEnd);
+      });
+      return;
+    }
+
+    richEditorRef.current?.focus();
+    document.execCommand("insertText", false, `${transcript} `);
+    syncRichState();
+  });
 
   const suggestions = allTags.filter(
     (t) =>
@@ -215,8 +309,10 @@ function NewNoteForm() {
   const syncRichState = () => {
     if (richEditorRef.current) {
       normalizeRichEditorDirection(richEditorRef.current);
+      const newHtml = richEditorRef.current.innerHTML || DEFAULT_RICH_HTML;
+      lastSetRichHtmlRef.current = newHtml;
+      setRichHtml(newHtml);
     }
-    setRichHtml(richEditorRef.current?.innerHTML || DEFAULT_RICH_HTML);
   };
 
   const applyRichCommand = (command: string, value?: string) => {
@@ -231,6 +327,15 @@ function NewNoteForm() {
     if (contentType !== "richtext" || !richEditorRef.current) return;
     normalizeRichEditorDirection(richEditorRef.current);
   }, [contentType]);
+
+  useEffect(() => {
+    if (richEditorRef.current && contentType === "richtext") {
+      if (richHtml !== lastSetRichHtmlRef.current) {
+        richEditorRef.current.innerHTML = richHtml;
+        lastSetRichHtmlRef.current = richHtml;
+      }
+    }
+  }, [richHtml, contentType]);
 
   const handleRichImageUpload = (image: { url: string }) => {
     const editor = richEditorRef.current;
@@ -417,6 +522,21 @@ function NewNoteForm() {
               + Add Tag
             </button>
           )}
+          {voiceCapture.isSupported ? (
+            <button
+              type="button"
+              onClick={voiceCapture.startListening}
+              disabled={voiceCapture.isListening}
+              className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition ${
+                voiceCapture.isListening
+                  ? "border-rose-400/20 bg-rose-500/10 text-rose-200"
+                  : "border-white/10 bg-white/5 text-text-main hover:bg-white/10"
+              }`}
+            >
+              <FiMic className={voiceCapture.isListening ? "animate-pulse" : ""} size={13} />
+              {voiceCapture.isListening ? "Listening..." : "Voice"}
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -459,7 +579,6 @@ function NewNoteForm() {
                 textAlign: "left",
                 unicodeBidi: "normal",
               }}
-              dangerouslySetInnerHTML={{ __html: richHtml }}
             />
           </div>
         )}
@@ -479,9 +598,14 @@ function NoteEditorContent({ note }: { note: Note }) {
   const {
     updateNote: syncWithBackend,
     deleteNote: deleteFromBackend,
+    getNoteHistory,
+    restoreNoteVersion,
     isUpdating,
   } = useNotes();
   const { tags: allTags } = useTags();
+  const { dreams } = useDreams();
+  const { tasks, updateTask: updateLinkedTask, createTaskAsync } = useTasks();
+  const { items: inboxItems } = useInbox();
 
   const [title, setTitle] = useState(note.title);
   const [contentType] = useState<NoteContentType>(
@@ -501,9 +625,13 @@ function NoteEditorContent({ note }: { note: Note }) {
     contentType === "markdown" ? "preview" : "split",
   );
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [isReaderMode, setIsReaderMode] = useState(false);
   const [analysis, setAnalysis] = useState<AiNoteAnalysis | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
+  const [historyEntries, setHistoryEntries] = useState<NoteVersion[]>([]);
+  const [selectedHistoryVersionId, setSelectedHistoryVersionId] = useState<string | null>(null);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [previewFontSize, setPreviewFontSize] = useState(() => {
     if (typeof window !== "undefined") {
       const stored = window.localStorage.getItem(PREVIEW_SIZE_STORAGE_KEY);
@@ -519,6 +647,7 @@ function NoteEditorContent({ note }: { note: Note }) {
   const markdownRef = useRef<HTMLTextAreaElement | null>(null);
   const richEditorRef = useRef<HTMLDivElement | null>(null);
   const richSelectionRef = useRef<Range | null>(null);
+  const lastSetRichHtmlRef = useRef(richHtml);
   const lastSyncedTitleRef = useRef(note.title);
   const lastSyncedContentRef = useRef(note.content);
 
@@ -534,6 +663,39 @@ function NoteEditorContent({ note }: { note: Note }) {
     () => getBacklinkedNotes(note, allNotes),
     [allNotes, note],
   );
+  const linkedNotes = useMemo(
+    () =>
+      extractWikiLinks(markdownContent)
+        .map((label) => resolveWikiTarget(label.split("|")[0], allNotes))
+        .filter(Boolean) as Note[],
+    [allNotes, markdownContent],
+  );
+  const relatedNotes = useMemo(() => {
+    const currentTags = new Set(note.tags.map(({ tag }) => tag.name));
+    return allNotes
+      .filter((candidate) => candidate.id !== note.id)
+      .filter((candidate) =>
+        candidate.tags.some(({ tag }) => currentTags.has(tag.name)),
+      )
+      .slice(0, 4);
+  }, [allNotes, note.id, note.tags]);
+  const sourceInboxItem = useMemo(
+    () =>
+      inboxItems.find((item: (typeof inboxItems)[number]) => item.id === note.sourceInboxId) ||
+      null,
+    [inboxItems, note.sourceInboxId],
+  );
+  const captureMethod = sourceInboxItem?.processedPayload?.captureMethod || null;
+  const availableTaskLinks = useMemo(
+    () =>
+      tasks
+        .filter(
+          (task: (typeof tasks)[number]) =>
+            !note.tasks?.some((linkedTask) => linkedTask.id === task.id),
+        )
+        .slice(0, 12),
+    [note.tasks, tasks],
+  );
 
   const suggestions = useMemo(
     () =>
@@ -547,6 +709,20 @@ function NoteEditorContent({ note }: { note: Note }) {
 
   const debouncedContent = useDebounce(content, 800);
   const debouncedTitle = useDebounce(title, 800);
+  const selectedHistoryVersion = useMemo(
+    () => historyEntries.find((entry) => entry.id === selectedHistoryVersionId) || null,
+    [historyEntries, selectedHistoryVersionId],
+  );
+  const historyDiff = useMemo(
+    () =>
+      buildHistoryComparison(
+        selectedHistoryVersion?.content || "",
+        content,
+        selectedHistoryVersion?.contentType || contentType,
+        contentType,
+      ),
+    [content, contentType, selectedHistoryVersion],
+  );
 
   useEffect(() => {
     window.localStorage.setItem(
@@ -554,6 +730,45 @@ function NoteEditorContent({ note }: { note: Note }) {
       String(previewFontSize),
     );
   }, [previewFontSize]);
+
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === "f") {
+        event.preventDefault();
+        setIsReaderMode((current) => !current);
+      }
+    };
+
+    window.addEventListener("keydown", handleShortcut);
+    return () => window.removeEventListener("keydown", handleShortcut);
+  }, []);
+  const voiceCapture = useVoiceCapture((transcript) => {
+    if (contentType === "markdown") {
+      const textarea = markdownRef.current;
+      if (!textarea) {
+        setMarkdownContent((prev) => `${prev}${prev ? "\n" : ""}${transcript}`);
+        return;
+      }
+
+      const inserted = insertMarkdownAtCursor(
+        markdownContent,
+        textarea.selectionStart,
+        textarea.selectionEnd,
+        `${transcript} `,
+      );
+
+      setMarkdownContent(inserted.value);
+      requestAnimationFrame(() => {
+        textarea.focus();
+        textarea.setSelectionRange(inserted.selectionStart, inserted.selectionEnd);
+      });
+      return;
+    }
+
+    richEditorRef.current?.focus();
+    document.execCommand("insertText", false, `${transcript} `);
+    syncRichState();
+  });
 
   useEffect(() => {
     const normalizedTitle = debouncedTitle || "Untitled Note";
@@ -636,6 +851,94 @@ function NoteEditorContent({ note }: { note: Note }) {
     setIsAddingTag(false);
   };
 
+  const handleApplySuggestedTag = (tagName: string) => {
+    if (note.tags.some((tag) => tag.tag.name === tagName)) return;
+    const updatedTags = [...note.tags, { tag: { name: tagName } } as any];
+    const now = new Date().toISOString();
+    updateNote(note.id, { tags: updatedTags, updatedAt: now });
+    syncWithBackend({
+      id: note.id,
+      updates: { tags: updatedTags, updatedAt: now },
+    });
+  };
+
+  const handleDreamLink = (dreamId: string) => {
+    const nextDreamId = dreamId === "none" ? null : dreamId;
+    const now = new Date().toISOString();
+    updateNote(note.id, { dreamId: nextDreamId, updatedAt: now });
+    syncWithBackend({
+      id: note.id,
+      updates: { dreamId: nextDreamId, updatedAt: now },
+    });
+  };
+
+  const handleTaskLink = (taskId: string) => {
+    const task = tasks.find((candidate: (typeof tasks)[number]) => candidate.id === taskId);
+    if (!task) return;
+
+    const existing = Array.from(
+      new Set([
+        ...(task.notes?.map(({ note: linkedNote }: { note: { id: string } }) => linkedNote.id) || []),
+        ...(task.noteId ? [task.noteId] : []),
+      ]),
+    );
+
+    if (existing.includes(note.id)) return;
+
+    updateLinkedTask({
+      id: task.id,
+      updates: {
+        noteId: existing[0] || note.id,
+        noteIds: [...existing, note.id],
+      },
+    });
+  };
+
+  const handleTaskUnlink = (taskId: string) => {
+    const task = tasks.find((candidate: (typeof tasks)[number]) => candidate.id === taskId);
+    if (!task) return;
+
+    const remainingNoteIds = Array.from(
+      new Set(
+        [
+          ...(task.notes?.map(({ note: linkedNote }: { note: { id: string } }) => linkedNote.id) || []),
+          ...(task.noteId ? [task.noteId] : []),
+        ]
+          .filter((id) => id !== note.id),
+      ),
+    );
+
+    updateLinkedTask({
+      id: task.id,
+      updates: {
+        noteId: remainingNoteIds[0] || null,
+        noteIds: remainingNoteIds,
+      },
+    });
+  };
+
+  const handleCreateReadingTask = async () => {
+    const readingSourceTitle =
+      sourceInboxItem?.title ||
+      sourceInboxItem?.processedPayload?.attachments?.[0]?.name ||
+      note.title;
+
+    await createTaskAsync({
+      title: `Read ${readingSourceTitle}`,
+      description:
+        sourceInboxItem?.processedPayload?.summary ||
+        `Active reading task generated from note "${note.title}".`,
+      priority: "medium",
+      status: "todo",
+      estimatedTime: 30,
+      duration: 1,
+      noteId: note.id,
+      noteIds: [note.id],
+      dreamId: note.dreamId || null,
+      tags: [{ tag: { name: "reading" } }, { tag: { name: "knowledge" } }],
+    });
+  };
+
   const handleRemoveTag = (tagToRemove: string) => {
     if (viewMode === "preview") return;
     const updatedTags = note.tags.filter((tag) => tag.tag.name !== tagToRemove);
@@ -659,8 +962,10 @@ function NoteEditorContent({ note }: { note: Note }) {
   const syncRichState = () => {
     if (richEditorRef.current) {
       normalizeRichEditorDirection(richEditorRef.current);
+      const newHtml = richEditorRef.current.innerHTML || DEFAULT_RICH_HTML;
+      lastSetRichHtmlRef.current = newHtml;
+      setRichHtml(newHtml);
     }
-    setRichHtml(richEditorRef.current?.innerHTML || DEFAULT_RICH_HTML);
   };
 
   const applyRichCommand = (command: string, value?: string) => {
@@ -675,6 +980,15 @@ function NoteEditorContent({ note }: { note: Note }) {
     if (contentType !== "richtext" || !richEditorRef.current) return;
     normalizeRichEditorDirection(richEditorRef.current);
   }, [contentType, richHtml]);
+
+  useEffect(() => {
+    if (richEditorRef.current && contentType === "richtext") {
+      if (richHtml !== lastSetRichHtmlRef.current) {
+        richEditorRef.current.innerHTML = richHtml;
+        lastSetRichHtmlRef.current = richHtml;
+      }
+    }
+  }, [richHtml, contentType]);
 
   const handleMarkdownImageUpload = (image: { url: string }) => {
     const textarea = markdownRef.current;
@@ -750,6 +1064,17 @@ function NoteEditorContent({ note }: { note: Note }) {
     useNotesStore.getState().selectNote(noteId);
   };
 
+  const loadHistory = async () => {
+    setIsHistoryLoading(true);
+    try {
+      const versions = await getNoteHistory(note.id);
+      setHistoryEntries(versions);
+      setSelectedHistoryVersionId(versions[0]?.id || null);
+    } finally {
+      setIsHistoryLoading(false);
+    }
+  };
+
   return (
     <div className="flex-1 flex flex-col h-full bg-surface-base overflow-hidden">
       <div className="p-4 border-b border-white/5 flex flex-wrap items-center justify-between gap-4">
@@ -799,29 +1124,29 @@ function NoteEditorContent({ note }: { note: Note }) {
             <button
               onClick={() => setIsReaderMode(true)}
               className="p-1.5 rounded-lg text-text-muted hover:text-brand-primary transition-all ml-1"
-              title="Enter Reader Mode"
+              title="Enter Focus Mode"
             >
               <FiBookOpen size={15} />
             </button>
           </div>
 
-          <div className="flex items-center gap-2 rounded-xl border border-white/5 bg-black/20 px-3 py-1 mr-1 h-9">
+          <div className="flex items-center gap-1.5 rounded-xl border border-white/5 bg-black/20 px-2 py-1 mr-1 h-9">
             <FiType size={13} className="text-brand-primary" />
-            <select
-              value={previewFontSize}
-              onChange={(e) => setPreviewFontSize(Number(e.target.value))}
-              className="bg-transparent text-[11px] font-black text-text-main outline-none cursor-pointer hover:text-brand-primary transition-colors pr-1"
+            <Select
+              value={String(previewFontSize)}
+              onValueChange={(val) => setPreviewFontSize(Number(val))}
             >
-              {[12, 13, 14, 16, 18].map((size) => (
-                <option
-                  key={size}
-                  value={size}
-                  className="bg-surface-soft text-text-main"
-                >
-                  {size}px
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="h-7 border-none bg-transparent p-0 text-[11px] font-black text-text-main hover:text-brand-primary transition-colors focus:ring-0">
+                <SelectValue placeholder={`${previewFontSize}px`} />
+              </SelectTrigger>
+              <SelectContent className="min-w-[80px] rounded-xl border border-white/10 bg-surface-soft text-white">
+                {[12, 13, 14, 16, 18].map((size) => (
+                  <SelectItem key={size} value={String(size)} className="rounded-lg text-[11px] font-bold py-1">
+                    {size}px
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="mr-0.5">
@@ -849,6 +1174,16 @@ function NoteEditorContent({ note }: { note: Note }) {
             <FiCpu size={16} />
           </button>
           <button
+            onClick={async () => {
+              setShowHistory(true);
+              await loadHistory();
+            }}
+            className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 hover:text-brand-primary transition-all"
+            title="Version History"
+          >
+            <FiRotateCcw size={16} />
+          </button>
+          <button
             className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 hover:text-red-400 transition-all"
             onClick={() => setShowDeleteConfirm(true)}
             title="Delete Note"
@@ -858,6 +1193,21 @@ function NoteEditorContent({ note }: { note: Note }) {
           <button className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 transition-all">
             <FiMoreHorizontal size={18} />
           </button>
+          {voiceCapture.isSupported ? (
+            <button
+              type="button"
+              onClick={voiceCapture.startListening}
+              disabled={voiceCapture.isListening}
+              className={`h-9 w-9 flex items-center justify-center rounded-xl transition-all ${
+                voiceCapture.isListening
+                  ? "bg-rose-500/10 text-rose-200"
+                  : "text-text-muted hover:bg-white/5 hover:text-brand-primary"
+              }`}
+              title={voiceCapture.isListening ? "Listening..." : "Voice to text"}
+            >
+              <FiMic size={16} className={voiceCapture.isListening ? "animate-pulse" : ""} />
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -882,6 +1232,14 @@ function NoteEditorContent({ note }: { note: Note }) {
             viewMode={viewMode}
             onRemove={handleRemoveTag}
           />
+          {note.sourceInboxId ? (
+            <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">
+              From Inbox
+            </span>
+          ) : null}
+          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+            Ctrl/Cmd+Shift+F Focus
+          </span>
 
           {viewMode !== "preview" ? (
             isAddingTag ? (
@@ -925,25 +1283,158 @@ function NoteEditorContent({ note }: { note: Note }) {
           ) : null}
         </div>
 
-        {backlinks.length > 0 ? (
-          <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">
-              Backlinks
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {backlinks.map((backlink) => (
-                <button
-                  key={backlink.id}
-                  type="button"
-                  onClick={() => openLinkedNote(backlink.id)}
-                  className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-left text-xs font-bold text-text-main transition hover:bg-black/30"
-                >
-                  {backlink.title || "Untitled Note"}
-                </button>
-              ))}
+        <div className="grid gap-3 lg:grid-cols-[1.15fr_0.95fr]">
+          <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+                  Knowledge Structure
+                </p>
+                <p className="mt-1 text-xs leading-5 text-text-muted">
+                  Link this note into the dream and execution systems.
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-2">
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                  Parent Dream
+                </p>
+                <div className="mt-2">
+                  <Select
+                    value={note.dreamId || "none"}
+                    onValueChange={handleDreamLink}
+                  >
+                    <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
+                      <SelectValue placeholder="Link to dream" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No dream link</SelectItem>
+                      {dreams.map((dream: (typeof dreams)[number]) => (
+                        <SelectItem key={dream.id} value={dream.id}>
+                          {dream.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {note.dream ? (
+                  <p className="mt-2 text-xs text-text-main">
+                    Supporting: {note.dream.title}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                  Link Task
+                </p>
+                <div className="mt-2">
+                  <Select onValueChange={handleTaskLink}>
+                    <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
+                      <SelectValue placeholder="Attach to execution" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableTaskLinks.length ? (
+                        availableTaskLinks.map((task: (typeof availableTaskLinks)[number]) => (
+                          <SelectItem key={task.id} value={task.id}>
+                            {task.title}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-task-links" disabled>
+                          No available tasks
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(note.tasks || []).slice(0, 4).map((task) => (
+                    <button
+                      key={task.id}
+                      type="button"
+                      onClick={() => handleTaskUnlink(task.id)}
+                      className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200"
+                    >
+                      {task.title}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
-        ) : null}
+
+          <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+              Source Material
+            </p>
+            {sourceInboxItem ? (
+              <div className="mt-3 space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">
+                    {captureMethod || "capture"}
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                    {sourceInboxItem.source}
+                  </span>
+                </div>
+                <p className="text-sm leading-6 text-text-main/90">
+                  {sourceInboxItem.processedPayload?.summary ||
+                    sourceInboxItem.content ||
+                    sourceInboxItem.rawInput}
+                </p>
+                {sourceInboxItem.processedPayload?.attachments?.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {sourceInboxItem.processedPayload.attachments.map((attachment: NonNullable<typeof sourceInboxItem.processedPayload.attachments>[number]) => (
+                      <span
+                        key={`${sourceInboxItem.id}-${attachment.name}`}
+                        className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main"
+                      >
+                        {attachment.name}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+                {sourceInboxItem.processedPayload?.videoUrl ? (
+                  <a
+                    href={sourceInboxItem.processedPayload.videoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-xs font-bold text-brand-primary hover:text-white"
+                  >
+                    Open source link
+                  </a>
+                ) : null}
+                {(captureMethod === "file" || captureMethod === "video" || captureMethod === "image") ? (
+                  <button
+                    type="button"
+                    onClick={handleCreateReadingTask}
+                    className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30"
+                  >
+                    <FiBookOpen />
+                    Create reading task
+                  </button>
+                ) : null}
+              </div>
+            ) : (
+              <p className="mt-3 text-sm leading-6 text-text-muted">
+                No capture origin is attached to this note yet.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="grid gap-3 xl:grid-cols-[1.2fr_1fr]">
+          <RelatedKnowledgePanel
+            backlinks={backlinks}
+            linkedNotes={linkedNotes}
+            relatedNotes={relatedNotes}
+            onOpenNote={openLinkedNote}
+          />
+          <NoteConstellation note={note} backlinks={backlinks} linkedNotes={linkedNotes} />
+        </div>
       </div>
 
       {analysis ? (
@@ -989,12 +1480,14 @@ function NoteEditorContent({ note }: { note: Note }) {
           {analysis.suggestedTags.length > 0 ? (
             <div className="mt-4 flex flex-wrap gap-2">
               {analysis.suggestedTags.map((tag) => (
-                <span
+                <button
                   key={tag}
-                  className="rounded-full border border-brand-primary/20 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary"
+                  type="button"
+                  onClick={() => handleApplySuggestedTag(tag)}
+                  className="rounded-full border border-brand-primary/20 bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary transition hover:bg-brand-primary/10"
                 >
                   #{tag}
-                </span>
+                </button>
               ))}
             </div>
           ) : null}
@@ -1039,7 +1532,6 @@ function NoteEditorContent({ note }: { note: Note }) {
                   textAlign: "left",
                   unicodeBidi: "normal",
                 }}
-                dangerouslySetInnerHTML={{ __html: richHtml }}
               />
             </div>
           )
@@ -1173,6 +1665,135 @@ function NoteEditorContent({ note }: { note: Note }) {
 
       {/* Reader Mode Overlay */}
       <AnimatePresence>
+        {showHistory && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[105] bg-black/70 p-4 backdrop-blur-sm"
+          >
+            <div className="mx-auto flex h-full max-w-2xl flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-surface-base">
+              <div className="flex items-center justify-between border-b border-white/5 p-5">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+                    Note History
+                  </p>
+                  <h3 className="mt-1 text-xl font-black text-white">
+                    Restore a previous snapshot
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowHistory(false)}
+                  className="rounded-xl p-2 text-text-muted transition hover:bg-white/5 hover:text-text-main"
+                >
+                  <FiX size={18} />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-5">
+                {isHistoryLoading ? (
+                  <div className="space-y-3">
+                    {Array.from({ length: 4 }).map((_, index) => (
+                      <div
+                        key={index}
+                        className="h-24 animate-pulse rounded-2xl border border-white/10 bg-white/5"
+                      />
+                    ))}
+                  </div>
+                ) : historyEntries.length > 0 ? (
+                  <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+                    <div className="space-y-3">
+                      {historyEntries.map((entry) => (
+                        <div
+                          key={entry.id}
+                          className={`rounded-2xl border p-4 transition ${
+                            selectedHistoryVersionId === entry.id
+                              ? "border-brand-primary/30 bg-brand-primary/10"
+                              : "border-white/10 bg-white/5"
+                          }`}
+                        >
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <p className="text-sm font-bold text-white">
+                                {entry.title || "Untitled Note"}
+                              </p>
+                              <p className="mt-1 text-xs text-text-muted">
+                                {dayjs(entry.createdAt).format("MMM D, YYYY HH:mm")}
+                              </p>
+                              <p className="mt-3 line-clamp-3 text-sm text-text-muted">
+                                {getPlainTextFromNote(entry.content, entry.contentType || "markdown")}
+                              </p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedHistoryVersionId(entry.id)}
+                                className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30"
+                              >
+                                Compare
+                              </button>
+                              <button
+                                type="button"
+                                onClick={async () => {
+                                  await restoreNoteVersion({ id: note.id, versionId: entry.id });
+                                  setShowHistory(false);
+                                }}
+                                className="rounded-xl border border-brand-primary/20 bg-brand-primary/10 px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-brand-primary transition hover:bg-brand-primary/15"
+                              >
+                                Restore
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+                        Compare Snapshot
+                      </p>
+                      {selectedHistoryVersion ? (
+                        <div className="mt-4 space-y-4">
+                          <div className="grid grid-cols-2 gap-3">
+                            <DiffMetric label="Added lines" value={historyDiff.addedLines} />
+                            <DiffMetric label="Removed lines" value={historyDiff.removedLines} />
+                          </div>
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                                Snapshot
+                              </p>
+                              <pre className="mt-3 whitespace-pre-wrap text-xs leading-6 text-text-muted">
+                                {historyDiff.before}
+                              </pre>
+                            </div>
+                            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                                Current
+                              </p>
+                              <pre className="mt-3 whitespace-pre-wrap text-xs leading-6 text-text-main">
+                                {historyDiff.after}
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mt-4 rounded-2xl border border-dashed border-white/10 p-4 text-sm text-text-muted">
+                          Pick a snapshot to compare it with the current note.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-6 text-sm text-text-muted">
+                    No saved snapshots yet. The editor will start recording history
+                    when the note changes.
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        )}
         {isReaderMode && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -1311,6 +1932,188 @@ function RichTextToolbar({
         onClick={() => onCommand("formatBlock", "<p>")}
       />
     </div>
+  );
+}
+
+function NoteConstellation({
+  note,
+  backlinks,
+  linkedNotes,
+}: {
+  note: Note;
+  backlinks: Note[];
+  linkedNotes: Note[];
+}) {
+  const orbitNodes = [...backlinks, ...linkedNotes]
+    .filter((candidate, index, list) => list.findIndex((item) => item.id === candidate.id) === index)
+    .slice(0, 4);
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+        Knowledge Constellation
+      </p>
+      <div className="relative mt-4 h-36 overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_40%),rgba(0,0,0,0.15)]">
+        <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-brand-primary/30 bg-brand-primary/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+          {truncateNoteLabel(note.title)}
+        </div>
+        {orbitNodes.map((backlink, index) => {
+          const positions = [
+            "left-[12%] top-[18%]",
+            "right-[10%] top-[22%]",
+            "left-[18%] bottom-[16%]",
+            "right-[14%] bottom-[14%]",
+          ];
+
+          return (
+            <div key={backlink.id}>
+              <div className="absolute left-1/2 top-1/2 h-px w-24 -translate-y-1/2 bg-white/10" />
+              <div
+                className={`absolute ${positions[index] || positions[0]} rounded-xl border border-emerald-400/20 bg-emerald-400/10 px-3 py-2 text-[10px] font-bold text-emerald-100`}
+              >
+                {truncateNoteLabel(backlink.title)}
+              </div>
+            </div>
+          );
+        })}
+        {!orbitNodes.length ? (
+          <div className="absolute inset-x-4 bottom-4 rounded-xl border border-dashed border-white/10 px-3 py-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+            No backlinks orbiting this note yet
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function truncateNoteLabel(label?: string) {
+  return (label || "Untitled Note").slice(0, 18);
+}
+
+function RelatedKnowledgePanel({
+  backlinks,
+  linkedNotes,
+  relatedNotes,
+  onOpenNote,
+}: {
+  backlinks: Note[];
+  linkedNotes: Note[];
+  relatedNotes: Note[];
+  onOpenNote: (id: string) => void;
+}) {
+  const sections = [
+    { id: "outgoing", label: "Outgoing Links", items: linkedNotes },
+    { id: "backlinks", label: "Backlinks", items: backlinks },
+    { id: "related", label: "Shared Tag Notes", items: relatedNotes },
+  ];
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+        Context Rail
+      </p>
+      <div className="mt-4 grid gap-3 md:grid-cols-3">
+        {sections.map((section) => (
+          <div key={section.id} className="rounded-2xl border border-white/10 bg-black/20 p-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+              {section.label}
+            </p>
+            <div className="mt-3 space-y-2">
+              {section.items.length ? (
+                section.items.slice(0, 4).map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => onOpenNote(item.id)}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-left text-xs font-bold text-text-main transition hover:bg-white/10"
+                  >
+                    {item.title || "Untitled Note"}
+                  </button>
+                ))
+              ) : (
+                <div className="rounded-xl border border-dashed border-white/10 px-3 py-3 text-xs text-text-muted">
+                  Nothing surfaced here yet.
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DiffMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+      <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+        {label}
+      </p>
+      <p className="mt-2 text-lg font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function buildHistoryComparison(
+  beforeContent: string,
+  afterContent: string,
+  beforeType: NoteContentType,
+  afterType: NoteContentType,
+) {
+  const before = getPlainTextFromNote(beforeContent, beforeType)
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const after = getPlainTextFromNote(afterContent, afterType)
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const beforeSet = new Set(before);
+  const afterSet = new Set(after);
+
+  return {
+    addedLines: after.filter((line) => !beforeSet.has(line)).length,
+    removedLines: before.filter((line) => !afterSet.has(line)).length,
+    before: before.slice(0, 12).join("\n") || "No content",
+    after: after.slice(0, 12).join("\n") || "No content",
+  };
+}
+
+type SpeechRecognitionResultLike = {
+  transcript?: string;
+};
+
+type SpeechRecognitionEventLike = {
+  results?: ArrayLike<ArrayLike<SpeechRecognitionResultLike>>;
+};
+
+type SpeechRecognitionLike = {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  onstart: (() => void) | null;
+  onend: (() => void) | null;
+  onerror: (() => void) | null;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  start: () => void;
+  stop: () => void;
+};
+
+type SpeechRecognitionConstructor = new () => SpeechRecognitionLike;
+
+function getSpeechRecognition(): SpeechRecognitionConstructor | null {
+  if (typeof window === "undefined") return null;
+
+  const windowWithSpeech = window as Window & {
+    webkitSpeechRecognition?: SpeechRecognitionConstructor;
+    SpeechRecognition?: SpeechRecognitionConstructor;
+  };
+
+  return (
+    windowWithSpeech.SpeechRecognition ||
+    windowWithSpeech.webkitSpeechRecognition ||
+    null
   );
 }
 
