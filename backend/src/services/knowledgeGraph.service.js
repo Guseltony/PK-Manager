@@ -37,6 +37,15 @@ const buildNode = (type, entity) => ({
   },
 });
 
+const isWithinDateRange = (value, fromDate, toDate) => {
+  if (!value) return true;
+  const timestamp = new Date(value).getTime();
+  if (Number.isNaN(timestamp)) return true;
+  if (fromDate && timestamp < new Date(fromDate).getTime()) return false;
+  if (toDate && timestamp > new Date(toDate).getTime()) return false;
+  return true;
+};
+
 export const computeKnowledgeGraph = async (userId, filters = {}) => {
   const limit = filters.limit || 250;
   const [tasks, ideas, notes, dreams, journals, persistedEdges] = await Promise.all([
@@ -101,7 +110,13 @@ export const computeKnowledgeGraph = async (userId, filters = {}) => {
     ...journals.map((item) => buildNode("journal", item)),
   ];
 
-  const nodes = filters.type ? rawNodes.filter((node) => node.type === filters.type) : rawNodes;
+  const nodes = rawNodes.filter((node) => {
+    if (filters.type && node.type !== filters.type) {
+      return false;
+    }
+
+    return isWithinDateRange(node.createdAt, filters.fromDate, filters.toDate);
+  });
   const validNodeKeys = new Set(nodes.map((node) => nodeKey(node.type, node.id)));
   const generatedEdges = [];
 
@@ -339,4 +354,25 @@ export const computeKnowledgeGraph = async (userId, filters = {}) => {
       clusters: clusterBuckets.size,
     },
   };
+};
+
+export const createManualKnowledgeEdge = async (userId, payload) => {
+  if (payload.fromType === payload.toType && payload.fromId === payload.toId) {
+    throw new Error("Choose two different nodes to create a relationship");
+  }
+
+  return prisma.knowledgeEdge.create({
+    data: {
+      userId,
+      fromType: payload.fromType,
+      fromId: payload.fromId,
+      toType: payload.toType,
+      toId: payload.toId,
+      relationType: payload.relationType,
+      strength: payload.strength || 0.92,
+      metadata: {
+        source: "manual",
+      },
+    },
+  });
 };
