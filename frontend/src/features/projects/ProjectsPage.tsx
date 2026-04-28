@@ -21,6 +21,13 @@ import { useDreams } from "../../hooks/useDreams";
 import { useProjects } from "../../hooks/useProjects";
 import { useTasks } from "../../hooks/useTasks";
 import type { ProjectStatus } from "../../types/project";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 
 const projectStatuses: ProjectStatus[] = [
   "not_started",
@@ -197,23 +204,30 @@ export default function ProjectsPage() {
                 rows={4}
                 className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-primary/30 focus:ring-2 focus:ring-brand-primary/20"
               />
-              <select
+              <Select
                 value={draft.dreamId}
-                onChange={(event) =>
+                onValueChange={(value) =>
                   setDraft((current) => ({
                     ...current,
-                    dreamId: event.target.value,
+                    dreamId: value,
                   }))
                 }
-                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-primary/30 focus:ring-2 focus:ring-brand-primary/20"
               >
-                <option value="">Select parent dream</option>
-                {dreams.map((dream) => (
-                  <option key={dream.id} value={dream.id}>
-                    {dream.title}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-6 text-sm text-white outline-none transition focus:border-brand-primary/30 focus:ring-2 focus:ring-brand-primary/20">
+                  <SelectValue placeholder="Select parent dream" />
+                </SelectTrigger>
+                <SelectContent className="rounded-2xl border border-white/10 bg-surface-soft text-white">
+                  {dreams.map((dream) => (
+                    <SelectItem 
+                      key={dream.id} 
+                      value={dream.id}
+                      className="rounded-xl hover:bg-white/5 focus:bg-white/10 transition-colors"
+                    >
+                      {dream.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <button
@@ -305,18 +319,26 @@ export default function ProjectsPage() {
               </h2>
             </div>
 
-            <select
+            <Select
               value={selectedDreamId}
-              onChange={(event) => setSelectedDreamId(event.target.value)}
-              className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-primary/30"
+              onValueChange={setSelectedDreamId}
             >
-              <option value="all">All dreams</option>
-              {dreams.map((dream) => (
-                <option key={dream.id} value={dream.id}>
-                  {dream.title}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="w-full md:w-[220px] rounded-2xl border border-white/10 bg-black/20 px-4 py-6 text-sm text-white outline-none transition focus:border-brand-primary/30">
+                <SelectValue placeholder="Filter by dream" />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border border-white/10 bg-surface-soft text-white">
+                <SelectItem value="all" className="rounded-xl hover:bg-white/5 focus:bg-white/10">All dreams</SelectItem>
+                {dreams.map((dream) => (
+                  <SelectItem 
+                    key={dream.id} 
+                    value={dream.id}
+                    className="rounded-xl hover:bg-white/5 focus:bg-white/10"
+                  >
+                    {dream.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="mt-6 space-y-4">

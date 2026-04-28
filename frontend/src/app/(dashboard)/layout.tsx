@@ -1,6 +1,7 @@
 import AuthGate from "@/src/components/AuthGate";
 import Header from "@/src/components/Header";
 import SideBar, { MobileSidebarDrawer } from "@/src/components/SideBar";
+import GlobalInboxCapture from "@/src/features/inbox/GlobalInboxCapture";
 import { auth } from "@/src/libs/auth";
 import { redirect } from "next/navigation";
 
@@ -26,6 +27,7 @@ export default async function DashboardLayout({
         <main className="flex-1 overflow-hidden">
           {children}
         </main>
+        <GlobalInboxCapture />
       </div>
     </div>
   );

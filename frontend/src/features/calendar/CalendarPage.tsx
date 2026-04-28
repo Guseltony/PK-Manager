@@ -2,11 +2,13 @@
 
 import { useMemo, useState } from "react";
 import dayjs from "dayjs";
-import { FiArrowRight, FiBookOpen, FiCalendar, FiPlus, FiZap } from "react-icons/fi";
+import { FiArrowRight, FiBookOpen, FiCalendar, FiClock, FiLayers, FiPlus, FiZap } from "react-icons/fi";
 import { useCalendar } from "../../hooks/useCalendar";
 import { CalendarDayCell, CalendarEvent, CalendarView } from "../../types/calendar";
 
 const viewOptions: CalendarView[] = ["day", "week", "month"];
+const displayViewOptions = ["overview", ...viewOptions] as const;
+type CalendarDisplayView = (typeof displayViewOptions)[number];
 
 const buildDroppedDate = (targetDate: string, existingIso?: string | null, fallbackHour = 9) => {
   const base = dayjs(targetDate);
@@ -20,10 +22,11 @@ const buildDroppedDate = (targetDate: string, existingIso?: string | null, fallb
 };
 
 export default function CalendarPage() {
-  const [view, setView] = useState<CalendarView>("day");
+  const [displayView, setDisplayView] = useState<CalendarDisplayView>("overview");
   const [selectedDate, setSelectedDate] = useState(dayjs().format("YYYY-MM-DD"));
   const [blockTitle, setBlockTitle] = useState("");
   const [draggingEvent, setDraggingEvent] = useState<CalendarEvent | null>(null);
+  const calendarView: CalendarView = displayView === "overview" ? "month" : displayView;
 
   const {
     overview,
@@ -33,9 +36,22 @@ export default function CalendarPage() {
     rescheduleTask,
     createFocusBlock,
     updateFocusBlock,
-  } = useCalendar(view, selectedDate);
+  } = useCalendar(calendarView, selectedDate);
 
   const visibleDays = useMemo(() => overview?.days ?? [], [overview]);
+  const overviewMetrics = useMemo(() => {
+    const totalSignals = visibleDays.reduce((sum, day) => sum + day.events.length, 0);
+    const busiestDay = [...visibleDays].sort((left, right) => right.events.length - left.events.length)[0];
+    const emptyDays = visibleDays.filter((day) => day.events.length === 0).length;
+    const journalMisses = visibleDays.filter((day) => day.missingJournal).length;
+
+    return {
+      totalSignals,
+      busiestDay,
+      emptyDays,
+      journalMisses,
+    };
+  }, [visibleDays]);
 
   const handleDropOnDay = async (day: CalendarDayCell) => {
     if (!draggingEvent) return;
@@ -85,13 +101,13 @@ export default function CalendarPage() {
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="inline-flex rounded-2xl border border-white/10 bg-black/20 p-1">
-              {viewOptions.map((option) => (
+              {displayViewOptions.map((option) => (
                 <button
                   key={option}
                   type="button"
-                  onClick={() => setView(option)}
+                  onClick={() => setDisplayView(option)}
                   className={`rounded-xl px-4 py-2 text-xs font-black uppercase tracking-[0.18em] transition ${
-                    option === view ? "bg-brand-primary text-black" : "text-text-muted hover:text-text-main"
+                    option === displayView ? "bg-brand-primary text-black" : "text-text-muted hover:text-text-main"
                   }`}
                 >
                   {option}
@@ -113,9 +129,11 @@ export default function CalendarPage() {
         <div className="rounded-[28px] border border-white/10 bg-surface-soft p-6">
           <div className="mb-4 flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-primary">{view === "month" ? "Calendar Intelligence Dashboard" : "Timeline View"}</p>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-primary">{displayView === "overview" ? "Calendar Overview" : calendarView === "month" ? "Calendar Intelligence Dashboard" : "Timeline View"}</p>
               <p className="mt-2 text-sm text-text-muted">
-                {view === "month"
+                {displayView === "overview"
+                  ? "Start from a higher-level read of your month before drilling into a specific day."
+                  : calendarView === "month"
                   ? "Scan the month first, then jump into a specific day when the signal looks interesting."
                   : "Drag task or planned focus cards onto another date to reschedule them."}
               </p>
@@ -126,19 +144,33 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          {view === "month" ? (
+          {displayView === "overview" ? (
+            <CalendarOverviewPanel
+              selectedDate={selectedDate}
+              days={visibleDays}
+              totalSignals={overviewMetrics.totalSignals}
+              emptyDays={overviewMetrics.emptyDays}
+              journalMisses={overviewMetrics.journalMisses}
+              busiestDay={overviewMetrics.busiestDay}
+              onJumpToDate={(date) => {
+                setSelectedDate(date);
+                setDisplayView("day");
+              }}
+              isLoading={isLoading}
+            />
+          ) : calendarView === "month" ? (
             <MonthOverviewGrid
               days={visibleDays}
               isLoading={isLoading}
               selectedDate={selectedDate}
               onSelectDay={(date) => {
                 setSelectedDate(date);
-                setView("day");
+                setDisplayView("day");
               }}
             />
           ) : (
-            <div className={`grid gap-4 ${view === "week" ? "md:grid-cols-7" : "grid-cols-1"}`}>
-              {isLoading ? Array.from({ length: view === "day" ? 1 : 7 }).map((_, index) => (
+            <div className={`grid gap-4 ${calendarView === "week" ? "md:grid-cols-7" : "grid-cols-1"}`}>
+              {isLoading ? Array.from({ length: calendarView === "day" ? 1 : 7 }).map((_, index) => (
                 <div key={index} className="h-72 animate-pulse rounded-2xl border border-white/10 bg-black/20" />
               )) : visibleDays.map((day) => (
                 <div
@@ -351,6 +383,157 @@ function MetricCard({ label, value }: { label: string; value: number }) {
     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">{label}</p>
       <p className="mt-2 text-2xl font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function CalendarOverviewPanel({
+  selectedDate,
+  days,
+  totalSignals,
+  emptyDays,
+  journalMisses,
+  busiestDay,
+  onJumpToDate,
+  isLoading,
+}: {
+  selectedDate: string;
+  days: CalendarDayCell[];
+  totalSignals: number;
+  emptyDays: number;
+  journalMisses: number;
+  busiestDay?: CalendarDayCell;
+  onJumpToDate: (date: string) => void;
+  isLoading: boolean;
+}) {
+  const strongestDays = [...days]
+    .sort((left, right) => right.productivityScore - left.productivityScore)
+    .slice(0, 3);
+
+  if (isLoading) {
+    return <div className="h-[520px] animate-pulse rounded-[24px] border border-white/10 bg-black/20" />;
+  }
+
+  return (
+    <div className="space-y-5">
+      <div className="grid gap-4 md:grid-cols-4">
+        <MetricCard label="Signals" value={totalSignals} />
+        <MetricCard label="Empty Days" value={emptyDays} />
+        <MetricCard label="Journal Gaps" value={journalMisses} />
+        <MetricCard label="Selected Day" value={dayjs(selectedDate).date()} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+        <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+                Monthly Rhythm
+              </p>
+              <p className="mt-2 text-sm text-text-muted">
+                The calendar pre-page shows where your month is dense, quiet, or missing reflection.
+              </p>
+            </div>
+            <FiLayers className="text-brand-primary" />
+          </div>
+          <div className="mt-5 grid grid-cols-7 gap-2">
+            {days.slice(0, 35).map((day) => {
+              const intensity = Math.min(day.events.length, 6);
+              return (
+                <button
+                  key={day.date}
+                  type="button"
+                  onClick={() => onJumpToDate(day.date)}
+                  className={`rounded-2xl border p-3 text-left transition ${
+                    day.date === selectedDate
+                      ? "border-brand-primary/30 bg-brand-primary/10"
+                      : "border-white/10 bg-white/5 hover:bg-white/10"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-xs font-black text-white">{dayjs(day.date).date()}</span>
+                    {day.hasJournal ? <FiBookOpen className="text-brand-primary" size={12} /> : null}
+                  </div>
+                  <div className="mt-4 flex items-end gap-1">
+                    {Array.from({ length: Math.max(1, intensity || 1) }).map((_, index) => (
+                      <span
+                        key={`${day.date}-bar-${index}`}
+                        className={`w-1 rounded-full ${day.missingJournal ? "bg-rose-300/80" : "bg-brand-primary/80"}`}
+                        style={{ height: `${10 + index * 4}px` }}
+                      />
+                    ))}
+                  </div>
+                  <p className="mt-3 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                    {day.events.length} signals
+                  </p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="space-y-4">
+          <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+                  Busiest Day
+                </p>
+                <p className="mt-2 text-sm text-text-muted">
+                  Your highest-density day across the visible month.
+                </p>
+              </div>
+              <FiClock className="text-brand-primary" />
+            </div>
+            {busiestDay ? (
+              <button
+                type="button"
+                onClick={() => onJumpToDate(busiestDay.date)}
+                className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition hover:bg-white/10"
+              >
+                <p className="text-lg font-black text-white">
+                  {dayjs(busiestDay.date).format("dddd, MMM D")}
+                </p>
+                <p className="mt-2 text-sm text-text-muted">
+                  {busiestDay.events.length} events and productivity score {busiestDay.productivityScore}.
+                </p>
+              </button>
+            ) : (
+              <div className="mt-4 rounded-2xl border border-dashed border-white/10 p-4 text-sm text-text-muted">
+                No visible activity yet for this range.
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+              Strongest Days
+            </p>
+            <div className="mt-4 space-y-3">
+              {strongestDays.map((day) => (
+                <button
+                  key={day.date}
+                  type="button"
+                  onClick={() => onJumpToDate(day.date)}
+                  className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition hover:bg-white/10"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-bold text-white">
+                      {dayjs(day.date).format("ddd, MMM D")}
+                    </p>
+                    <span className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+                      {day.productivityScore}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-text-muted">
+                    {day.completedTasks} completed, {day.events.length} total signals
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

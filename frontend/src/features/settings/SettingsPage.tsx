@@ -16,6 +16,13 @@ import {
 import { useSettings } from "../../hooks/useSettings";
 import type { Settings } from "../../types/settings";
 import { FaBrain } from "react-icons/fa";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 
 type ToggleKey =
   | "autoTaskGenerationFromDreams"
@@ -412,20 +419,26 @@ function SelectField({
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="block rounded-2xl border border-white/10 bg-black/20 p-4">
+    <div className="block rounded-2xl border border-white/10 bg-black/20 p-4">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">{label}</p>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="mt-3 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-primary/30"
-      >
-        {options.map((option) => (
-          <option key={option} value={option}>
-            {option.replaceAll("_", " ")}
-          </option>
-        ))}
-      </select>
-    </label>
+      <div className="mt-3">
+        <Select
+          value={value}
+          onValueChange={onChange}
+        >
+          <SelectTrigger className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-6 text-sm text-white outline-none transition focus:border-brand-primary/30">
+            <SelectValue placeholder={`Select ${label}`} />
+          </SelectTrigger>
+          <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
+            {options.map((option) => (
+              <SelectItem key={option} value={option} className="rounded-lg hover:bg-white/5 focus:bg-white/10">
+                {option.replaceAll("_", " ")}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
   );
 }
 
