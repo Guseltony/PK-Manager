@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "../libs/api";
-import { InboxItem, InboxListResponse } from "../types/inbox";
+import { InboxCaptureRequest, InboxItem, InboxListResponse } from "../types/inbox";
 
 const inboxKey = ["inbox"];
 
@@ -28,8 +28,8 @@ export function useInbox() {
   };
 
   const captureMutation = useMutation({
-    mutationFn: async ({ rawInput, source }: { rawInput: string; source?: string }) => {
-      const { data } = await api.post<{ data: InboxItem }>("/inbox/items", { rawInput, source });
+    mutationFn: async (payload: InboxCaptureRequest) => {
+      const { data } = await api.post<{ data: InboxItem }>("/inbox/items", payload);
       return data.data;
     },
     onSuccess: invalidateAll,
@@ -51,6 +51,23 @@ export function useInbox() {
     onSuccess: invalidateAll,
   });
 
+  const rerouteMutation = useMutation({
+    mutationFn: async ({
+      id,
+      targetType,
+    }: {
+      id: string;
+      targetType: "task" | "idea" | "note" | "journal" | "dream";
+    }) => {
+      const { data } = await api.post<{ data: InboxItem }>(
+        `/inbox/items/${id}/reroute`,
+        { targetType },
+      );
+      return data.data;
+    },
+    onSuccess: invalidateAll,
+  });
+
   return {
     inbox: listQuery.data,
     queue: listQuery.data?.queue ?? [],
@@ -61,9 +78,10 @@ export function useInbox() {
     captureInbox: captureMutation.mutateAsync,
     retryInboxItem: retryMutation.mutateAsync,
     deleteInboxItem: deleteMutation.mutateAsync,
+    rerouteInboxItem: rerouteMutation.mutateAsync,
     isCapturing: captureMutation.isPending,
     isRetrying: retryMutation.isPending,
     isDeleting: deleteMutation.isPending,
+    isRerouting: rerouteMutation.isPending,
   };
 }
-
