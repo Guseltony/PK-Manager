@@ -47,3 +47,15 @@ export const updateTaskSchema = z.object({
   aiScore: z.number().optional(),
   completedAt: z.string().optional().nullable(),
 });
+
+export const logReadingSessionSchema = z.object({
+  activeDurationMinutes: z.number().min(0),
+  requiredMinutes: z.number().min(1).max(720).optional(),
+  sourceTitle: z.string().trim().min(1).max(160).optional(),
+  sourceUrl: z.string().trim().max(500).optional().nullable(),
+  lastPage: z.string().trim().max(80).optional().nullable(),
+  highlight: z.string().trim().max(4000).optional().nullable(),
+  takeaway: z.string().trim().max(4000).optional().nullable(),
+  noteTitle: z.string().trim().max(160).optional().nullable(),
+  engagementCount: z.number().int().min(0).optional(),
+});

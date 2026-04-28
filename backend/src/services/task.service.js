@@ -126,7 +126,13 @@ const taskInclude = {
   project: {
     select: { id: true, title: true, status: true, dreamId: true, progress: true },
   },
+  taskLogs: {
+    orderBy: { completedAt: "desc" },
+    take: 12,
+  },
 };
+
+const READING_COMPLETION_THRESHOLD = 25;
 
 export const taskCreation = async (data, userId) => {
   const {
@@ -287,6 +293,129 @@ export const getTask = async (taskId, userId) => {
         orderBy: { timestamp: "desc" }
       },
     },
+  });
+};
+
+export const logReadingSession = async (taskId, userId, payload) => {
+  const task = await prisma.task.findFirst({
+    where: { id: taskId, userId },
+    include: taskInclude,
+  });
+
+  if (!task) {
+    throw new Error("Task not found");
+  }
+
+  const activeDurationMinutes = Math.max(0, Number(payload.activeDurationMinutes || 0));
+  const requiredMinutes = Math.max(
+    1,
+    Number(payload.requiredMinutes || task.estimatedTime || 30),
+  );
+  const threshold = Math.max(READING_COMPLETION_THRESHOLD, Math.min(requiredMinutes, 30));
+  const engaged = activeDurationMinutes >= threshold && (payload.engagementCount || 0) > 0;
+  const sessionStatus = engaged
+    ? "completed"
+    : activeDurationMinutes > 0
+      ? "partial"
+      : "missed";
+
+  const noteBody = [
+    payload.highlight?.trim() ? `## Highlight\n\n${payload.highlight.trim()}` : "",
+    payload.takeaway?.trim() ? `## Takeaway\n\n${payload.takeaway.trim()}` : "",
+    payload.lastPage?.trim() ? `## Resume Point\n\nLast page/position: ${payload.lastPage.trim()}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const sessionTitle = payload.sourceTitle?.trim() || task.title;
+
+  return prisma.$transaction(async (tx) => {
+    let readingNote = null;
+
+    if (noteBody) {
+      readingNote = await tx.note.create({
+        data: {
+          title:
+            payload.noteTitle?.trim() ||
+            `${task.title} Reading Session`,
+          content: noteBody,
+          contentType: "markdown",
+          userId,
+          dreamId: task.dreamId || null,
+        },
+      });
+
+      await tx.taskNoteLink.upsert({
+        where: {
+          taskId_noteId: {
+            taskId: task.id,
+            noteId: readingNote.id,
+          },
+        },
+        create: {
+          taskId: task.id,
+          noteId: readingNote.id,
+        },
+        update: {},
+      });
+    }
+
+    await tx.taskCompletionLog.create({
+      data: {
+        userId,
+        taskId: task.id,
+        title: `${task.title} · Reading Session`,
+        description: [
+          `Source: ${sessionTitle}`,
+          payload.lastPage?.trim() ? `Resume: ${payload.lastPage.trim()}` : "",
+          payload.sourceUrl?.trim() ? `Link: ${payload.sourceUrl.trim()}` : "",
+          `Engagement signals: ${payload.engagementCount || 0}`,
+        ]
+          .filter(Boolean)
+          .join("\n"),
+        priority: task.priority,
+        status: sessionStatus,
+        duration: activeDurationMinutes,
+        tags: Array.from(
+          new Set([
+            "reading",
+            ...((task.tags || []).map((item) => item.tag?.name).filter(Boolean)),
+          ]),
+        ),
+        goalId: task.dreamId || null,
+        noteId: readingNote?.id || task.noteId || null,
+        completedAt: new Date(),
+      },
+    });
+
+    const updateData = {
+      status: engaged ? "done" : "in_progress",
+      completedAt: engaged ? new Date() : task.completedAt,
+      activities: {
+        create: {
+          action: engaged
+            ? `completed via active reading (${activeDurationMinutes}m)`
+            : `reading session logged (${activeDurationMinutes}m partial)`,
+        },
+      },
+    };
+
+    const updatedTask = await tx.task.update({
+      where: { id: task.id },
+      data: updateData,
+      include: taskInclude,
+    });
+
+    return {
+      task: updatedTask,
+      readingNote,
+      session: {
+        activeDurationMinutes,
+        requiredMinutes,
+        status: sessionStatus,
+        sourceTitle: sessionTitle,
+      },
+    };
   });
 };
 
