@@ -6,6 +6,8 @@ export const createNoteSchema = z.object({
   title: z.string().trim().min(1, "title is required").toLowerCase(),
   content: z.string().trim().min(2, "required"),
   contentType: contentTypeSchema.optional(),
+  sourceInboxId: z.string().uuid().optional().nullable(),
+  dreamId: z.string().uuid().optional().nullable(),
   tagsArray: z
     .array(
       z.object({
@@ -23,8 +25,32 @@ export const noteResponseSchema = z.object({
   title: z.string(),
   content: z.string(),
   contentType: contentTypeSchema.default("markdown"),
+  sourceInboxId: z.uuid().nullable().optional(),
+  dreamId: z.uuid().nullable().optional(),
   isArchived: z.boolean(),
   userId: z.uuid(),
+  dream: z
+    .object({
+      id: z.uuid(),
+      title: z.string(),
+    })
+    .nullable()
+    .optional(),
+  tasks: z
+    .array(
+      z.object({
+        id: z.uuid(),
+        title: z.string(),
+        status: z.enum(["todo", "in_progress", "done"]),
+        priority: z.enum(["low", "medium", "high", "urgent"]),
+        updatedAt: z.preprocess((arg) => {
+          if (arg instanceof Date) return arg.toISOString();
+          return arg;
+        }, z.iso.datetime()),
+      }),
+    )
+    .optional()
+    .default([]),
   createdAt: z.preprocess((arg) => {
     if (arg instanceof Date) return arg.toISOString();
     return arg;

@@ -1,4 +1,3 @@
-import { updateNote } from "../controllers/noteControllers.js";
 import { prisma } from "../libs/prisma.js";
 import {
   allNoteResponseSchema,
@@ -6,7 +5,87 @@ import {
 } from "../validators/note.schema.js";
 import { createTagLinks, syncTags, tagInclude } from "../utils/tagHelper.js";
 
-const noteCreation = async ({ title, content, contentType, tagsArray }, user_id) => {
+const noteHistoryInclude = {
+  ...tagInclude(),
+  dream: {
+    select: { id: true, title: true },
+  },
+  tasks: {
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      priority: true,
+      updatedAt: true,
+    },
+    orderBy: { updatedAt: "desc" },
+  },
+  taskLinks: {
+    include: {
+      task: {
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          priority: true,
+          updatedAt: true,
+        },
+      },
+    },
+  },
+};
+
+const noteBaseInclude = {
+  ...tagInclude(),
+  dream: {
+    select: { id: true, title: true },
+  },
+  tasks: {
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      priority: true,
+      updatedAt: true,
+    },
+    orderBy: { updatedAt: "desc" },
+  },
+  taskLinks: {
+    include: {
+      task: {
+        select: {
+          id: true,
+          title: true,
+          status: true,
+          priority: true,
+          updatedAt: true,
+        },
+      },
+    },
+  },
+};
+
+const hydrateNoteRelationships = (note) => {
+  const directTasks = Array.isArray(note.tasks) ? note.tasks : [];
+  const linkedTasks = Array.isArray(note.taskLinks)
+    ? note.taskLinks
+        .map((link) => link.task)
+        .filter(Boolean)
+    : [];
+
+  const mergedTasks = Array.from(
+    new Map(
+      [...directTasks, ...linkedTasks].map((task) => [task.id, task]),
+    ).values(),
+  );
+
+  return {
+    ...note,
+    tasks: mergedTasks,
+  };
+};
+
+const noteCreation = async ({ title, content, contentType, tagsArray, sourceInboxId, dreamId }, user_id) => {
   if (!title || !content) {
     throw new Error("title and content of the note is required");
   }
@@ -49,14 +128,14 @@ const noteCreation = async ({ title, content, contentType, tagsArray }, user_id)
       title,
       content,
       contentType: contentType || "markdown",
+      sourceInboxId: sourceInboxId || null,
+      dreamId: dreamId || null,
       user: {
         connect: { id: user_id },
       },
       tags: createTagLinks(tagsArray, user_id),
     },
-    include: {
-      ...tagInclude(),
-    },
+    include: noteBaseInclude,
   });
 
   console.log(note);
@@ -69,18 +148,20 @@ const noteCreation = async ({ title, content, contentType, tagsArray }, user_id)
   //   });
   // }
 
-  return note;
+  return hydrateNoteRelationships(note);
 };
 
 const getUserNotes = async (user_id) => {
   const userNotes = await prisma.note.findMany({
     where: { userId: user_id },
     include: {
-      ...tagInclude(),
+      ...noteBaseInclude,
     },
   });
 
-  const validateNotes = allNoteResponseSchema.parse(userNotes);
+  const validateNotes = allNoteResponseSchema.parse(
+    userNotes.map(hydrateNoteRelationships),
+  );
 
   return validateNotes;
 };
@@ -92,7 +173,7 @@ const getNote = async (note_id, user_id) => {
       userId: user_id,
     },
     include: {
-      ...tagInclude(),
+      ...noteBaseInclude,
     },
   });
 
@@ -100,17 +181,45 @@ const getNote = async (note_id, user_id) => {
     throw new Error("Note not found or does not exist");
   }
 
-  const validateNote = noteResponseSchema.parse(note);
+  const validateNote = noteResponseSchema.parse(hydrateNoteRelationships(note));
 
   return validateNote;
 };
 
-const updateUserNote = async ({ title, content, contentType, tagsArray }, note_id, user_id) => {
+const updateUserNote = async ({ title, content, contentType, tagsArray, dreamId }, note_id, user_id) => {
+  const existingNote = await prisma.note.findUnique({
+    where: {
+      id: note_id,
+      userId: user_id,
+    },
+  });
+
+  if (!existingNote) {
+    throw new Error("Note not found or does not exist");
+  }
+
   const noteObj = {};
 
   if (title !== undefined) noteObj.title = title;
   if (content !== undefined) noteObj.content = content;
   if (contentType !== undefined) noteObj.contentType = contentType;
+  if (dreamId !== undefined) noteObj.dreamId = dreamId;
+
+  const shouldCreateSnapshot =
+    (title !== undefined && title !== existingNote.title) ||
+    (content !== undefined && content !== existingNote.content) ||
+    (contentType !== undefined && contentType !== existingNote.contentType);
+
+  if (shouldCreateSnapshot) {
+    await prisma.noteVersion.create({
+      data: {
+        noteId: existingNote.id,
+        title: existingNote.title,
+        content: existingNote.content,
+        contentType: existingNote.contentType || "markdown",
+      },
+    });
+  }
 
   const updateNote = await prisma.note.update({
     where: {
@@ -123,7 +232,7 @@ const updateUserNote = async ({ title, content, contentType, tagsArray }, note_i
       tags: tagsArray ? syncTags(tagsArray, user_id) : undefined,
     },
     include: {
-      ...tagInclude(),
+      ...noteBaseInclude,
     },
   });
 
@@ -131,7 +240,73 @@ const updateUserNote = async ({ title, content, contentType, tagsArray }, note_i
     throw new Error("Note not found or does not exist");
   }
 
-  return updateNote;
+  return hydrateNoteRelationships(updateNote);
+};
+
+const getNoteHistory = async (note_id, user_id) => {
+  const note = await prisma.note.findUnique({
+    where: {
+      id: note_id,
+      userId: user_id,
+    },
+    select: { id: true },
+  });
+
+  if (!note) {
+    throw new Error("Note not found or does not exist");
+  }
+
+  return prisma.noteVersion.findMany({
+    where: { noteId: note_id },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
+const restoreNoteVersion = async (note_id, version_id, user_id) => {
+  const note = await prisma.note.findUnique({
+    where: {
+      id: note_id,
+      userId: user_id,
+    },
+  });
+
+  if (!note) {
+    throw new Error("Note not found or does not exist");
+  }
+
+  const version = await prisma.noteVersion.findFirst({
+    where: {
+      id: version_id,
+      noteId: note_id,
+    },
+  });
+
+  if (!version) {
+    throw new Error("Note version not found");
+  }
+
+  await prisma.noteVersion.create({
+    data: {
+      noteId: note.id,
+      title: note.title,
+      content: note.content,
+      contentType: note.contentType || "markdown",
+    },
+  });
+
+  return prisma.note.update({
+    where: {
+      id: note_id,
+      userId: user_id,
+    },
+    data: {
+      title: version.title,
+      content: version.content,
+      contentType: version.contentType || "markdown",
+      updatedAt: new Date(),
+    },
+    include: noteHistoryInclude,
+  }).then(hydrateNoteRelationships);
 };
 
 const deleteUserNote = async (note_id, user_id) => {
@@ -326,6 +501,8 @@ export {
   getNote,
   getUserNotes,
   updateUserNote,
+  getNoteHistory,
+  restoreNoteVersion,
   deleteUserNote,
   deleteAllUserNotes,
   removeTagFromNote,
