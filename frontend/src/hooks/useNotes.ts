@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../libs/api";
-import { Note, NewNote } from "../types/note";
+import { Note, NewNote, NoteVersion } from "../types/note";
 import { Tag } from "../types/tag";
 import { useNotesStore } from "../store/notesStore";
 import { useEffect } from "react";
@@ -13,6 +13,11 @@ interface BackendTag {
 interface BackendNote extends Omit<Note, "tags"> {
   tags: BackendTag[];
 }
+
+const mapNoteVersion = (version: NoteVersion): NoteVersion => ({
+  ...version,
+  contentType: version.contentType || "markdown",
+});
 
 const mapBackendNote = (note: BackendNote): Note => ({
   ...note,
@@ -58,6 +63,7 @@ export function useNotes() {
         tagsArray: newNote.tags.map(t => ({ name: t.tag.name })),
         title: newNote.title || "New Note",
         content: newNote.content || "Start writing...",
+        dreamId: newNote.dreamId || null,
       };
       const { data } = await api.post<{ data: BackendNote }>("/note/create", payload);
       return mapBackendNote(data.data);
@@ -97,6 +103,27 @@ export function useNotes() {
     },
   });
 
+  const getNoteHistory = async (id: string) => {
+    const { data } = await api.get<{ data: NoteVersion[] }>(`/note/get/${id}/history`);
+    return data.data.map(mapNoteVersion);
+  };
+
+  const restoreNoteVersion = async ({
+    id,
+    versionId,
+  }: {
+    id: string;
+    versionId: string;
+  }) => {
+    const { data } = await api.post<{ data: BackendNote }>(
+      `/note/get/${id}/history/${versionId}/restore`,
+    );
+    const mapped = mapBackendNote(data.data);
+    updateNote(mapped.id, mapped);
+    await queryClient.invalidateQueries({ queryKey: ["notes"] });
+    return mapped;
+  };
+
   return {
     notes: fetchedNotes || (EMPTY_ARRAY as Note[]),
     isLoading,
@@ -104,6 +131,8 @@ export function useNotes() {
     createNote: createMutation.mutate,
     updateNote: updateMutation.mutate,
     deleteNote: deleteMutation.mutate,
+    getNoteHistory,
+    restoreNoteVersion,
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
   };
