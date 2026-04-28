@@ -11,5 +11,6 @@ router.get("/all", ideaControllers.allUserIdeas);
 router.put("/update/:id", ideaControllers.updateIdea);
 router.delete("/delete/:id", ideaControllers.deleteIdea);
 router.post("/convert/:id", ideaControllers.convertIdea);
+router.post("/merge", ideaControllers.mergeIdeas);
 
 export default router;

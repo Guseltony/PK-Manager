@@ -49,3 +49,18 @@ export const convertIdea = async (req, res) => {
     res.status(400).json({ success: false, error: error.message });
   }
 };
+
+export const mergeIdeas = async (req, res) => {
+  try {
+    const { primaryIdeaId, secondaryIdeaId } = req.body;
+    const mergedIdea = await ideaService.mergeIdeas(primaryIdeaId, secondaryIdeaId, req.user.id);
+    res.status(200).json({
+      success: true,
+      message: "Ideas merged successfully",
+      data: mergedIdea,
+    });
+  } catch (error) {
+    console.error("mergeIdeas error:", error);
+    res.status(400).json({ success: false, error: error.message });
+  }
+};

@@ -134,3 +134,88 @@ export const convertIdeaToEntity = async (ideaId, userId, targetType) => {
 
   return { entity: createdEntity, type: targetType };
 };
+
+export const mergeIdeas = async (primaryIdeaId, secondaryIdeaId, userId) => {
+  if (primaryIdeaId === secondaryIdeaId) {
+    throw new Error("Choose two different ideas to merge");
+  }
+
+  const ideas = await prisma.idea.findMany({
+    where: {
+      userId,
+      id: { in: [primaryIdeaId, secondaryIdeaId] },
+    },
+    include: {
+      tags: { include: { tag: true } },
+      links: true,
+    },
+  });
+
+  if (ideas.length !== 2) {
+    throw new Error("Both ideas must exist");
+  }
+
+  const primary = ideas.find((idea) => idea.id === primaryIdeaId);
+  const secondary = ideas.find((idea) => idea.id === secondaryIdeaId);
+
+  const mergedTags = Array.from(
+    new Map(
+      [...primary.tags, ...secondary.tags].map((item) => [
+        item.tag.name,
+        { name: item.tag.name, color: item.tag.color },
+      ]),
+    ).values(),
+  );
+
+  const mergedDescription = [primary.description, secondary.description]
+    .filter(Boolean)
+    .join("\n\n");
+
+  const mergedContent = [primary.content, secondary.content]
+    .filter(Boolean)
+    .join("\n\n---\n\n");
+
+  await prisma.$transaction([
+    prisma.idea.update({
+      where: { id: primaryIdeaId, userId },
+      data: {
+        title: primary.title || secondary.title,
+        description: mergedDescription || null,
+        content: mergedContent,
+        status:
+          primary.status === "converted" || secondary.status === "converted"
+            ? "converted"
+            : primary.status,
+        tags: syncTags(mergedTags, userId),
+      },
+    }),
+    prisma.ideaLink.createMany({
+      data: secondary.links
+        .filter(
+          (link) =>
+            !primary.links.some(
+              (existing) =>
+                existing.entityType === link.entityType &&
+                existing.entityId === link.entityId,
+            ),
+        )
+        .map((link) => ({
+          ideaId: primaryIdeaId,
+          entityType: link.entityType,
+          entityId: link.entityId,
+        })),
+      skipDuplicates: true,
+    }),
+    prisma.idea.delete({
+      where: { id: secondaryIdeaId, userId },
+    }),
+  ]);
+
+  return prisma.idea.findFirst({
+    where: { id: primaryIdeaId, userId },
+    include: {
+      ...tagInclude(),
+      links: true,
+    },
+  });
+};
