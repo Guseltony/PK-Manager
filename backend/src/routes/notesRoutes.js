@@ -15,6 +15,8 @@ import {
   deleteAllNotes,
   tagRemoveFromNote,
   getNotesWithTagName,
+  noteHistory,
+  restoreHistoryVersion,
 } from "../controllers/noteControllers.js";
 import { validateRequest } from "../middlewares/zodValidation.js";
 import {
@@ -52,6 +54,17 @@ noteRoutes.put(
   validateRequest(idParamSchema, "params"),
   validateRequest(updateNoteSchema, "body"),
   updateNote
+);
+
+noteRoutes.get(
+  "/get/:id/history",
+  validateRequest(idParamSchema, "params"),
+  noteHistory
+);
+
+noteRoutes.post(
+  "/get/:id/history/:versionId/restore",
+  restoreHistoryVersion
 );
 
 noteRoutes.delete(

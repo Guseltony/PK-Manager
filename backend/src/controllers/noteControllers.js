@@ -2,9 +2,11 @@ import {
   deleteAllUserNotes,
   deleteUserNote,
   getNote,
+  getNoteHistory,
   getUserNotes,
   noteCreation,
   removeTagFromNote,
+  restoreNoteVersion,
   tagNote,
   updateUserNote,
 } from "../services/note.service.js";
@@ -67,9 +69,9 @@ export const allUserNote = async (req, res) => {
 
 export const updateNote = async (req, res) => {
   try {
-    const { title, content, contentType, tagsArray } = req.body;
+    const { title, content, contentType, tagsArray, dreamId } = req.body;
     const data = await updateUserNote(
-      { title, content, contentType, tagsArray },
+      { title, content, contentType, tagsArray, dreamId },
       req.params.id,
       req.user.id,
     );
@@ -82,6 +84,37 @@ export const updateNote = async (req, res) => {
     }
   } catch (error) {
     console.error("updateNote error:", error);
+    res.status(400).json({
+      error: error.message,
+    });
+  }
+};
+
+export const noteHistory = async (req, res) => {
+  try {
+    const data = await getNoteHistory(req.params.id, req.user.id);
+    res.status(200).json({ data });
+  } catch (error) {
+    console.error("noteHistory error:", error);
+    res.status(400).json({
+      error: error.message,
+    });
+  }
+};
+
+export const restoreHistoryVersion = async (req, res) => {
+  try {
+    const data = await restoreNoteVersion(
+      req.params.id,
+      req.params.versionId,
+      req.user.id,
+    );
+    res.status(200).json({
+      message: "Note restored successfully",
+      data,
+    });
+  } catch (error) {
+    console.error("restoreHistoryVersion error:", error);
     res.status(400).json({
       error: error.message,
     });
