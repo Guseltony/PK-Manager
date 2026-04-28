@@ -4,12 +4,19 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { motion } from "framer-motion";
 import dayjs from "dayjs";
-import { FiGitMerge, FiLayers, FiShare2, FiTarget } from "react-icons/fi";
-import { useKnowledgeGraph } from "../../hooks/useKnowledge";
+import { FiGitMerge, FiLayers, FiLink2, FiShare2, FiTarget } from "react-icons/fi";
+import { useCreateKnowledgeEdge, useKnowledgeGraph } from "../../hooks/useKnowledge";
 import {
   KnowledgeGraphResponse,
   KnowledgeNodeType,
 } from "../../types/knowledge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
 
 const filterOptions: Array<{ id: "all" | KnowledgeNodeType; label: string }> = [
   { id: "all", label: "All" },
@@ -28,9 +35,20 @@ const typePalette: Record<KnowledgeNodeType, string> = {
   journal: "bg-fuchsia-400/15 border-fuchsia-400/25 text-fuchsia-200",
 };
 
+const timeFilterOptions = [
+  { id: "all", label: "All time" },
+  { id: "30d", label: "30 days" },
+  { id: "7d", label: "7 days" },
+] as const;
+
 export default function KnowledgePage() {
   const [activeType, setActiveType] = useState<"all" | KnowledgeNodeType>("all");
-  const { data, isLoading } = useKnowledgeGraph(activeType === "all" ? undefined : activeType);
+  const [timeFilter, setTimeFilter] = useState<(typeof timeFilterOptions)[number]["id"]>("all");
+  const [relationType, setRelationType] = useState("supports");
+  const [targetNodeId, setTargetNodeId] = useState<string>("");
+  const { fromDate, toDate } = useMemo(() => getKnowledgeDateRange(timeFilter), [timeFilter]);
+  const { data, isLoading } = useKnowledgeGraph(activeType === "all" ? undefined : activeType, fromDate, toDate);
+  const createKnowledgeEdge = useCreateKnowledgeEdge();
   const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
 
   const graphLayout = useMemo(() => buildGraphLayout(data), [data]);
@@ -38,6 +56,27 @@ export default function KnowledgePage() {
     () => data?.nodes.find((node) => node.id === focusedNodeId) ?? data?.nodes[0] ?? null,
     [data?.nodes, focusedNodeId],
   );
+  const targetOptions = useMemo(
+    () => data?.nodes.filter((node) => node.id !== focusedNode?.id) ?? [],
+    [data?.nodes, focusedNode?.id],
+  );
+
+  const handleCreateFocusedLink = async () => {
+    if (!focusedNode || !targetNodeId) return;
+
+    const targetNode = data?.nodes.find((node) => node.id === targetNodeId);
+    if (!targetNode) return;
+
+    await createKnowledgeEdge.mutateAsync({
+      fromType: focusedNode.type,
+      fromId: focusedNode.id,
+      toType: targetNode.type,
+      toId: targetNode.id,
+      relationType,
+      strength: 0.92,
+    });
+    setTargetNodeId("");
+  };
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 md:px-6 overflow-x-hidden">
@@ -69,21 +108,39 @@ export default function KnowledgePage() {
       </section>
 
       <section className="rounded-2xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-4 sm:p-6">
-        <div className="flex flex-wrap gap-1.5 sm:gap-2">
-          {filterOptions.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              onClick={() => setActiveType(option.id)}
-              className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition sm:px-4 sm:py-3 sm:text-xs ${
-                activeType === option.id
-                  ? "border-brand-primary/30 bg-brand-primary text-black"
-                  : "border-white/10 bg-black/20 text-text-muted hover:text-text-main"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            {filterOptions.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => setActiveType(option.id)}
+                className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition sm:px-4 sm:py-3 sm:text-xs ${
+                  activeType === option.id
+                    ? "border-brand-primary/30 bg-brand-primary text-black"
+                    : "border-white/10 bg-black/20 text-text-muted hover:text-text-main"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-1.5 sm:gap-2">
+            {timeFilterOptions.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => setTimeFilter(option.id)}
+                className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition sm:px-4 sm:py-3 sm:text-xs ${
+                  timeFilter === option.id
+                    ? "border-sky-400/30 bg-sky-400/15 text-sky-100"
+                    : "border-white/10 bg-black/20 text-text-muted hover:text-text-main"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="mt-6 rounded-[28px] border border-white/10 bg-black/20 p-0 overflow-hidden">
@@ -112,6 +169,47 @@ export default function KnowledgePage() {
             <p className="mt-3 text-sm leading-6 text-text-muted">
               {focusedNode.summary || "No extended preview is available for this node yet, but it is part of the current relationship map."}
             </p>
+            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+              <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+                <FiLink2 />
+                Manual Link
+              </div>
+              <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_180px_auto]">
+                <Select
+                  value={targetNodeId}
+                  onValueChange={setTargetNodeId}
+                >
+                  <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-6 text-sm text-text-main outline-none">
+                    <SelectValue placeholder="Select a node to connect" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
+                    {targetOptions.map((node) => (
+                      <SelectItem 
+                        key={`${node.type}-${node.id}`} 
+                        value={node.id}
+                        className="rounded-lg hover:bg-white/5 focus:bg-white/10 transition-colors"
+                      >
+                        {node.title} ({node.type})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <input
+                  value={relationType}
+                  onChange={(event) => setRelationType(event.target.value)}
+                  placeholder="supports"
+                  className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm text-text-main outline-none placeholder:text-text-muted"
+                />
+                <button
+                  type="button"
+                  onClick={handleCreateFocusedLink}
+                  disabled={!targetNodeId || createKnowledgeEdge.isPending}
+                  className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+                >
+                  {createKnowledgeEdge.isPending ? "Linking..." : "Create link"}
+                </button>
+              </div>
+            </div>
           </div>
         ) : null}
       </section>
@@ -196,6 +294,23 @@ export default function KnowledgePage() {
                 <p className="mt-1.5 text-[10px] leading-5 text-text-muted break-words line-clamp-3">
                   {connection.reason}
                 </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    createKnowledgeEdge.mutate({
+                      fromType: connection.from.type,
+                      fromId: connection.from.id,
+                      toType: connection.to.type,
+                      toId: connection.to.id,
+                      relationType: connection.relationType,
+                      strength: connection.strength,
+                    })
+                  }
+                  className="mt-3 inline-flex items-center gap-2 rounded-xl border border-sky-400/20 bg-sky-400/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-sky-100 transition hover:bg-sky-400/15"
+                >
+                  <FiLink2 />
+                  Create link
+                </button>
               </div>
             ))}
             {!data?.suggestedConnections.length ? (
@@ -357,5 +472,17 @@ function buildGraphLayout(data?: KnowledgeGraphResponse | null) {
     nodeMap: new Map(
       positionedNodes.map((node) => [`${node.type}:${node.id}`, node]),
     ),
+  };
+}
+
+function getKnowledgeDateRange(filter: (typeof timeFilterOptions)[number]["id"]) {
+  if (filter === "all") {
+    return { fromDate: undefined, toDate: undefined };
+  }
+
+  const days = filter === "7d" ? 7 : 30;
+  return {
+    fromDate: dayjs().subtract(days, "day").startOf("day").toISOString(),
+    toDate: dayjs().endOf("day").toISOString(),
   };
 }

@@ -50,3 +50,12 @@ export interface KnowledgeGraphResponse {
     clusters: number;
   };
 }
+
+export interface ManualKnowledgeEdgePayload {
+  fromType: KnowledgeNodeType;
+  fromId: string;
+  toType: KnowledgeNodeType;
+  toId: string;
+  relationType: string;
+  strength?: number;
+}
