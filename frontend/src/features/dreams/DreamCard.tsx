@@ -56,6 +56,11 @@ export default function DreamCard({ dream }: DreamCardProps) {
           }`}>
             {dream.priority}
             </span>
+            {dream.sourceInboxId ? (
+              <span className="text-[10px] font-black uppercase tracking-[0.18em] px-3 py-1 rounded-full border border-sky-400/20 bg-sky-400/10 text-sky-200">
+                Inbox-born
+              </span>
+            ) : null}
             <span className={`text-[10px] font-black uppercase tracking-[0.18em] px-3 py-1 rounded-full border ${healthTone}`}>
               {healthLabel}
             </span>
