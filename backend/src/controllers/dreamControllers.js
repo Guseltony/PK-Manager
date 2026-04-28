@@ -4,7 +4,8 @@ import {
   getDream,
   updateDream,
   addMilestone,
-  toggleMilestone
+  toggleMilestone,
+  deleteMilestone as removeMilestone,
 } from "../services/dream.service.js";
 
 export const createNewDream = async (req, res) => {
@@ -58,6 +59,19 @@ export const createMilestone = async (req, res) => {
 export const toggleMilestoneStatus = async (req, res) => {
   try {
     const milestone = await toggleMilestone(req.params.milestoneId, req.params.id, req.user.id);
+    res.status(200).json({ data: milestone });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const deleteDreamMilestone = async (req, res) => {
+  try {
+    const milestone = await removeMilestone(
+      req.params.milestoneId,
+      req.params.id,
+      req.user.id,
+    );
     res.status(200).json({ data: milestone });
   } catch (error) {
     res.status(400).json({ error: error.message });

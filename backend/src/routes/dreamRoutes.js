@@ -7,7 +7,8 @@ import {
   getSingleDream,
   updateExistingDream,
   createMilestone,
-  toggleMilestoneStatus
+  toggleMilestoneStatus,
+  deleteDreamMilestone,
 } from "../controllers/dreamControllers.js";
 import { createDreamSchema, updateDreamSchema, createMilestoneSchema } from "../validators/dream.schema.js";
 import { idParamSchema } from "../validators/idParams.schema.js";
@@ -25,5 +26,6 @@ dreamRoutes.put("/update/:id", validateRequest(idParamSchema, "params"), validat
 // Milestones
 dreamRoutes.post("/:id/milestones", validateRequest(idParamSchema, "params"), validateRequest(createMilestoneSchema, "body"), createMilestone);
 dreamRoutes.put("/:id/milestones/:milestoneId", validateRequest(idParamSchema, "params"), toggleMilestoneStatus);
+dreamRoutes.delete("/:id/milestones/:milestoneId", validateRequest(idParamSchema, "params"), deleteDreamMilestone);
 
 export default dreamRoutes;
