@@ -9,9 +9,10 @@ import {
   createSubtask,
   updateExistingSubtask,
   deleteExistingSubtask,
+  createReadingSession,
 } from "../controllers/taskControllers.js";
 import { validateRequest } from "../middlewares/zodValidation.js";
-import { createTaskSchema, updateTaskSchema } from "../validators/task.schema.js";
+import { createTaskSchema, updateTaskSchema, logReadingSessionSchema } from "../validators/task.schema.js";
 import { idParamSchema } from "../validators/idParams.schema.js";
 import { csrfMiddleware } from "../middlewares/csrfMiddleware.js";
 import { createManyAiTasksSchema } from "../validators/ai.schema.js";
@@ -75,6 +76,13 @@ tasksRoutes.delete(
   "/:id/subtasks/:subtaskId",
   validateRequest(idParamSchema, "params"),
   deleteExistingSubtask
+);
+
+tasksRoutes.post(
+  "/:id/reading-sessions",
+  validateRequest(idParamSchema, "params"),
+  validateRequest(logReadingSessionSchema, "body"),
+  createReadingSession
 );
 
 export default tasksRoutes;

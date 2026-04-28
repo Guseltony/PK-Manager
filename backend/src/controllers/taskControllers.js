@@ -8,6 +8,7 @@ import {
   updateSubtask,
   deleteSubtask,
   createManyTasks,
+  logReadingSession,
 } from "../services/task.service.js";
 
 export const createNewTask = async (req, res) => {
@@ -98,6 +99,15 @@ export const deleteExistingSubtask = async (req, res) => {
   try {
     await deleteSubtask(req.params.subtaskId, req.params.id, req.user.id);
     res.status(200).json({ message: "Subtask deleted successfully" });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const createReadingSession = async (req, res) => {
+  try {
+    const data = await logReadingSession(req.params.id, req.user.id, req.body);
+    res.status(201).json({ data });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
