@@ -146,6 +146,32 @@ export const toggleMilestone = async (milestoneId, dreamId, userId) => {
   return updated;
 };
 
+export const deleteMilestone = async (milestoneId, dreamId, userId) => {
+  const dream = await prisma.dream.findFirst({ where: { id: dreamId, userId } });
+  if (!dream) throw new Error("Dream not found");
+
+  const milestone = await prisma.dreamMilestone.findUnique({
+    where: { id: milestoneId },
+  });
+  if (!milestone || milestone.dreamId !== dreamId) {
+    throw new Error("Milestone not found");
+  }
+
+  await prisma.dreamMilestone.delete({
+    where: { id: milestoneId },
+  });
+
+  await prisma.dreamActivity.create({
+    data: {
+      dreamId,
+      action: "milestone_deleted",
+      metadata: { milestoneTitle: milestone.title },
+    },
+  });
+
+  return milestone;
+};
+
 const calculateProgress = (dream) => {
   const totalTasks = dream.tasks.length;
   const completedTasks = dream.tasks.filter(t => t.status === "done").length;

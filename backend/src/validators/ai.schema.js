@@ -115,6 +115,8 @@ export const inboxRoutingResponseSchema = z.object({
   type: z.enum(["task", "idea", "note", "journal", "dream"]),
   title: z.string().trim().min(1),
   content: z.string().trim().min(1),
+  summary: z.string().trim().min(1).max(280).optional(),
+  reasoning: z.string().trim().min(1).max(280).optional(),
   tags: z.array(z.string().trim().min(1)).max(8).default([]),
   priority: z.enum(["low", "medium", "high", "urgent"]).nullable().optional(),
   confidence: z.number().min(0).max(1).default(0.6),
@@ -123,12 +125,22 @@ export const inboxRoutingResponseSchema = z.object({
     tasks: z.array(z.string().trim().min(1)).default([]),
     notes: z.array(z.string().trim().min(1)).default([]),
     ideas: z.array(z.string().trim().min(1)).default([]),
+    projects: z.array(z.string().trim().min(1)).default([]),
   }).default({
     dreams: [],
     tasks: [],
     notes: [],
     ideas: [],
+    projects: [],
   }),
+  extracted_tasks: z.array(taskSuggestionSchema.pick({
+    title: true,
+    priority: true,
+    dueDate: true,
+    tags: true,
+  }).extend({
+    description: z.string().trim().nullable().optional(),
+  })).max(6).default([]),
   suggested_actions: z.array(z.string().trim().min(1)).max(6).default([]),
 });
 
