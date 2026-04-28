@@ -2,6 +2,7 @@ import {
   captureInboxItem,
   deleteInboxItem,
   listInboxItems,
+  rerouteInboxItem,
   retryInboxItem,
 } from "../services/inbox.service.js";
 
@@ -41,3 +42,15 @@ export const removeInboxItem = async (req, res) => {
   }
 };
 
+export const rerouteInbox = async (req, res) => {
+  try {
+    const data = await rerouteInboxItem(
+      req.user.id,
+      req.params.id,
+      req.body.targetType,
+    );
+    res.status(200).json({ data });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
