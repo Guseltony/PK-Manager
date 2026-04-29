@@ -26,10 +26,39 @@ import { useTasksStore } from "../../store/tasksStore";
 import ConfirmationModal from "../../components/ui/ConfirmationModal";
 import PromptModal from "../../components/ui/PromptModal";
 import Modal from "../../components/ui/Modal";
-import { TaskStatus, Priority, ReadingSessionPayload, Task } from "../../types/task";
+import {
+  TaskStatus,
+  Priority,
+  ReadingSessionPayload,
+  Task,
+  ExecutionState,
+  TaskExecutionMeta,
+  TaskFocusSession,
+} from "../../types/task";
 import { useTaskEnrichmentAI, useTaskSubtasksAI } from "../../hooks/useAI";
 import { getTagColorStyle } from "../../utils/tagColor";
 import { useRouter } from "next/navigation";
+import { useDream, useDreams } from "../../hooks/useDreams";
+import { useProjects } from "../../hooks/useProjects";
+import { useInbox } from "../../hooks/useInbox";
+import { useLedger } from "../../hooks/useLedger";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../../components/ui/select";
+import {
+  assignTaskToMilestone,
+  buildDefaultTaskExecutionMeta,
+  deriveTaskReadiness,
+  getTaskMilestoneContext,
+  readTaskExecutionMetaMap,
+  readTaskFocusSessions,
+  writeTaskExecutionMetaMap,
+  writeTaskFocusSessions,
+} from "./taskIntelligence";
 
 interface TaskDetailViewProps {
   taskId: string;
@@ -38,6 +67,14 @@ interface TaskDetailViewProps {
 
 const statuses: TaskStatus[] = ["todo", "in_progress", "done"];
 const priorities: Priority[] = ["low", "medium", "high", "urgent"];
+const executionStates: ExecutionState[] = [
+  "queued",
+  "ready",
+  "blocked",
+  "in_progress",
+  "waiting",
+  "completed",
+];
 
 export default function TaskDetailView({
   taskId,
@@ -45,6 +82,7 @@ export default function TaskDetailView({
 }: TaskDetailViewProps) {
   const { data: task, isLoading } = useTask(taskId);
   const {
+    tasks,
     updateTask,
     updateTaskAsync,
     deleteTaskAsync,
@@ -58,6 +96,11 @@ export default function TaskDetailView({
     isUpdatingSubtask,
     isLoggingReadingSession,
   } = useTasks();
+  const { dreams } = useDreams();
+  const { dream, toggleMilestone } = useDream(task?.dreamId || null);
+  const { projects } = useProjects({ dreamId: task?.dreamId || undefined });
+  const { items: inboxItems } = useInbox();
+  const { logs } = useLedger();
   const { tags: allTags } = useTags();
   const taskSubtasksAi = useTaskSubtasksAI();
   const taskEnrichmentAi = useTaskEnrichmentAI();
@@ -74,8 +117,11 @@ export default function TaskDetailView({
   const [isEditingDesc, setIsEditingDesc] = useState(false);
   const [showDurationPrompt, setShowDurationPrompt] = useState(false);
   const [showReadingSession, setShowReadingSession] = useState(false);
-
-  const [prevTaskId, setPrevTaskId] = useState<string | null>(null);
+  const [showFocusSession, setShowFocusSession] = useState(false);
+  const [executionMeta, setExecutionMeta] = useState<TaskExecutionMeta | null>(
+    null,
+  );
+  const [focusSessions, setFocusSessions] = useState<TaskFocusSession[]>([]);
 
   const getTagName = (tagLike: unknown) => {
     if (!tagLike || typeof tagLike !== "object") return null;
@@ -90,13 +136,26 @@ export default function TaskDetailView({
 
   const isCompleted = task?.status === "done";
 
-  if (task && task.id !== prevTaskId) {
-    setPrevTaskId(task.id);
+  useEffect(() => {
+    if (!task) return;
     setLocalPriority(task.priority);
     setLocalDescription(task.description || "");
-  }
+  }, [task]);
 
-  const handleStatusToggle = () => {
+  useEffect(() => {
+    if (!task) return;
+    const metaMap = readTaskExecutionMetaMap();
+    const linkedNoteCount = new Set([
+      ...(task.noteId ? [task.noteId] : []),
+      ...(task.notes?.map(({ note }) => note.id) || []),
+    ]).size;
+    setExecutionMeta(metaMap[task.id] || buildDefaultTaskExecutionMeta(task, linkedNoteCount));
+    setFocusSessions(
+      readTaskFocusSessions().filter((session) => session.taskId === task.id),
+    );
+  }, [task]);
+
+  const handleStatusToggle = async () => {
     if (!task) return;
     const currentIndex = statuses.indexOf(task.status);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
@@ -111,10 +170,22 @@ export default function TaskDetailView({
     }
     
     setShowSubtaskWarning(false);
-    updateTask({ id: task.id, updates: { status: nextStatus } });
+    if (nextStatus === "done" && readiness.blockers.length > 0) {
+      setShowSubtaskWarning(true);
+      return;
+    }
+
+    const updatedTask = await updateTaskAsync({
+      id: task.id,
+      updates: { status: nextStatus },
+    });
+
+    if (nextStatus === "done") {
+      await maybeAdvanceMilestone(updatedTask);
+    }
   };
 
-  const handleMarkDone = () => {
+  const handleMarkDone = async () => {
     if (!task || isCompleted) return;
     
     // Check for incomplete subtasks
@@ -127,7 +198,16 @@ export default function TaskDetailView({
     }
     
     setShowSubtaskWarning(false);
-    updateTask({ id: task.id, updates: { status: "done" } });
+    if (readiness.blockers.length > 0) {
+      setShowSubtaskWarning(true);
+      return;
+    }
+
+    const updatedTask = await updateTaskAsync({
+      id: task.id,
+      updates: { status: "done" },
+    });
+    await maybeAdvanceMilestone(updatedTask);
   };
 
   const handlePriorityCycle = async () => {
@@ -264,6 +344,142 @@ export default function TaskDetailView({
     }
   };
 
+  const persistExecutionMeta = (next: TaskExecutionMeta) => {
+    const currentMap = readTaskExecutionMetaMap();
+    currentMap[next.taskId] = next;
+    writeTaskExecutionMetaMap(currentMap);
+    setExecutionMeta(next);
+  };
+
+  const maybeAdvanceMilestone = async (candidateTask?: Task | null) => {
+    if (!candidateTask?.dreamId || !dream || !milestoneContext.milestone) return;
+    if (!milestoneContext.requireLinkedTasksComplete) return;
+    if (milestoneContext.milestone.completed) return;
+
+    const linkedTasks = tasks.filter((candidate) =>
+      milestoneContext.architectureTaskIds.includes(candidate.id),
+    );
+
+    const everyTaskDone = linkedTasks.every((linkedTask) =>
+      linkedTask.id === candidateTask.id
+        ? true
+        : linkedTask.status === "done",
+    );
+
+    if (everyTaskDone) {
+      toggleMilestone(milestoneContext.milestone.id);
+    }
+  };
+
+  const handleExecutionStateChange = (value: ExecutionState) => {
+    if (!task) return;
+    persistExecutionMeta({
+      ...(executionMeta || buildDefaultTaskExecutionMeta(task, linkedNotes.length)),
+      executionState: value,
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  const handleBlockerReasonChange = (value: string) => {
+    if (!task) return;
+    persistExecutionMeta({
+      ...(executionMeta || buildDefaultTaskExecutionMeta(task, linkedNotes.length)),
+      blockerReason: value || null,
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  const handleRequireReferenceNote = (value: string) => {
+    if (!task) return;
+    persistExecutionMeta({
+      ...(executionMeta || buildDefaultTaskExecutionMeta(task, linkedNotes.length)),
+      requireReferenceNote: value === "required",
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  const handleFocusTargetChange = (value: string) => {
+    if (!task) return;
+    const nextValue = Number(value);
+    persistExecutionMeta({
+      ...(executionMeta || buildDefaultTaskExecutionMeta(task, linkedNotes.length)),
+      focusMinutesTarget: Number.isFinite(nextValue) ? nextValue : 30,
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  const handleDependencyToggle = (dependencyTaskId: string) => {
+    if (!task || dependencyTaskId === task.id) return;
+    const currentIds = executionMeta?.dependencyTaskIds || [];
+    const nextIds = currentIds.includes(dependencyTaskId)
+      ? currentIds.filter((id) => id !== dependencyTaskId)
+      : [...currentIds, dependencyTaskId];
+
+    persistExecutionMeta({
+      ...(executionMeta || buildDefaultTaskExecutionMeta(task, linkedNotes.length)),
+      dependencyTaskIds: nextIds,
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  const handleDreamChange = async (dreamId: string) => {
+    if (!task || isCompleted) return;
+    await updateTaskAsync({
+      id: task.id,
+      updates: {
+        dreamId: dreamId === "none" ? null : dreamId,
+        projectId: dreamId === "none" ? null : task.projectId || null,
+      },
+    });
+  };
+
+  const handleProjectChange = async (projectId: string) => {
+    if (!task || isCompleted) return;
+    await updateTaskAsync({
+      id: task.id,
+      updates: {
+        projectId: projectId === "none" ? null : projectId,
+      },
+    });
+  };
+
+  const handleMilestoneChange = (milestoneId: string) => {
+    if (!task?.dreamId || isCompleted) return;
+    assignTaskToMilestone(
+      task.id,
+      task.dreamId,
+      milestoneId === "none" ? null : milestoneId,
+    );
+  };
+
+  const handleFocusSessionSubmit = async (session: TaskFocusSession) => {
+    const nextSessions = [session, ...focusSessions].slice(0, 24);
+    const persisted = [
+      session,
+      ...readTaskFocusSessions().filter((entry) => entry.id !== session.id),
+    ].slice(0, 120);
+    writeTaskFocusSessions(persisted);
+    setFocusSessions(nextSessions);
+
+    if (!task) return;
+
+    const shouldComplete =
+      session.status === "completed" &&
+      readiness.blockers.length === 0 &&
+      task.status !== "done";
+
+    const updatedTask = await updateTaskAsync({
+      id: task.id,
+      updates: {
+        status: shouldComplete ? "done" : "in_progress",
+      },
+    });
+
+    if (shouldComplete) {
+      await maybeAdvanceMilestone(updatedTask);
+    }
+  };
+
   if (isLoading)
     return (
       <div className="w-full md:w-96 lg:w-112.5 absolute md:relative inset-0 border-l border-white/5 bg-surface-soft p-4 sm:p-6 lg:p-8 space-y-6 z-20">
@@ -294,22 +510,27 @@ export default function TaskDetailView({
         { id: string; title: string; updatedAt?: string; contentType?: string }
       >(linkedNoteEntries).values(),
     );
-  const shouldShowReadingSession = useMemo(() => {
-    const lowerTitle = task.title.toLowerCase();
-    const tagNames = (task.tags || [])
-      .map(getTagName)
-      .filter((value): value is string => Boolean(value))
-      .map((value) => value.toLowerCase());
-
-    return (
-      lowerTitle.includes("read") ||
-      lowerTitle.includes("study") ||
-      tagNames.some((tag) =>
-        ["reading", "book", "study", "research", "knowledge"].includes(tag),
-      ) ||
-      linkedNotes.length > 0
-    );
-  }, [linkedNotes.length, task.tags, task.title]);
+  const readiness = deriveTaskReadiness(task, tasks, executionMeta, dream);
+  const sourceInboxItem = task.sourceInboxId
+    ? inboxItems.find((item) => item.id === task.sourceInboxId)
+    : null;
+  const milestoneContext = getTaskMilestoneContext(task, dream);
+  const taskLedgerLogs = logs.filter((log) => log.taskId === task.id).slice(0, 4);
+  const focusMinutesCompleted = Math.round(
+    focusSessions.reduce((sum, session) => sum + session.durationMinutes, 0),
+  );
+  const lowerTitle = task.title.toLowerCase();
+  const tagNames = (task.tags || [])
+    .map(getTagName)
+    .filter((value): value is string => Boolean(value))
+    .map((value) => value.toLowerCase());
+  const shouldShowReadingSession =
+    lowerTitle.includes("read") ||
+    lowerTitle.includes("study") ||
+    tagNames.some((tag) =>
+      ["reading", "book", "study", "research", "knowledge"].includes(tag),
+    ) ||
+    linkedNotes.length > 0;
   const readingLogs = (task.taskLogs || []).filter((log) =>
     log.title.toLowerCase().includes("reading session"),
   );
@@ -488,6 +709,228 @@ export default function TaskDetailView({
               </button>
             )}
           </div>
+        </div>
+
+        <div className="mb-10 rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
+                Execution Cockpit
+              </p>
+              <p className="mt-2 text-sm leading-6 text-text-muted">
+                Control execution state, supporting context, and where this task
+                sits inside your dream architecture.
+              </p>
+            </div>
+            <div
+              className={`rounded-2xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] ${
+                readiness.executionState === "blocked"
+                  ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
+                  : readiness.executionState === "ready"
+                    ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+                    : readiness.executionState === "in_progress"
+                      ? "border-amber-400/20 bg-amber-400/10 text-amber-200"
+                      : "border-white/10 bg-black/20 text-text-main"
+              }`}
+            >
+              {readiness.readinessLabel}
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 xl:grid-cols-2">
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                Structure
+              </p>
+              <div className="mt-3 grid gap-3">
+                <Select
+                  value={task.dreamId || "none"}
+                  onValueChange={handleDreamChange}
+                >
+                  <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
+                    <SelectValue placeholder="Link dream" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No dream</SelectItem>
+                    {dreams.map((dreamOption) => (
+                      <SelectItem key={dreamOption.id} value={dreamOption.id}>
+                        {dreamOption.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={task.projectId || "none"}
+                  onValueChange={handleProjectChange}
+                >
+                  <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
+                    <SelectValue placeholder="Link project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No project</SelectItem>
+                    {projects.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={readiness.milestoneId || "none"}
+                  onValueChange={handleMilestoneChange}
+                  disabled={!task.dreamId}
+                >
+                  <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
+                    <SelectValue placeholder="Attach to milestone" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No milestone</SelectItem>
+                    {(dream?.milestones || []).map((milestone) => (
+                      <SelectItem key={milestone.id} value={milestone.id}>
+                        {milestone.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                Readiness Rules
+              </p>
+              <div className="mt-3 grid gap-3">
+                <Select
+                  value={executionMeta?.executionState || readiness.executionState}
+                  onValueChange={(value) =>
+                    handleExecutionStateChange(value as ExecutionState)
+                  }
+                >
+                  <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
+                    <SelectValue placeholder="Execution state" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {executionStates.map((state) => (
+                      <SelectItem key={state} value={state}>
+                        {state.replace("_", " ")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={executionMeta?.requireReferenceNote ? "required" : "optional"}
+                  onValueChange={handleRequireReferenceNote}
+                >
+                  <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
+                    <SelectValue placeholder="Reference note policy" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="optional">Reference note optional</SelectItem>
+                    <SelectItem value="required">Reference note required</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select
+                  value={String(executionMeta?.focusMinutesTarget || readiness.focusMinutesTarget)}
+                  onValueChange={handleFocusTargetChange}
+                >
+                  <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
+                    <SelectValue placeholder="Focus target" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {[15, 25, 30, 45, 60, 90].map((minutes) => (
+                      <SelectItem key={minutes} value={String(minutes)}>
+                        {minutes} minutes
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                Current Blocker
+              </p>
+              <textarea
+                value={executionMeta?.blockerReason || ""}
+                onChange={(event) => handleBlockerReasonChange(event.target.value)}
+                placeholder="What is blocking this task right now?"
+                className="mt-3 min-h-24 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-text-main outline-none"
+              />
+              {readiness.blockers.length ? (
+                <div className="mt-3 space-y-2">
+                  {readiness.blockers.map((blocker) => (
+                    <div
+                      key={blocker}
+                      className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-3 py-2 text-xs text-rose-200"
+                    >
+                      {blocker}
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                Dependency Threads
+              </p>
+              <div className="mt-3 flex max-h-56 flex-col gap-2 overflow-y-auto custom-scrollbar">
+                {tasks
+                  .filter((candidate) => candidate.id !== task.id)
+                  .slice(0, 8)
+                  .map((candidate) => {
+                    const active = executionMeta?.dependencyTaskIds.includes(candidate.id);
+                    return (
+                      <button
+                        key={candidate.id}
+                        type="button"
+                        onClick={() => handleDependencyToggle(candidate.id)}
+                        className={`rounded-2xl border px-3 py-3 text-left transition ${
+                          active
+                            ? "border-brand-primary/30 bg-brand-primary/10 text-white"
+                            : "border-white/10 bg-white/5 text-text-muted hover:text-text-main"
+                        }`}
+                      >
+                        <p className="text-sm font-bold">{candidate.title}</p>
+                        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.18em]">
+                          {candidate.status === "done" ? "Done" : "Open dependency"}
+                        </p>
+                      </button>
+                    );
+                  })}
+                {!tasks.filter((candidate) => candidate.id !== task.id).length ? (
+                  <p className="text-xs leading-5 text-text-muted">
+                    No other tasks exist yet to use as dependencies.
+                  </p>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          {readiness.warnings.length ? (
+            <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">
+                Readiness Gaps
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {readiness.warnings.map((warning) => (
+                  <span
+                    key={warning}
+                    className="rounded-full border border-amber-400/20 bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-amber-100"
+                  >
+                    {warning}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* Quick Stats Grid */}
@@ -770,6 +1213,135 @@ export default function TaskDetailView({
           </div>
         ) : null}
 
+        <div className="mb-10 rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
+                Focus Sessions
+              </p>
+              <p className="mt-2 text-sm leading-6 text-text-muted">
+                Track real work time against this task even when it is not a
+                reading objective.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowFocusSession(true)}
+              disabled={isCompleted}
+              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+            >
+              <FiZap size={14} />
+              Start Focus
+            </button>
+          </div>
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+            <FocusSummaryCard label="Target" value={`${readiness.focusMinutesTarget}m`} />
+            <FocusSummaryCard label="Focused" value={`${focusMinutesCompleted}m`} />
+            <FocusSummaryCard
+              label="Sessions"
+              value={String(focusSessions.length)}
+            />
+          </div>
+
+          {focusSessions.length ? (
+            <div className="mt-4 grid gap-3">
+              {focusSessions.slice(0, 3).map((session) => (
+                <div
+                  key={session.id}
+                  className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-bold text-white">
+                      {session.durationMinutes} mins focused
+                    </p>
+                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                      {session.status}
+                    </span>
+                  </div>
+                  <p className="mt-1 text-xs text-text-muted">
+                    {dayjs(session.createdAt).fromNow()} · {session.engagementCount} engagement signals
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+
+        <div className="mb-10 grid gap-4 xl:grid-cols-2">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
+              Source Trace
+            </p>
+            {sourceInboxItem ? (
+              <div className="mt-3 space-y-3">
+                <div className="flex flex-wrap gap-2">
+                  <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">
+                    {sourceInboxItem.processedPayload?.captureMethod || "capture"}
+                  </span>
+                  <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+                    {sourceInboxItem.status}
+                  </span>
+                </div>
+                <p className="text-sm leading-6 text-text-main/90">
+                  {sourceInboxItem.processedPayload?.summary ||
+                    sourceInboxItem.content ||
+                    sourceInboxItem.rawInput}
+                </p>
+                {sourceInboxItem.processedPayload?.extracted_tasks?.length ? (
+                  <div className="flex flex-wrap gap-2">
+                    {sourceInboxItem.processedPayload.extracted_tasks
+                      .slice(0, 3)
+                      .map((candidate) => (
+                        <span
+                          key={candidate.title}
+                          className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-text-muted"
+                        >
+                          {candidate.title}
+                        </span>
+                      ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <p className="mt-3 text-sm leading-6 text-text-muted">
+                No inbox-origin source is attached to this task.
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
+              Ledger Summary
+            </p>
+            {taskLedgerLogs.length ? (
+              <div className="mt-3 space-y-3">
+                {taskLedgerLogs.map((log) => (
+                  <div
+                    key={log.id}
+                    className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-bold text-white">{log.title}</p>
+                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                        {log.status}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-text-muted">
+                      {dayjs(log.completedAt).format("MMM D, YYYY HH:mm")}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-3 text-sm leading-6 text-text-muted">
+                No ledger entries yet for this task. Once you complete or log
+                sessions against it, the accountability trail will appear here.
+              </p>
+            )}
+          </div>
+        </div>
+
         {/* Knowledge & Goals Links */}
         <div className="mb-10">
           <div className="flex items-center justify-between mb-4">
@@ -837,6 +1409,42 @@ export default function TaskDetailView({
                     </p>
                     <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-tighter">
                       Linked Dream Node
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+            {task.project ? (
+              <div className="group relative overflow-hidden flex items-center justify-between p-4 rounded-2xl bg-surface-base border border-cyan-400/20 hover:border-cyan-400/50 transition-all">
+                <div className="absolute inset-0 bg-cyan-400/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="w-8 h-8 rounded-lg bg-cyan-400/20 flex items-center justify-center text-cyan-300">
+                    <FiActivity size={14} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-text-main leading-tight mb-1 truncate">
+                      {task.project.title}
+                    </p>
+                    <p className="text-[10px] text-cyan-300 font-bold uppercase tracking-tighter">
+                      Linked Project Layer
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+            {readiness.milestoneTitle ? (
+              <div className="group relative overflow-hidden flex items-center justify-between p-4 rounded-2xl bg-surface-base border border-amber-400/20 hover:border-amber-400/50 transition-all">
+                <div className="absolute inset-0 bg-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="flex items-center gap-3 relative z-10">
+                  <div className="w-8 h-8 rounded-lg bg-amber-400/20 flex items-center justify-center text-amber-300">
+                    <FiFlag size={14} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-text-main leading-tight mb-1 truncate">
+                      {readiness.milestoneTitle}
+                    </p>
+                    <p className="text-[10px] text-amber-300 font-bold uppercase tracking-tighter">
+                      Milestone Channel
                     </p>
                   </div>
                 </div>
@@ -934,6 +1542,8 @@ export default function TaskDetailView({
               <FiActivity size={14} className="animate-spin" /> Committing
               State...
             </span>
+          ) : readiness.blockers.length > 0 ? (
+            "Resolve blockers to complete"
           ) : (
             "Mark as Completed"
           )}
@@ -994,12 +1604,178 @@ export default function TaskDetailView({
         isOpen={showReadingSession}
         onClose={() => setShowReadingSession(false)}
         onSubmit={async (payload) => {
-          await logReadingSessionAsync({ taskId: task.id, payload });
+          const updatedTask = await logReadingSessionAsync({ taskId: task.id, payload });
+          await maybeAdvanceMilestone(updatedTask);
           setShowReadingSession(false);
         }}
         isSubmitting={isLoggingReadingSession}
       />
+      <FocusSessionModal
+        task={task}
+        requiredMinutes={executionMeta?.focusMinutesTarget || readiness.focusMinutesTarget}
+        isOpen={showFocusSession}
+        onClose={() => setShowFocusSession(false)}
+        onSubmit={async (session) => {
+          await handleFocusSessionSubmit(session);
+          setShowFocusSession(false);
+        }}
+      />
     </div>
+  );
+}
+
+function FocusSummaryCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+      <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+        {label}
+      </p>
+      <p className="mt-2 text-lg font-black text-white">{value}</p>
+    </div>
+  );
+}
+
+function FocusSessionModal({
+  task,
+  requiredMinutes,
+  isOpen,
+  onClose,
+  onSubmit,
+}: {
+  task: Task;
+  requiredMinutes: number;
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (session: TaskFocusSession) => Promise<void>;
+}) {
+  const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [activeSeconds, setActiveSeconds] = useState(0);
+  const [engagementCount, setEngagementCount] = useState(0);
+  const lastInteractionRef = useRef(Date.now());
+  const lastSignalRef = useRef(0);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setElapsedSeconds(0);
+    setActiveSeconds(0);
+    setEngagementCount(0);
+    lastInteractionRef.current = Date.now();
+    lastSignalRef.current = 0;
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const registerSignal = () => {
+      const now = Date.now();
+      lastInteractionRef.current = now;
+      if (now - lastSignalRef.current > 4000) {
+        setEngagementCount((current) => current + 1);
+        lastSignalRef.current = now;
+      }
+    };
+
+    const interval = window.setInterval(() => {
+      setElapsedSeconds((current) => current + 1);
+      const visible = !document.hidden;
+      const recentlyActive = Date.now() - lastInteractionRef.current < 60000;
+      if (visible && recentlyActive) {
+        setActiveSeconds((current) => current + 1);
+      }
+    }, 1000);
+
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        lastInteractionRef.current = Date.now();
+      }
+    };
+
+    window.addEventListener("mousemove", registerSignal);
+    window.addEventListener("keydown", registerSignal);
+    window.addEventListener("scroll", registerSignal, true);
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("mousemove", registerSignal);
+      window.removeEventListener("keydown", registerSignal);
+      window.removeEventListener("scroll", registerSignal, true);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [isOpen]);
+
+  const activeDurationMinutes = Math.round((activeSeconds / 60) * 10) / 10;
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Deep Work Session"
+      panelClassName="max-w-2xl"
+      contentClassName="space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar"
+    >
+      <div className="grid gap-4 sm:grid-cols-3">
+        <ReadingMetric label="Elapsed" value={formatTimer(elapsedSeconds)} />
+        <ReadingMetric label="Active" value={formatTimer(activeSeconds)} />
+        <ReadingMetric label="Signals" value={String(engagementCount)} />
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+        <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-primary">
+          Focus Validation
+        </p>
+        <p className="mt-2 text-sm leading-6 text-text-muted">
+          This session counts as a strong execution pass when active engagement
+          reaches at least {requiredMinutes} minutes with visible interaction.
+        </p>
+      </div>
+
+      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+        <p className="text-sm font-bold text-white">{task.title}</p>
+        <p className="mt-2 text-xs leading-5 text-text-muted">
+          End the session when you are done. It will be recorded in the task’s
+          local focus history and can move the task into progress or completion.
+        </p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() =>
+            onSubmit({
+              id: `focus-${Date.now()}`,
+              taskId: task.id,
+              durationMinutes: activeDurationMinutes,
+              requiredMinutes,
+              engagementCount,
+              status:
+                activeDurationMinutes >= requiredMinutes && engagementCount > 0
+                  ? "completed"
+                  : "partial",
+              createdAt: new Date().toISOString(),
+            })
+          }
+          disabled={activeSeconds === 0}
+          className="inline-flex items-center gap-2 rounded-2xl bg-brand-primary px-5 py-3 text-sm font-bold uppercase tracking-[0.18em] text-black transition disabled:opacity-50"
+        >
+          <FiZap size={15} />
+          End Focus Session
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
+        >
+          Cancel
+        </button>
+      </div>
+    </Modal>
   );
 }
 
