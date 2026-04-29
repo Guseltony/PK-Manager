@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { FiInbox, FiPlus } from "react-icons/fi";
 import Modal from "../../components/ui/Modal";
 import { useInbox } from "../../hooks/useInbox";
@@ -9,8 +9,13 @@ import UniversalCaptureComposer from "./UniversalCaptureComposer";
 
 export default function GlobalInboxCapture() {
   const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const { captureInbox, isCapturing } = useInbox();
+
+  if (pathname?.startsWith("/inbox")) {
+    return null;
+  }
 
   return (
     <>
@@ -32,7 +37,7 @@ export default function GlobalInboxCapture() {
         title="Universal Capture"
         panelClassName="max-w-3xl"
         containerClassName="items-end sm:items-center"
-        contentClassName="max-h-[80vh] overflow-y-auto custom-scrollbar"
+        contentClassName="max-h-[80vh] overflow-y-auto custom-scrollbar !px-1"
       >
         <UniversalCaptureComposer
           variant="modal"
