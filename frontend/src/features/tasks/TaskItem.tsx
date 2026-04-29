@@ -5,15 +5,20 @@ import dayjs from "dayjs";
 import {
   FiCheckCircle,
   FiClock,
+  FiLink,
+  FiLock,
+  FiPlayCircle,
   FiStar,
   FiFlag,
 } from "react-icons/fi";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTasks } from "../../hooks/useTasks";
+import { deriveTaskReadiness, readTaskExecutionMetaMap } from "./taskIntelligence";
 
 interface TaskItemProps {
   task: Task;
+  allTasks?: Task[];
   isSelected?: boolean;
   onClick?: () => void;
 }
@@ -25,10 +30,19 @@ const priorityColors = {
   urgent: "text-brand-accent",
 };
 
-export default function TaskItem({ task, isSelected, onClick }: TaskItemProps) {
+export default function TaskItem({
+  task,
+  allTasks = [],
+  isSelected,
+  onClick,
+}: TaskItemProps) {
   const { updateTask } = useTasks();
 
   const [showWarning, setShowWarning] = useState(false);
+  const readiness = useMemo(
+    () => deriveTaskReadiness(task, allTasks, readTaskExecutionMetaMap()[task.id]),
+    [allTasks, task],
+  );
 
   const handleToggleStatus = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -110,9 +124,28 @@ export default function TaskItem({ task, isSelected, onClick }: TaskItemProps) {
           {task.title}
         </h4>
         <div className="flex items-center gap-3 mt-1.5 text-[10px] text-text-muted font-bold uppercase tracking-wider">
+          <div
+            className={`flex items-center gap-1 rounded-lg border px-2 py-0.5 ${
+              readiness.executionState === "blocked"
+                ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
+                : readiness.executionState === "ready"
+                  ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+                  : readiness.executionState === "in_progress"
+                    ? "border-amber-400/20 bg-amber-400/10 text-amber-200"
+                    : "border-white/10 bg-white/5"
+            }`}
+          >
+            {readiness.executionState === "blocked" ? <FiLock size={10} /> : <FiPlayCircle size={10} />}
+            <span>{readiness.readinessLabel}</span>
+          </div>
           {task.sourceInboxId ? (
             <div className="flex items-center gap-1 bg-sky-400/10 px-2 py-0.5 rounded-lg border border-sky-400/20 text-sky-200">
               Inbox
+            </div>
+          ) : null}
+          {readiness.milestoneTitle ? (
+            <div className="flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20 text-emerald-200">
+              {readiness.milestoneTitle}
             </div>
           ) : null}
           {task.dueDate && (
@@ -131,10 +164,16 @@ export default function TaskItem({ task, isSelected, onClick }: TaskItemProps) {
           )}
           {task.note && (
             <div className="flex items-center gap-1 bg-brand-primary/10 text-brand-primary px-2 py-0.5 rounded-lg border border-brand-primary/20 italic">
+              <FiLink size={10} />
               {task.note.title}
             </div>
           )}
         </div>
+        {(readiness.blockers.length > 0 || readiness.warnings.length > 0) && (
+          <p className="mt-2 line-clamp-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-text-muted/80">
+            {readiness.blockers[0] || readiness.warnings[0]}
+          </p>
+        )}
         {totalSubtasks > 0 && (
           <div className="mt-3">
             <div className="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-text-muted">

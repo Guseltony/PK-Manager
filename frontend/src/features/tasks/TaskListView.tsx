@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTasks } from "../../hooks/useTasks";
 import { useDreams } from "../../hooks/useDreams";
 import { useProjects } from "../../hooks/useProjects";
 import TaskItem from "./TaskItem";
-import { FiArrowRight, FiInbox } from "react-icons/fi";
+import { FiArrowRight, FiFlag, FiInbox, FiLayers, FiTarget } from "react-icons/fi";
 import {
   Select,
   SelectContent,
@@ -13,25 +13,93 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../../components/ui/select";
+import {
+  deriveTaskReadiness,
+  readTaskExecutionMetaMap,
+  writeTaskExecutionMetaMap,
+} from "./taskIntelligence";
+import type { ExecutionState, Priority, TaskStatus } from "../../types/task";
 
 interface TaskListViewProps {
   activeFilter: string;
+  groupBy: "smart" | "dream" | "priority" | "execution";
   selectedTaskId: string | null;
   onTaskSelect: (id: string | null) => void;
 }
 
-export default function TaskListView({ activeFilter, selectedTaskId, onTaskSelect }: TaskListViewProps) {
+export default function TaskListView({
+  activeFilter,
+  groupBy,
+  selectedTaskId,
+  onTaskSelect,
+}: TaskListViewProps) {
   const { tasks, isLoading, error, updateTaskAsync, isUpdating } = useTasks(activeFilter);
   const { dreams } = useDreams();
   const { projects } = useProjects();
   const [selectedBulkIds, setSelectedBulkIds] = useState<string[]>([]);
   const [bulkDreamId, setBulkDreamId] = useState("");
   const [bulkProjectId, setBulkProjectId] = useState("");
+  const [bulkStatus, setBulkStatus] = useState<"" | TaskStatus>("");
+  const [bulkPriority, setBulkPriority] = useState<"" | Priority>("");
+  const [bulkExecutionState, setBulkExecutionState] = useState<
+    "" | ExecutionState
+  >("");
+  const [metaVersion, setMetaVersion] = useState(0);
+
+  useEffect(() => {
+    const syncMeta = () => setMetaVersion((current) => current + 1);
+    window.addEventListener("storage", syncMeta);
+    window.addEventListener("focus", syncMeta);
+    return () => {
+      window.removeEventListener("storage", syncMeta);
+      window.removeEventListener("focus", syncMeta);
+    };
+  }, []);
 
   const availableProjects = useMemo(
     () => projects.filter((project) => !bulkDreamId || project.dreamId === bulkDreamId),
     [bulkDreamId, projects],
   );
+  const executionMetaMap = useMemo(() => readTaskExecutionMetaMap(), [metaVersion]);
+
+  const groupedTasks = useMemo(() => {
+    const groups = new Map<string, typeof tasks>();
+
+    tasks.forEach((task) => {
+      const readiness = deriveTaskReadiness(task, tasks, executionMetaMap[task.id]);
+      let groupLabel = "Execution Queue";
+
+      if (groupBy === "dream") {
+        groupLabel = task.dream?.title || "Unlinked to Dream";
+      } else if (groupBy === "priority") {
+        groupLabel =
+          task.priority === "urgent"
+            ? "Urgent"
+            : task.priority === "high"
+              ? "High Priority"
+              : task.priority === "medium"
+                ? "Medium Priority"
+                : "Low Priority";
+      } else if (groupBy === "execution") {
+        groupLabel = readiness.readinessLabel;
+      } else {
+        groupLabel =
+          readiness.executionState === "blocked"
+            ? "Blocked"
+            : task.status === "in_progress"
+              ? "In Motion"
+              : task.dueDate && new Date(task.dueDate) < new Date()
+                ? "Needs Recovery"
+                : readiness.executionState === "ready"
+                  ? "Ready to Execute"
+                  : "Queued";
+      }
+
+      groups.set(groupLabel, [...(groups.get(groupLabel) || []), task]);
+    });
+
+    return Array.from(groups.entries());
+  }, [executionMetaMap, groupBy, tasks]);
 
   const toggleTaskSelection = (taskId: string) => {
     setSelectedBulkIds((current) =>
@@ -44,6 +112,8 @@ export default function TaskListView({ activeFilter, selectedTaskId, onTaskSelec
   const applyBulkAssignment = async () => {
     if (!selectedBulkIds.length) return;
 
+    const currentMetaMap = readTaskExecutionMetaMap();
+
     await Promise.all(
       selectedBulkIds.map((id) =>
         updateTaskAsync({
@@ -51,14 +121,36 @@ export default function TaskListView({ activeFilter, selectedTaskId, onTaskSelec
           updates: {
             dreamId: bulkDreamId || null,
             projectId: bulkProjectId || null,
+            ...(bulkStatus ? { status: bulkStatus } : {}),
+            ...(bulkPriority ? { priority: bulkPriority } : {}),
           },
         }),
       ),
     );
 
+    if (bulkExecutionState) {
+      selectedBulkIds.forEach((id) => {
+        const existing = currentMetaMap[id];
+        currentMetaMap[id] = {
+          taskId: id,
+          executionState: bulkExecutionState,
+          blockerReason: existing?.blockerReason || null,
+          dependencyTaskIds: existing?.dependencyTaskIds || [],
+          requireReferenceNote: existing?.requireReferenceNote || false,
+          focusMinutesTarget: existing?.focusMinutesTarget || 30,
+          updatedAt: new Date().toISOString(),
+        };
+      });
+      writeTaskExecutionMetaMap(currentMetaMap);
+      setMetaVersion((current) => current + 1);
+    }
+
     setSelectedBulkIds([]);
     setBulkDreamId("");
     setBulkProjectId("");
+    setBulkStatus("");
+    setBulkPriority("");
+    setBulkExecutionState("");
   };
 
   if (isLoading) {
@@ -114,7 +206,7 @@ export default function TaskListView({ activeFilter, selectedTaskId, onTaskSelec
             {selectedBulkIds.length} selected
           </span>
         </div>
-        <div className="mt-3 grid gap-3 lg:grid-cols-[1fr_1fr_auto]">
+        <div className="mt-3 grid gap-3 xl:grid-cols-[1fr_1fr_0.9fr_0.9fr_0.9fr_auto]">
           <Select
             value={bulkDreamId || "none"}
             onValueChange={(value) => {
@@ -151,6 +243,57 @@ export default function TaskListView({ activeFilter, selectedTaskId, onTaskSelec
               ))}
             </SelectContent>
           </Select>
+
+          <Select
+            value={bulkStatus || "none"}
+            onValueChange={(value) => setBulkStatus(value === "none" ? "" : (value as TaskStatus))}
+          >
+            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-6 text-sm text-text-main outline-none">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
+              <SelectItem value="none">Keep status</SelectItem>
+              <SelectItem value="todo">Todo</SelectItem>
+              <SelectItem value="in_progress">In progress</SelectItem>
+              <SelectItem value="done">Completed</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={bulkPriority || "none"}
+            onValueChange={(value) => setBulkPriority(value === "none" ? "" : (value as Priority))}
+          >
+            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-6 text-sm text-text-main outline-none">
+              <SelectValue placeholder="Priority" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
+              <SelectItem value="none">Keep priority</SelectItem>
+              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+              <SelectItem value="urgent">Urgent</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={bulkExecutionState || "none"}
+            onValueChange={(value) =>
+              setBulkExecutionState(value === "none" ? "" : (value as ExecutionState))
+            }
+          >
+            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-6 text-sm text-text-main outline-none">
+              <SelectValue placeholder="Execution state" />
+            </SelectTrigger>
+            <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
+              <SelectItem value="none">Keep execution state</SelectItem>
+              <SelectItem value="queued">Queued</SelectItem>
+              <SelectItem value="ready">Ready</SelectItem>
+              <SelectItem value="blocked">Blocked</SelectItem>
+              <SelectItem value="in_progress">In progress</SelectItem>
+              <SelectItem value="waiting">Waiting</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+            </SelectContent>
+          </Select>
           <button
             type="button"
             onClick={applyBulkAssignment}
@@ -163,26 +306,44 @@ export default function TaskListView({ activeFilter, selectedTaskId, onTaskSelec
         </div>
       </div>
 
-      {tasks.map((task) => (
-        <div key={task.id} className="flex items-stretch gap-3">
-          <button
-            type="button"
-            onClick={() => toggleTaskSelection(task.id)}
-            className={`mt-4 h-5 w-5 shrink-0 rounded-md border transition ${
-              selectedBulkIds.includes(task.id)
-                ? "border-brand-primary bg-brand-primary"
-                : "border-white/15 bg-black/20"
-            }`}
-            aria-label={`Select ${task.title}`}
-          />
-          <div className="min-w-0 flex-1">
-            <TaskItem 
-              task={task} 
-              isSelected={selectedTaskId === task.id}
-              onClick={() => onTaskSelect(task.id)}
-            />
+      {groupedTasks.map(([groupTitle, groupTasks]) => (
+        <section key={groupTitle} className="space-y-3">
+          <div className="flex items-center gap-3 px-1 sm:px-0">
+            <div className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+              {groupBy === "execution" ? <FiTarget className="inline mr-1" size={10} /> : null}
+              {groupBy === "smart" ? <FiLayers className="inline mr-1" size={10} /> : null}
+              {groupBy === "priority" ? <FiFlag className="inline mr-1" size={10} /> : null}
+              {groupTitle}
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+              {groupTasks.length} items
+            </span>
+            <div className="h-px flex-1 bg-white/5" />
           </div>
-        </div>
+
+          {groupTasks.map((task) => (
+            <div key={task.id} className="flex items-stretch gap-3">
+              <button
+                type="button"
+                onClick={() => toggleTaskSelection(task.id)}
+                className={`mt-4 h-5 w-5 shrink-0 rounded-md border transition ${
+                  selectedBulkIds.includes(task.id)
+                    ? "border-brand-primary bg-brand-primary"
+                    : "border-white/15 bg-black/20"
+                }`}
+                aria-label={`Select ${task.title}`}
+              />
+              <div className="min-w-0 flex-1">
+                <TaskItem
+                  task={task}
+                  allTasks={tasks}
+                  isSelected={selectedTaskId === task.id}
+                  onClick={() => onTaskSelect(task.id)}
+                />
+              </div>
+            </div>
+          ))}
+        </section>
       ))}
     </div>
   );
