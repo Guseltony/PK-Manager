@@ -23,11 +23,11 @@ export default function NotesPage() {
   const isEditing = !!selectedNoteId || isCreating;
 
   return (
-    <div className="flex h-[calc(100vh-64px)] overflow-hidden rounded-none md:rounded-3xl border-0 md:border border-white/5 bg-surface-base sm:shadow-2xl">
-      <div className={`h-full w-full md:w-80 shrink-0 ${isEditing ? "hidden md:block" : "block"}`}>
+    <div className="flex h-[calc(100vh-64px)] min-h-0 overflow-hidden rounded-none md:rounded-3xl border-0 md:border border-white/5 bg-surface-base sm:shadow-2xl">
+      <div className={`h-full min-h-0 w-full md:w-80 shrink-0 ${isEditing ? "hidden md:block" : "block"}`}>
         <NoteList />
       </div>
-      <div className={`h-full flex-1 min-w-0 ${isEditing ? "block" : "hidden md:flex"}`}>
+      <div className={`h-full min-h-0 flex-1 min-w-0 ${isEditing ? "flex" : "hidden md:flex"}`}>
         <NoteEditor />
       </div>
     </div>

@@ -377,7 +377,7 @@ function NewNoteForm() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-surface-base overflow-hidden">
+    <div className="flex-1 flex min-h-0 flex-col h-full bg-surface-base overflow-y-auto md:overflow-hidden custom-scrollbar">
       <div className="p-4 border-b border-white/5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <button
@@ -629,6 +629,7 @@ function NoteEditorContent({ note }: { note: Note }) {
   const [isReaderMode, setIsReaderMode] = useState(false);
   const [analysis, setAnalysis] = useState<AiNoteAnalysis | null>(null);
   const [activeImage, setActiveImage] = useState<string | null>(null);
+  const [showKnowledgeMeta, setShowKnowledgeMeta] = useState(false);
   const [historyEntries, setHistoryEntries] = useState<NoteVersion[]>([]);
   const [selectedHistoryVersionId, setSelectedHistoryVersionId] = useState<string | null>(null);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
@@ -1076,7 +1077,7 @@ function NoteEditorContent({ note }: { note: Note }) {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-surface-base overflow-hidden">
+    <div className="flex-1 flex min-h-0 flex-col h-full bg-surface-base overflow-y-auto md:overflow-hidden custom-scrollbar">
       <div className="p-4 border-b border-white/5 flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
@@ -1211,7 +1212,7 @@ function NoteEditorContent({ note }: { note: Note }) {
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8 pt-3 sm:pt-4 flex flex-col gap-2">
+      <div className="px-4 sm:px-6 lg:px-8 pt-3 sm:pt-4 flex flex-col gap-2 shrink-0">
         {viewMode === "preview" ? (
           <h1 className="text-4xl sm:text-5xl font-black text-text-main tracking-tighter leading-[0.95] mb-2">
             {title || "Untitled Note"}
@@ -1283,158 +1284,167 @@ function NoteEditorContent({ note }: { note: Note }) {
           ) : null}
         </div>
 
-        <div className="grid gap-3 lg:grid-cols-[1.15fr_0.95fr]">
-          <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
-                  Knowledge Structure
-                </p>
-                <p className="mt-1 text-xs leading-5 text-text-muted">
-                  Link this note into the dream and execution systems.
-                </p>
-              </div>
+        <div className="rounded-[1.35rem] border border-white/10 bg-white/5 px-4 py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+                Dream: {note.dream?.title || "unlinked"}
+              </span>
+              <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+                Tasks: {(note.tasks || []).length}
+              </span>
+              {sourceInboxItem ? (
+                <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">
+                  Source: {captureMethod || "capture"}
+                </span>
+              ) : null}
             </div>
-
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
-                  Parent Dream
-                </p>
-                <div className="mt-2">
-                  <Select
-                    value={note.dreamId || "none"}
-                    onValueChange={handleDreamLink}
-                  >
-                    <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
-                      <SelectValue placeholder="Link to dream" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No dream link</SelectItem>
-                      {dreams.map((dream: (typeof dreams)[number]) => (
-                        <SelectItem key={dream.id} value={dream.id}>
-                          {dream.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {note.dream ? (
-                  <p className="mt-2 text-xs text-text-main">
-                    Supporting: {note.dream.title}
-                  </p>
-                ) : null}
-              </div>
-
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
-                  Link Task
-                </p>
-                <div className="mt-2">
-                  <Select onValueChange={handleTaskLink}>
-                    <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
-                      <SelectValue placeholder="Attach to execution" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableTaskLinks.length ? (
-                        availableTaskLinks.map((task: (typeof availableTaskLinks)[number]) => (
-                          <SelectItem key={task.id} value={task.id}>
-                            {task.title}
-                          </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="no-task-links" disabled>
-                          No available tasks
-                        </SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {(note.tasks || []).slice(0, 4).map((task) => (
-                    <button
-                      key={task.id}
-                      type="button"
-                      onClick={() => handleTaskUnlink(task.id)}
-                      className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-amber-200"
-                    >
-                      {task.title}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <button
+              type="button"
+              onClick={() => setShowKnowledgeMeta((current) => !current)}
+              className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary transition hover:text-white"
+            >
+              {showKnowledgeMeta ? "Hide context" : "Expand context"}
+            </button>
           </div>
+        </div>
 
-          <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
-              Source Material
-            </p>
-            {sourceInboxItem ? (
-              <div className="mt-3 space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">
-                    {captureMethod || "capture"}
-                  </span>
-                  <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
-                    {sourceInboxItem.source}
-                  </span>
+        {showKnowledgeMeta ? (
+          <div className="space-y-3">
+            <div className="grid gap-3 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+                Knowledge Structure
+              </p>
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                    Parent Dream
+                  </p>
+                  <div className="mt-2">
+                    <Select
+                      value={note.dreamId || "none"}
+                      onValueChange={handleDreamLink}
+                    >
+                      <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
+                        <SelectValue placeholder="Link to dream" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No dream link</SelectItem>
+                        {dreams.map((dream: (typeof dreams)[number]) => (
+                          <SelectItem key={dream.id} value={dream.id}>
+                            {dream.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <p className="text-sm leading-6 text-text-main/90">
-                  {sourceInboxItem.processedPayload?.summary ||
-                    sourceInboxItem.content ||
-                    sourceInboxItem.rawInput}
-                </p>
-                {sourceInboxItem.processedPayload?.attachments?.length ? (
-                  <div className="flex flex-wrap gap-2">
-                    {sourceInboxItem.processedPayload.attachments.map((attachment: NonNullable<typeof sourceInboxItem.processedPayload.attachments>[number]) => (
-                      <span
-                        key={`${sourceInboxItem.id}-${attachment.name}`}
-                        className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main"
+
+                <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                  <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                    Link Task
+                  </p>
+                  <div className="mt-2">
+                    <Select onValueChange={handleTaskLink}>
+                      <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
+                        <SelectValue placeholder="Attach to execution" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableTaskLinks.length ? (
+                          availableTaskLinks.map((task: (typeof availableTaskLinks)[number]) => (
+                            <SelectItem key={task.id} value={task.id}>
+                              {task.title}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-task-links" disabled>
+                            No available tasks
+                          </SelectItem>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {(note.tasks || []).slice(0, 4).map((task) => (
+                      <button
+                        key={task.id}
+                        type="button"
+                        onClick={() => handleTaskUnlink(task.id)}
+                        className="rounded-full border border-amber-400/20 bg-amber-400/10 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-amber-200"
                       >
-                        {attachment.name}
-                      </span>
+                        {task.title}
+                      </button>
                     ))}
                   </div>
-                ) : null}
-                {sourceInboxItem.processedPayload?.videoUrl ? (
-                  <a
-                    href={sourceInboxItem.processedPayload.videoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-2 text-xs font-bold text-brand-primary hover:text-white"
-                  >
-                    Open source link
-                  </a>
-                ) : null}
-                {(captureMethod === "file" || captureMethod === "video" || captureMethod === "image") ? (
-                  <button
-                    type="button"
-                    onClick={handleCreateReadingTask}
-                    className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30"
-                  >
-                    <FiBookOpen />
-                    Create reading task
-                  </button>
-                ) : null}
+                </div>
               </div>
-            ) : (
-              <p className="mt-3 text-sm leading-6 text-text-muted">
-                No capture origin is attached to this note yet.
-              </p>
-            )}
-          </div>
-        </div>
+            </div>
 
-        <div className="grid gap-3 xl:grid-cols-[1.2fr_1fr]">
-          <RelatedKnowledgePanel
-            backlinks={backlinks}
-            linkedNotes={linkedNotes}
-            relatedNotes={relatedNotes}
-            onOpenNote={openLinkedNote}
-          />
-          <NoteConstellation note={note} backlinks={backlinks} linkedNotes={linkedNotes} />
-        </div>
+            <div className="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+              <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+                Source Material
+              </p>
+              {sourceInboxItem ? (
+                <div className="mt-3 space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">
+                      {captureMethod || "capture"}
+                    </span>
+                    <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                      {sourceInboxItem.source}
+                    </span>
+                  </div>
+                  <p className="text-xs leading-5 text-text-main/90">
+                    {sourceInboxItem.processedPayload?.summary ||
+                      sourceInboxItem.content ||
+                      sourceInboxItem.rawInput}
+                  </p>
+                  {sourceInboxItem.processedPayload?.attachments?.length ? (
+                    <div className="flex flex-wrap gap-2">
+                      {sourceInboxItem.processedPayload.attachments.map((attachment: NonNullable<typeof sourceInboxItem.processedPayload.attachments>[number]) => (
+                        <span
+                          key={`${sourceInboxItem.id}-${attachment.name}`}
+                          className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-text-main"
+                        >
+                          {attachment.name}
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+                  {(captureMethod === "file" || captureMethod === "video" || captureMethod === "image") ? (
+                    <button
+                      type="button"
+                      onClick={handleCreateReadingTask}
+                      className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30"
+                    >
+                      <FiBookOpen />
+                      Create reading task
+                    </button>
+                  ) : null}
+                </div>
+              ) : (
+                <p className="mt-3 text-xs leading-5 text-text-muted">
+                  No capture origin is attached to this note yet.
+                </p>
+              )}
+            </div>
+          </div>
+            <div className="grid gap-3 xl:grid-cols-[1.2fr_1fr]">
+              <RelatedKnowledgePanel
+                backlinks={backlinks}
+                linkedNotes={linkedNotes}
+                relatedNotes={relatedNotes}
+                onOpenNote={openLinkedNote}
+              />
+              <NoteConstellation
+                note={note}
+                backlinks={backlinks}
+                linkedNotes={linkedNotes}
+              />
+            </div>
+          </div>
+        ) : null}
       </div>
 
       {analysis ? (
@@ -1494,7 +1504,7 @@ function NoteEditorContent({ note }: { note: Note }) {
         </div>
       ) : null}
 
-      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden mt-1.5 p-4 sm:p-5 lg:p-6 pt-0 gap-3">
+      <div className="flex-1 min-h-[26rem] md:min-h-0 flex flex-col lg:flex-row overflow-visible md:overflow-hidden mt-1.5 p-4 sm:p-5 lg:p-6 pt-0 gap-3">
         {viewMode === "edit" || viewMode === "split" ? (
           contentType === "markdown" ? (
             <textarea
@@ -1502,11 +1512,11 @@ function NoteEditorContent({ note }: { note: Note }) {
               value={markdownContent}
               onChange={(e) => setMarkdownContent(e.target.value)}
               placeholder="Start writing..."
-              className={`flex-1 bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/30 resize-none font-mono text-sm leading-7 custom-scrollbar ${viewMode === "split" ? "border-r border-white/5 pr-3 mr-1" : ""}`}
+              className={`min-h-[18rem] flex-1 bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/30 resize-none overflow-y-auto font-mono text-sm leading-7 custom-scrollbar ${viewMode === "split" ? "border-r border-white/5 pr-3 mr-1" : ""}`}
             />
           ) : (
             <div
-              className={`flex-1 flex flex-col gap-3 ${viewMode === "split" ? "border-r border-white/5 pr-3 mr-1" : ""}`}
+              className={`min-h-[18rem] flex-1 flex flex-col gap-3 ${viewMode === "split" ? "border-r border-white/5 pr-3 mr-1" : ""}`}
             >
               <RichTextToolbar
                 onCommand={applyRichCommand}
@@ -1526,7 +1536,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                 onKeyUp={saveRichSelection}
                 onMouseUp={saveRichSelection}
                 onBlur={saveRichSelection}
-                className="flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm leading-7 text-text-main outline-none custom-scrollbar [&_blockquote]:text-left [&_div]:text-left [&_h1]:text-left [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-left [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-left [&_h3]:text-lg [&_h3]:font-bold [&_li]:text-left [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.75rem] [&_p]:text-left [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain"
+                className="min-h-[16rem] flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm leading-7 text-text-main outline-none custom-scrollbar [&_blockquote]:text-left [&_div]:text-left [&_h1]:text-left [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-left [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-left [&_h3]:text-lg [&_h3]:font-bold [&_li]:text-left [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.75rem] [&_p]:text-left [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain"
                 style={{
                   direction: "ltr",
                   textAlign: "left",
@@ -1539,7 +1549,7 @@ function NoteEditorContent({ note }: { note: Note }) {
 
         {viewMode === "preview" || viewMode === "split" ? (
           <div
-            className={`flex-1 overflow-y-auto custom-scrollbar rounded-none border-x border-white/5 bg-white/5 ${viewMode === "preview" ? "px-3 py-3 sm:px-6 sm:py-6 lg:px-8" : "px-3 py-3 sm:px-4"}`}
+            className={`min-h-[18rem] flex-1 overflow-y-auto custom-scrollbar rounded-none border-x border-white/5 bg-white/5 ${viewMode === "preview" ? "px-3 py-3 sm:px-6 sm:py-6 lg:px-8" : "px-3 py-3 sm:px-4"}`}
             style={{ fontSize: `${previewFontSize}px` }}
           >
             {contentType === "markdown" ? (
@@ -1799,70 +1809,207 @@ function NoteEditorContent({ note }: { note: Note }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed inset-0 z-[100] bg-surface-base overflow-y-auto custom-scrollbar flex flex-col items-center pt-10 sm:pt-20 px-6"
+            className="fixed inset-0 z-[100] bg-surface-base overflow-y-auto custom-scrollbar"
           >
-            <div className="w-full max-w-3xl flex flex-col gap-6 mb-20">
-              <button
-                onClick={() => setIsReaderMode(false)}
-                className="flex items-center gap-2 text-text-muted hover:text-white transition-colors text-xs font-black uppercase tracking-widest mb-4 group w-fit"
-              >
-                <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" />
-                Return to Editor
-              </button>
+            <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col px-3 pb-8 pt-4 sm:px-6 sm:pb-12 sm:pt-6">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4">
+                <button
+                  onClick={() => setIsReaderMode(false)}
+                  className="flex items-center gap-2 text-text-muted hover:text-white transition-colors text-xs font-black uppercase tracking-widest group w-fit"
+                >
+                  <FiArrowLeft className="group-hover:-translate-x-1 transition-transform" />
+                  Return to Editor
+                </button>
 
-              <h1 className="text-5xl sm:text-7xl font-black text-text-main tracking-tighter leading-[0.9] mb-4">
-                {title || "Untitled Note"}
-              </h1>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex rounded-2xl bg-white/5 p-1">
+                    <button
+                      type="button"
+                      onClick={() => setViewMode("edit")}
+                      className={`rounded-xl p-2 transition ${viewMode === "edit" ? "bg-brand-primary text-white" : "text-text-muted hover:text-text-main"}`}
+                      title="Edit Mode"
+                    >
+                      <FiEdit3 size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setViewMode("preview")}
+                      className={`rounded-xl p-2 transition ${viewMode === "preview" ? "bg-brand-primary text-white" : "text-text-muted hover:text-text-main"}`}
+                      title="Preview Mode"
+                    >
+                      <FiEye size={15} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setViewMode("split")}
+                      className={`rounded-xl p-2 transition ${viewMode === "split" ? "bg-brand-primary text-white" : "text-text-muted hover:text-text-main"}`}
+                      title="Split Mode"
+                    >
+                      <FiMaximize2 size={15} />
+                    </button>
+                  </div>
 
-              <div className="flex flex-wrap gap-2 items-center border-b border-white/5 pb-8 mb-4">
-                {note.tags.map(({ tag }) => (
-                  <span
-                    key={tag.id || tag.name}
-                    className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded border border-white/10"
-                    style={getTagColorStyle(tag.color)}
-                  >
-                    #{tag.name}
-                  </span>
-                ))}
+                  <div className="flex items-center gap-1.5 rounded-2xl border border-white/5 bg-black/20 px-2 py-1 h-10">
+                    <FiType size={13} className="text-brand-primary" />
+                    <Select
+                      value={String(previewFontSize)}
+                      onValueChange={(val) => setPreviewFontSize(Number(val))}
+                    >
+                      <SelectTrigger className="h-7 border-none bg-transparent p-0 text-[11px] font-black text-text-main hover:text-brand-primary transition-colors focus:ring-0">
+                        <SelectValue placeholder={`${previewFontSize}px`} />
+                      </SelectTrigger>
+                      <SelectContent className="min-w-[80px] rounded-xl border border-white/10 bg-surface-soft text-white">
+                        {[12, 13, 14, 16, 18].map((size) => (
+                          <SelectItem key={size} value={String(size)} className="rounded-lg text-[11px] font-bold py-1">
+                            {size}px
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
 
-              <div
-                className={`prose prose-invert max-w-none ${previewTextSizeClass} prose-p:my-2 prose-p:leading-[1.5] prose-headings:font-black prose-headings:tracking-tighter prose-headings:leading-none mb-20`}
-                style={{ fontSize: `${previewFontSize}px` }}
-              >
-                {contentType === "markdown" ? (
-                  <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      a: ({ href, children }) =>
-                        href?.startsWith("note:") ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              openLinkedNote(href.replace("note:", ""));
-                              setIsReaderMode(false);
-                            }}
-                            className="font-semibold text-brand-primary underline underline-offset-4"
-                          >
-                            {children}
-                          </button>
-                        ) : (
-                          <a
-                            href={href}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="font-semibold text-brand-primary underline underline-offset-4"
-                          >
-                            {children}
-                          </a>
-                        ),
-                  }}
-                  >
-                    {resolvedMarkdownContent}
-                  </ReactMarkdown>
+              <div className="mt-5 flex flex-col gap-3">
+                {viewMode === "preview" ? (
+                  <h1 className="text-4xl sm:text-6xl font-black text-text-main tracking-tighter leading-[0.92]">
+                    {title || "Untitled Note"}
+                  </h1>
                 ) : (
-                  <div dangerouslySetInnerHTML={{ __html: richHtml }} />
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Note Title"
+                    className="w-full bg-transparent text-3xl sm:text-5xl font-black text-text-main placeholder:text-text-muted/20 tracking-tighter leading-[0.92] outline-none"
+                  />
                 )}
+
+                <div className="flex flex-wrap gap-2 items-center border-b border-white/5 pb-4">
+                  {note.tags.map(({ tag }) => (
+                    <span
+                      key={tag.id || tag.name}
+                      className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded border border-white/10"
+                      style={getTagColorStyle(tag.color)}
+                    >
+                      #{tag.name}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-4 flex-1 min-h-[60vh] overflow-visible">
+                <div className="flex h-full min-h-[60vh] flex-col gap-4 lg:flex-row">
+                  {viewMode === "edit" || viewMode === "split" ? (
+                    contentType === "markdown" ? (
+                      <textarea
+                        ref={markdownRef}
+                        value={markdownContent}
+                        onChange={(e) => setMarkdownContent(e.target.value)}
+                        placeholder="Start writing..."
+                        className={`min-h-[22rem] flex-1 rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-text-main placeholder:text-text-muted/30 outline-none resize-none custom-scrollbar ${viewMode === "split" ? "lg:max-w-[48%]" : ""}`}
+                      />
+                    ) : (
+                      <div
+                        className={`min-h-[22rem] flex-1 flex flex-col gap-3 ${viewMode === "split" ? "lg:max-w-[48%]" : ""}`}
+                      >
+                        <RichTextToolbar
+                          onCommand={applyRichCommand}
+                          onAddLink={() => {
+                            const href = window.prompt("Enter link URL");
+                            if (href) applyRichCommand("createLink", href);
+                          }}
+                        />
+                        <div
+                          ref={richEditorRef}
+                          contentEditable
+                          dir="ltr"
+                          spellCheck
+                          suppressContentEditableWarning
+                          onInput={syncRichState}
+                          onFocus={syncRichState}
+                          onKeyUp={saveRichSelection}
+                          onMouseUp={saveRichSelection}
+                          onBlur={saveRichSelection}
+                          className="min-h-[20rem] flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-left text-sm leading-7 text-text-main outline-none custom-scrollbar [&_blockquote]:text-left [&_div]:text-left [&_h1]:text-left [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-left [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-left [&_h3]:text-lg [&_h3]:font-bold [&_li]:text-left [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.75rem] [&_p]:text-left [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain"
+                          style={{
+                            direction: "ltr",
+                            textAlign: "left",
+                            unicodeBidi: "normal",
+                          }}
+                        />
+                      </div>
+                    )
+                  ) : null}
+
+                  {viewMode === "preview" || viewMode === "split" ? (
+                    <div
+                      className={`min-h-[22rem] flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 custom-scrollbar ${viewMode === "preview" ? "px-4 py-4 sm:px-8 sm:py-8" : "px-4 py-4 lg:max-w-[52%]"}`}
+                      style={{ fontSize: `${previewFontSize}px` }}
+                    >
+                      {contentType === "markdown" ? (
+                        <div
+                          className={`prose prose-invert max-w-none ${previewTextSizeClass} prose-p:my-2 prose-p:leading-[1.5] prose-pre:my-2 prose-ul:my-1.5 prose-ol:my-1.5 prose-li:my-0.5 prose-headings:font-black prose-headings:tracking-tighter prose-headings:leading-none`}
+                        >
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              a: ({ href, children }) =>
+                                href?.startsWith("note:") ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      openLinkedNote(href.replace("note:", ""));
+                                      setIsReaderMode(false);
+                                    }}
+                                    className="font-semibold text-brand-primary underline underline-offset-4"
+                                  >
+                                    {children}
+                                  </button>
+                                ) : (
+                                  <a
+                                    href={href}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="font-semibold text-brand-primary underline underline-offset-4"
+                                  >
+                                    {children}
+                                  </a>
+                                ),
+                              img: ({ src, alt }) =>
+                                typeof src === "string" ? (
+                                  <ContentImage
+                                    src={src}
+                                    alt={alt}
+                                    onOpen={(srcValue) => setActiveImage(srcValue)}
+                                  />
+                                ) : null,
+                            }}
+                          >
+                            {resolvedMarkdownContent}
+                          </ReactMarkdown>
+                        </div>
+                      ) : (
+                        <div
+                          onClick={(event) => {
+                            const target = event.target as HTMLElement;
+                            if (target.tagName === "IMG") {
+                              const src = (target as HTMLImageElement).src;
+                              setActiveImage(src);
+                            }
+                          }}
+                          className={`text-text-main ${previewTextSizeClass} [&_h1]:mb-2 [&_h1]:text-[1.8em] [&_h1]:font-black [&_h1]:tracking-tighter [&_h1]:leading-none [&_h2]:mb-2 [&_h2]:text-[1.5em] [&_h2]:font-black [&_h2]:tracking-tighter [&_h2]:leading-none [&_h3]:mb-2 [&_h3]:text-[1.25em] [&_h3]:font-black [&_h3]:tracking-tighter [&_h3]:leading-none [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain [&_ol]:my-2 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1.5 [&_p]:leading-[1.45] [&_ul]:my-2 [&_ul]:list-disc [&_ul]:pl-5`}
+                          style={{
+                            direction: "ltr",
+                            textAlign: "left",
+                            unicodeBidi: "normal",
+                          }}
+                          dangerouslySetInnerHTML={{ __html: richHtml }}
+                        />
+                      )}
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
           </motion.div>
