@@ -2,6 +2,13 @@ import { Tag } from "./tag";
 
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
 export type Priority = 'low' | 'medium' | 'high' | 'urgent';
+export type ExecutionState =
+  | "queued"
+  | "ready"
+  | "blocked"
+  | "in_progress"
+  | "waiting"
+  | "completed";
 
 export interface Subtask {
   id: string;
@@ -37,6 +44,26 @@ export interface ReadingSessionPayload {
   takeaway?: string | null;
   noteTitle?: string | null;
   engagementCount?: number;
+}
+
+export interface TaskExecutionMeta {
+  taskId: string;
+  executionState: ExecutionState;
+  blockerReason?: string | null;
+  dependencyTaskIds: string[];
+  requireReferenceNote: boolean;
+  focusMinutesTarget?: number | null;
+  updatedAt: string;
+}
+
+export interface TaskFocusSession {
+  id: string;
+  taskId: string;
+  durationMinutes: number;
+  requiredMinutes: number;
+  engagementCount: number;
+  status: "completed" | "partial";
+  createdAt: string;
 }
 
 export interface Task {
