@@ -86,8 +86,20 @@ const hydrateNoteRelationships = (note) => {
 };
 
 const noteCreation = async ({ title, content, contentType, tagsArray, sourceInboxId, dreamId }, user_id) => {
-  if (!title || !content) {
-    throw new Error("title and content of the note is required");
+  const normalizedTitle = title?.trim();
+  const normalizedContent =
+    typeof content === "string" && content.trim().length > 0
+      ? content
+      : contentType === "richtext"
+        ? JSON.stringify({
+            type: "doc",
+            version: 1,
+            html: "<p></p>",
+          })
+        : "Start writing...";
+
+  if (!normalizedTitle) {
+    throw new Error("title is required");
   }
 
   // create Tag
@@ -125,11 +137,11 @@ const noteCreation = async ({ title, content, contentType, tagsArray, sourceInbo
 
   const note = await prisma.note.create({
     data: {
-      title,
-      content,
+      title: normalizedTitle,
+      content: normalizedContent,
       contentType: contentType || "markdown",
       sourceInboxId: sourceInboxId || null,
-      dreamId: dreamId || null,
+      dream: dreamId ? { connect: { id: dreamId } } : undefined,
       user: {
         connect: { id: user_id },
       },
@@ -203,7 +215,13 @@ const updateUserNote = async ({ title, content, contentType, tagsArray, dreamId 
   if (title !== undefined) noteObj.title = title;
   if (content !== undefined) noteObj.content = content;
   if (contentType !== undefined) noteObj.contentType = contentType;
-  if (dreamId !== undefined) noteObj.dreamId = dreamId;
+  if (dreamId !== undefined) {
+    if (dreamId === null) {
+      noteObj.dream = { disconnect: true };
+    } else {
+      noteObj.dream = { connect: { id: dreamId } };
+    }
+  }
 
   const shouldCreateSnapshot =
     (title !== undefined && title !== existingNote.title) ||
