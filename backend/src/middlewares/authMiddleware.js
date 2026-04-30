@@ -4,10 +4,10 @@ import { prisma } from "../libs/prisma.js";
 
 export const authMiddleware = async (req, res, next) => {
   try {
-    console.log(`AUTH_DEBUG: [${req.method}] ${req.path}`);
-    console.log("AUTH_DEBUG: Cookies keys:", Object.keys(req.cookies || {}));
-    console.log("AUTH_DEBUG: AccessToken cookie:", !!req.cookies?.accessToken);
-    console.log("AUTH_DEBUG: Auth Header:", !!req.headers.authorization);
+    // console.log(`AUTH_DEBUG: [${req.method}] ${req.path}`);
+    // console.log("AUTH_DEBUG: Cookies keys:", Object.keys(req.cookies || {}));
+    // console.log("AUTH_DEBUG: AccessToken cookie:", !!req.cookies?.accessToken);
+    // console.log("AUTH_DEBUG: Auth Header:", !!req.headers.authorization);
 
     let token = req.headers.authorization?.startsWith("Bearer ") 
       ? req.headers.authorization.split(" ")[1] 
@@ -20,7 +20,7 @@ export const authMiddleware = async (req, res, next) => {
       });
     }
 
-    console.log("AUTH_DEBUG: Token found, verifying...");
+    // console.log("AUTH_DEBUG: Token found, verifying...");
 
     // decode the token to get the user
 
@@ -37,7 +37,7 @@ export const authMiddleware = async (req, res, next) => {
       omit: { password: true },
     });
 
-    console.log("user from DB:", user);
+    // console.log("user from DB:", user);
 
     if (!user) {
       return res.status(401).json({
@@ -48,7 +48,7 @@ export const authMiddleware = async (req, res, next) => {
     // attach the user to the req
     req.user = user;
 
-    console.log("req.user:", req.user);
+    // console.log("req.user:", req.user);
 
     next();
   } catch (error) {
