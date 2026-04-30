@@ -56,14 +56,26 @@ export function useNotes() {
   // Create Note
   const createMutation = useMutation({
     mutationFn: async (newNote: NewNote) => {
+      const normalizedContent =
+        typeof newNote.content === "string" && newNote.content.trim().length > 0
+          ? newNote.content
+          : newNote.contentType === "richtext"
+            ? JSON.stringify({
+                type: "doc",
+                version: 1,
+                html: "<p></p>",
+              })
+            : "Start writing...";
+
       // Backend expects tagsArray as [{ name, color }]
       const payload = {
         ...newNote,
         // Map the relational tag objects back to names for the backend tagHelper
-        tagsArray: newNote.tags.map(t => ({ name: t.tag.name })),
+        tagsArray: newNote.tags.map(t => ({ name: t.tag.name, color: t.tag.color })),
         title: newNote.title || "New Note",
-        content: newNote.content || "Start writing...",
+        content: normalizedContent,
         dreamId: newNote.dreamId || null,
+        sourceInboxId: newNote.sourceInboxId || null,
       };
       const { data } = await api.post<{ data: BackendNote }>("/note/create", payload);
       return mapBackendNote(data.data);
