@@ -4,7 +4,7 @@ const contentTypeSchema = z.enum(["markdown", "richtext"]);
 
 export const createNoteSchema = z.object({
   title: z.string().trim().min(1, "title is required").toLowerCase(),
-  content: z.string().trim().min(2, "required"),
+  content: z.string().trim().default(""),
   contentType: contentTypeSchema.optional(),
   sourceInboxId: z.string().uuid().optional().nullable(),
   dreamId: z.string().uuid().optional().nullable(),
