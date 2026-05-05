@@ -84,3 +84,46 @@ export const authCallback = async (req, res) => {
     });
   }
 };
+
+export const authCodeExchange = async (req, res) => {
+  try {
+    const { userAgent, ip } = await fetchUsrIpandAgent(req);
+    const {
+      code,
+      state,
+      storedState,
+      codeVerifier,
+      mode,
+      redirectUri,
+    } = req.body;
+
+    const data = await googleOAuthSignIn(
+      code,
+      state,
+      storedState,
+      codeVerifier,
+      userAgent,
+      ip,
+      mode,
+      redirectUri,
+    );
+
+    if (!data) {
+      return res.status(400).json({ error: "Error signing in with Google" });
+    }
+
+    const { refreshToken, accessToken, csrfToken, user } = data;
+    return res.status(200).json({
+      data: {
+        refreshToken,
+        accessToken,
+        csrfToken,
+        user,
+      },
+    });
+  } catch (error) {
+    return res.status(401).json({
+      error: error.message,
+    });
+  }
+};

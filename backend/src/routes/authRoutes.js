@@ -15,7 +15,10 @@ import { deleteAllUser } from "../services/admin.services.js";
 import { refresh } from "../controllers/auth/tokenRefresh.controller.js";
 import { csrfMiddleware } from "../middlewares/csrfMiddleware.js";
 import { googleAuth } from "../controllers/auth/googleAuth.js";
-import { authCallback } from "../controllers/auth/googleAuthCallback.js";
+import {
+  authCallback,
+  authCodeExchange,
+} from "../controllers/auth/googleAuthCallback.js";
 import { validateRequest } from "../middlewares/zodValidation.js";
 
 
@@ -31,6 +34,7 @@ authRoute.post("/gmail", gmailReg);
 
 authRoute.get("/google", googleAuth);
 authRoute.get("/google/callback", authCallback);
+authRoute.post("/google/exchange", authCodeExchange);
 
 authRoute.post("/login", validateRequest(loginSchema, "body"), login);
 

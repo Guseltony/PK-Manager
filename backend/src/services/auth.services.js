@@ -96,7 +96,7 @@ const registerUser = async ({ email, password, name }, userAgent, ip) => {
 
   return { user, refreshToken, accessToken, csrfToken };
 };
-
+/*  */
 const googleOAuthSignIn = async (
   code,
   state,
@@ -105,6 +105,7 @@ const googleOAuthSignIn = async (
   userAgent,
   ip,
   mode,
+  redirectUri = process.env.GOOGLE_REDIRECT_URI,
 ) => {
   // 1️⃣ CSRF protection
   if (!state || state !== cookiesState) {
@@ -131,7 +132,7 @@ const googleOAuthSignIn = async (
         code: code,
         code_verifier: cookiesPkce,
         grant_type: "authorization_code",
-        redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+        redirect_uri: redirectUri,
       }),
     });
     
