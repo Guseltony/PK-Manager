@@ -66,6 +66,19 @@ export interface TaskFocusSession {
   createdAt: string;
 }
 
+export type TaskRecurrence = "none" | "daily" | "weekly" | "monthly";
+
+export interface TaskScheduleMeta {
+  taskId: string;
+  scheduledDate?: string | null;
+  recurrence: TaskRecurrence;
+  weeklyDays?: number[];
+  occurrenceDates?: string[];
+  isTodayCommitment: boolean;
+  lastRescheduledAt?: string | null;
+  updatedAt: string;
+}
+
 export interface Task {
   id: string;
   title: string;

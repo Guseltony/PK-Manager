@@ -2,7 +2,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../libs/api";
 import { Task, NewTask, ReadingSessionPayload, Subtask } from "../types/task";
 import { useTasksStore } from "../store/tasksStore";
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  filterTasksBySchedule,
+  readTaskScheduleMetaMap,
+  subscribeTaskMetaChange,
+} from "../features/tasks/taskIntelligence";
 
 const normalizeTaskShape = (task: Partial<Task>) => {
   if (!task.tags) return task;
@@ -34,6 +39,19 @@ const normalizeTaskShape = (task: Partial<Task>) => {
 export function useTasks(activeFilter = "all") {
   const queryClient = useQueryClient();
   const { setTasks, addTask, updateTask: updateInStore, deleteTask: deleteFromStore } = useTasksStore();
+  const [scheduleVersion, setScheduleVersion] = useState(0);
+
+  useEffect(() => {
+    const sync = () => setScheduleVersion((current) => current + 1);
+    window.addEventListener("storage", sync);
+    window.addEventListener("focus", sync);
+    const unsubscribe = subscribeTaskMetaChange(sync);
+    return () => {
+      window.removeEventListener("storage", sync);
+      window.removeEventListener("focus", sync);
+      unsubscribe();
+    };
+  }, []);
 
   // Fetch Tasks
   const { data: fetchedTasks, isLoading, error } = useQuery<Task[]>({
@@ -41,12 +59,13 @@ export function useTasks(activeFilter = "all") {
     queryFn: async () => {
       const params: Record<string, string | boolean> = {};
       if (activeFilter === "completed") params.status = "done";
-      else if (activeFilter === "today") params.today = true;
-      else if (activeFilter === "upcoming") params.upcoming = true;
-      else if (activeFilter === "overdue") params.overdue = true;
       else if (activeFilter === "focus") params.focus = true;
       else if (activeFilter === "high-priority") params["high-priority"] = true;
-      else if (activeFilter !== "all") {
+      else if (
+        !["all", "today", "upcoming", "overdue", "carryover"].includes(
+          activeFilter,
+        )
+      ) {
         params.status = activeFilter;
       }
       
@@ -55,12 +74,17 @@ export function useTasks(activeFilter = "all") {
     },
   });
 
+  const tasks = useMemo(() => {
+    const base = fetchedTasks || [];
+    return filterTasksBySchedule(base, activeFilter, readTaskScheduleMetaMap());
+  }, [activeFilter, fetchedTasks, scheduleVersion]);
+
   // Sync with Zustand (optional, but keep it for consistency)
   useEffect(() => {
-    if (fetchedTasks) {
-      setTasks(fetchedTasks);
+    if (tasks) {
+      setTasks(tasks);
     }
-  }, [fetchedTasks, setTasks]);
+  }, [tasks, setTasks]);
 
   // Create Task
   const createMutation = useMutation({
@@ -294,7 +318,7 @@ export function useTasks(activeFilter = "all") {
   });
 
   return {
-    tasks: fetchedTasks || [],
+    tasks,
     isLoading,
     error,
     createTask: createMutation.mutate,
