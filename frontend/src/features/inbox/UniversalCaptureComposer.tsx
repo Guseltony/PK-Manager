@@ -252,7 +252,7 @@ export default function UniversalCaptureComposer({
 
   return (
     <div className={`space-y-4 ${variant === "modal" ? "px-1" : ""}`}>
-      <div className="flex gap-2 overflow-x-auto custom-scrollbar pb-1">
+      <div className="-mx-1 flex gap-2 overflow-x-auto whitespace-nowrap px-1 pb-1 custom-scrollbar sm:mx-0 sm:px-0">
         {MODES.map((item) => {
           const Icon = item.icon;
           const active = item.id === mode;

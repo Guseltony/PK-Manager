@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { BACKEND_URL } from "../constants/constants";
 
 interface GoogleLoginButtonProps {
   isLogIn: boolean;
@@ -9,7 +8,7 @@ interface GoogleLoginButtonProps {
 
 export default function GoogleLoginButton({ isLogIn }: GoogleLoginButtonProps) {
   const handleGoogleLogin = () => {
-    window.location.href = `${BACKEND_URL}/auth/google?mode=${isLogIn ? "login" : "signup"}`;
+    window.location.href = `/api/auth/google/start?mode=${isLogIn ? "login" : "signup"}`;
   };
   //  "http://localhost:5000/auth/google?mode=signup";
 

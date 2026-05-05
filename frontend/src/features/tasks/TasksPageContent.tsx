@@ -10,6 +10,7 @@ import { useLedger } from "../../hooks/useLedger";
 import { 
   FiClock, 
   FiCalendar, 
+  FiCornerDownRight,
   FiAlertCircle, 
   FiCheckCircle, 
   FiZap, 
@@ -22,13 +23,17 @@ import {
 import { useSearchParams } from "next/navigation";
 import {
   deriveTaskReadiness,
+  getTaskScheduleSnapshot,
   getTodayFocusMinutesForTasks,
   readTaskExecutionMetaMap,
+  readTaskScheduleMetaMap,
+  subscribeTaskMetaChange,
 } from "./taskIntelligence";
 
 const filters = [
   { id: "all", label: "All Tasks", icon: FiList },
   { id: "today", label: "Today", icon: FiClock },
+  { id: "carryover", label: "Carryover", icon: FiCornerDownRight, color: "text-amber-300" },
   { id: "upcoming", label: "Upcoming", icon: FiCalendar },
   { id: "overdue", label: "Overdue", icon: FiAlertCircle, color: "text-brand-accent" },
   { id: "completed", label: "Completed", icon: FiCheckCircle },
@@ -42,6 +47,7 @@ export default function TasksPageContent() {
   const [groupBy, setGroupBy] = useState<"smart" | "dream" | "priority" | "execution">("smart");
   const searchParams = useSearchParams();
   const { tasks } = useTasks(filter);
+  const { tasks: allTasks } = useTasks("all");
   const { logs } = useLedger();
   const [metaVersion, setMetaVersion] = useState(0);
 
@@ -49,9 +55,11 @@ export default function TasksPageContent() {
     const syncMeta = () => setMetaVersion((current) => current + 1);
     window.addEventListener("storage", syncMeta);
     window.addEventListener("focus", syncMeta);
+    const unsubscribe = subscribeTaskMetaChange(syncMeta);
     return () => {
       window.removeEventListener("storage", syncMeta);
       window.removeEventListener("focus", syncMeta);
+      unsubscribe();
     };
   }, []);
 
@@ -63,25 +71,26 @@ export default function TasksPageContent() {
   }, [searchParams, setSelectedTaskId]);
 
   const executionMetaMap = useMemo(() => readTaskExecutionMetaMap(), [metaVersion]);
-  const blockedCount = tasks.filter((task) =>
-    deriveTaskReadiness(task, tasks, executionMetaMap[task.id]).executionState ===
+  const scheduleMetaMap = useMemo(() => readTaskScheduleMetaMap(), [metaVersion]);
+  const blockedCount = allTasks.filter((task) =>
+    deriveTaskReadiness(task, allTasks, executionMetaMap[task.id]).executionState ===
     "blocked",
   ).length;
-  const inProgressCount = tasks.filter((task) => task.status === "in_progress").length;
-  const dueTodayCount = tasks.filter((task) => {
-    if (!task.dueDate || task.status === "done") return false;
-    const due = new Date(task.dueDate).toISOString().slice(0, 10);
-    return due === new Date().toISOString().slice(0, 10);
-  }).length;
-  const overdueCount = tasks.filter((task) => {
-    if (!task.dueDate || task.status === "done") return false;
-    return new Date(task.dueDate) < new Date();
-  }).length;
+  const inProgressCount = allTasks.filter((task) => task.status === "in_progress").length;
+  const dueTodayCount = allTasks.filter(
+    (task) => getTaskScheduleSnapshot(task, scheduleMetaMap[task.id]).bucket === "today",
+  ).length;
+  const carryoverCount = allTasks.filter(
+    (task) => getTaskScheduleSnapshot(task, scheduleMetaMap[task.id]).bucket === "carryover",
+  ).length;
+  const overdueCount = allTasks.filter(
+    (task) => getTaskScheduleSnapshot(task, scheduleMetaMap[task.id]).bucket === "overdue",
+  ).length;
   const completedTodayCount = logs.filter((log) => {
     if (!log.taskId) return false;
     return log.completedAt.slice(0, 10) === new Date().toISOString().slice(0, 10);
   }).length;
-  const focusMinutesToday = getTodayFocusMinutesForTasks(tasks);
+  const focusMinutesToday = getTodayFocusMinutesForTasks(allTasks);
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-surface-base relative">
@@ -118,12 +127,19 @@ export default function TasksPageContent() {
         {/* Main Engine: Execution Layer */}
         <div className={`flex-1 flex flex-col relative ${selectedTaskId ? "hidden lg:flex" : "flex"}`}>
           <div className="px-4 py-4 sm:px-8 sm:py-6 border-b border-white/5 space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
               <TaskOverviewCard
                 label="Due Today"
                 value={String(dueTodayCount)}
-                detail="Tasks needing attention now"
+                detail="Strictly active or scheduled today"
                 icon={<FiClock size={14} />}
+              />
+              <TaskOverviewCard
+                label="Carryover"
+                value={String(carryoverCount)}
+                detail="Open work whose active window has passed"
+                icon={<FiCornerDownRight size={14} />}
+                tone="warm"
               />
               <TaskOverviewCard
                 label="Overdue"

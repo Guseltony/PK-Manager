@@ -11,10 +11,16 @@ import {
   FiStar,
   FiFlag,
 } from "react-icons/fi";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTasks } from "../../hooks/useTasks";
-import { deriveTaskReadiness, readTaskExecutionMetaMap } from "./taskIntelligence";
+import {
+  deriveTaskReadiness,
+  getTaskScheduleSnapshot,
+  recordTaskOccurrence,
+  readTaskExecutionMetaMap,
+  readTaskScheduleMetaMap,
+} from "./taskIntelligence";
 
 interface TaskItemProps {
   task: Task;
@@ -39,13 +45,27 @@ export default function TaskItem({
   const { updateTask } = useTasks();
 
   const [showWarning, setShowWarning] = useState(false);
-  const readiness = useMemo(
-    () => deriveTaskReadiness(task, allTasks, readTaskExecutionMetaMap()[task.id]),
-    [allTasks, task],
+  const readiness = deriveTaskReadiness(
+    task,
+    allTasks,
+    readTaskExecutionMetaMap()[task.id],
+  );
+  const schedule = getTaskScheduleSnapshot(
+    task,
+    readTaskScheduleMetaMap()[task.id],
   );
 
   const handleToggleStatus = (e: React.MouseEvent) => {
     e.stopPropagation();
+    if (schedule.recurrence !== "none") {
+      recordTaskOccurrence(task.id);
+      updateTask({
+        id: task.id,
+        updates: { status: task.status === "todo" ? "in_progress" : task.status },
+      });
+      return;
+    }
+
     if (isDone) {
       updateTask({ id: task.id, updates: { status: "todo" } });
       return;
@@ -64,7 +84,7 @@ export default function TaskItem({
     updateTask({ id: task.id, updates: { status: "done" } });
   };
 
-  const isDone = task.status === "done";
+  const isDone = task.status === "done" && schedule.recurrence === "none";
   const totalSubtasks = task.subtasks?.length || 0;
   const completedSubtasks = task.subtasks?.filter((subtask) => subtask.status === "done").length || 0;
   const subtaskProgress = totalSubtasks > 0 ? Math.round((completedSubtasks / totalSubtasks) * 100) : 0;
@@ -143,6 +163,16 @@ export default function TaskItem({
               Inbox
             </div>
           ) : null}
+          {schedule.bucket !== "backlog" && schedule.bucket !== "completed" ? (
+            <div className="flex items-center gap-1 bg-white/5 px-2 py-0.5 rounded-lg border border-white/10 text-text-main">
+              {schedule.statusLabel}
+            </div>
+          ) : null}
+          {schedule.progressLabel ? (
+            <div className="flex items-center gap-1 bg-brand-primary/10 px-2 py-0.5 rounded-lg border border-brand-primary/20 text-brand-primary">
+              {schedule.progressLabel}
+            </div>
+          ) : null}
           {readiness.milestoneTitle ? (
             <div className="flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20 text-emerald-200">
               {readiness.milestoneTitle}
@@ -174,6 +204,11 @@ export default function TaskItem({
             {readiness.blockers[0] || readiness.warnings[0]}
           </p>
         )}
+        {schedule.missedThisPeriod > 0 ? (
+          <p className="mt-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-300">
+            {schedule.missedThisPeriod} missed earlier this period
+          </p>
+        ) : null}
         {totalSubtasks > 0 && (
           <div className="mt-3">
             <div className="mb-1 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-text-muted">

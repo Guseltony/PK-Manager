@@ -8,7 +8,6 @@ import { FiMail, FiLock, FiUser, FiEye, FiEyeOff, FiAlertCircle, FiZap } from "r
 import { FcGoogle } from "react-icons/fc";
 import { loginSchema, registerSchema, type RegisterFormData, type LoginFormData } from "./schema";
 import { loginAction, registerAction } from "./actions";
-import { BACKEND_URL } from "@/src/constants/constants";
 import { setManualCsrfToken } from "@/src/libs/api";
 
 export default function SignInForm() {
@@ -39,7 +38,7 @@ export default function SignInForm() {
 
     const result = await loginAction(formData);
     if (!result?.success && "redirectToGoogle" in result && result.redirectToGoogle) {
-      window.location.href = `${BACKEND_URL}/auth/google?mode=login&email=${encodeURIComponent(result.email || "")}`;
+      window.location.href = `/api/auth/google/start?mode=login&email=${encodeURIComponent(result.email || "")}`;
       return;
     }
     if (!result?.success) {
@@ -59,7 +58,7 @@ export default function SignInForm() {
 
     const result = await registerAction(formData);
     if (!result?.success && "redirectToGoogle" in result && result.redirectToGoogle) {
-      window.location.href = `${BACKEND_URL}/auth/google?mode=signup&email=${encodeURIComponent(result.email || "")}`;
+      window.location.href = `/api/auth/google/start?mode=signup&email=${encodeURIComponent(result.email || "")}`;
       return;
     }
     if (!result?.success) {
@@ -73,7 +72,7 @@ export default function SignInForm() {
   };
 
   const handleGoogleAuth = () => {
-    window.location.href = `${BACKEND_URL}/auth/google?mode=${isLogin ? "login" : "signup"}`;
+    window.location.href = `/api/auth/google/start?mode=${isLogin ? "login" : "signup"}`;
   };
 
   const onSubmit = (e: React.FormEvent) => {

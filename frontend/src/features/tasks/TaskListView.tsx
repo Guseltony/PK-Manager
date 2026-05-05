@@ -15,7 +15,10 @@ import {
 } from "../../components/ui/select";
 import {
   deriveTaskReadiness,
+  getTaskScheduleSnapshot,
   readTaskExecutionMetaMap,
+  readTaskScheduleMetaMap,
+  subscribeTaskMetaChange,
   writeTaskExecutionMetaMap,
 } from "./taskIntelligence";
 import type { ExecutionState, Priority, TaskStatus } from "../../types/task";
@@ -50,9 +53,11 @@ export default function TaskListView({
     const syncMeta = () => setMetaVersion((current) => current + 1);
     window.addEventListener("storage", syncMeta);
     window.addEventListener("focus", syncMeta);
+    const unsubscribe = subscribeTaskMetaChange(syncMeta);
     return () => {
       window.removeEventListener("storage", syncMeta);
       window.removeEventListener("focus", syncMeta);
+      unsubscribe();
     };
   }, []);
 
@@ -61,12 +66,14 @@ export default function TaskListView({
     [bulkDreamId, projects],
   );
   const executionMetaMap = useMemo(() => readTaskExecutionMetaMap(), [metaVersion]);
+  const scheduleMetaMap = useMemo(() => readTaskScheduleMetaMap(), [metaVersion]);
 
   const groupedTasks = useMemo(() => {
     const groups = new Map<string, typeof tasks>();
 
     tasks.forEach((task) => {
       const readiness = deriveTaskReadiness(task, tasks, executionMetaMap[task.id]);
+      const schedule = getTaskScheduleSnapshot(task, scheduleMetaMap[task.id]);
       let groupLabel = "Execution Queue";
 
       if (groupBy === "dream") {
@@ -88,18 +95,22 @@ export default function TaskListView({
             ? "Blocked"
             : task.status === "in_progress"
               ? "In Motion"
-              : task.dueDate && new Date(task.dueDate) < new Date()
-                ? "Needs Recovery"
-                : readiness.executionState === "ready"
-                  ? "Ready to Execute"
-                  : "Queued";
+              : schedule.bucket === "carryover"
+                ? "Carryover Recovery"
+                : schedule.bucket === "today"
+                  ? "Today Commitments"
+                  : schedule.bucket === "upcoming"
+                    ? "Scheduled Ahead"
+                    : readiness.executionState === "ready"
+                      ? "Ready to Execute"
+                      : "Queued";
       }
 
       groups.set(groupLabel, [...(groups.get(groupLabel) || []), task]);
     });
 
     return Array.from(groups.entries());
-  }, [executionMetaMap, groupBy, tasks]);
+  }, [executionMetaMap, groupBy, scheduleMetaMap, tasks]);
 
   const toggleTaskSelection = (taskId: string) => {
     setSelectedBulkIds((current) =>

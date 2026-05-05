@@ -8,6 +8,7 @@ import {
   FiPlus,
   FiTag,
   FiClock,
+  FiCalendar,
   FiFlag,
   FiLink,
   FiActivity,
@@ -15,6 +16,7 @@ import {
   FiZap,
   FiArrowLeft,
   FiBookOpen,
+  FiCornerDownRight,
 } from "react-icons/fi";
 import { useEffect, useMemo, useRef, useState } from "react";
 import dayjs from "dayjs";
@@ -34,6 +36,8 @@ import {
   ExecutionState,
   TaskExecutionMeta,
   TaskFocusSession,
+  TaskRecurrence,
+  TaskScheduleMeta,
 } from "../../types/task";
 import { useTaskEnrichmentAI, useTaskSubtasksAI } from "../../hooks/useAI";
 import { getTagColorStyle } from "../../utils/tagColor";
@@ -52,10 +56,17 @@ import {
 import {
   assignTaskToMilestone,
   buildDefaultTaskExecutionMeta,
+  buildDefaultTaskScheduleMeta,
   deriveTaskReadiness,
+  formatWeeklyDays,
+  getTaskScheduleSnapshot,
   getTaskMilestoneContext,
+  recordTaskOccurrence,
   readTaskExecutionMetaMap,
   readTaskFocusSessions,
+  readTaskScheduleMetaMap,
+  persistTaskScheduleMeta,
+  toDateKey,
   writeTaskExecutionMetaMap,
   writeTaskFocusSessions,
 } from "./taskIntelligence";
@@ -74,6 +85,15 @@ const executionStates: ExecutionState[] = [
   "in_progress",
   "waiting",
   "completed",
+];
+const weekdayOptions = [
+  { label: "Sun", value: 0 },
+  { label: "Mon", value: 1 },
+  { label: "Tue", value: 2 },
+  { label: "Wed", value: 3 },
+  { label: "Thu", value: 4 },
+  { label: "Fri", value: 5 },
+  { label: "Sat", value: 6 },
 ];
 
 export default function TaskDetailView({
@@ -121,6 +141,9 @@ export default function TaskDetailView({
   const [executionMeta, setExecutionMeta] = useState<TaskExecutionMeta | null>(
     null,
   );
+  const [scheduleMeta, setScheduleMeta] = useState<TaskScheduleMeta | null>(
+    null,
+  );
   const [focusSessions, setFocusSessions] = useState<TaskFocusSession[]>([]);
 
   const getTagName = (tagLike: unknown) => {
@@ -134,7 +157,9 @@ export default function TaskDetailView({
     return null;
   };
 
-  const isCompleted = task?.status === "done";
+  const isRecurringTask =
+    scheduleMeta?.recurrence !== undefined && scheduleMeta.recurrence !== "none";
+  const isCompleted = task?.status === "done" && !isRecurringTask;
 
   useEffect(() => {
     if (!task) return;
@@ -145,20 +170,65 @@ export default function TaskDetailView({
   useEffect(() => {
     if (!task) return;
     const metaMap = readTaskExecutionMetaMap();
+    const scheduleMap = readTaskScheduleMetaMap();
     const linkedNoteCount = new Set([
       ...(task.noteId ? [task.noteId] : []),
       ...(task.notes?.map(({ note }) => note.id) || []),
     ]).size;
     setExecutionMeta(metaMap[task.id] || buildDefaultTaskExecutionMeta(task, linkedNoteCount));
+    setScheduleMeta(
+      scheduleMap[task.id] || buildDefaultTaskScheduleMeta(task),
+    );
     setFocusSessions(
       readTaskFocusSessions().filter((session) => session.taskId === task.id),
     );
   }, [task]);
 
+  useEffect(() => {
+    if (!task || !executionMeta) return;
+    if (executionMeta.executionState !== "blocked") return;
+
+    const linkedNoteIds = new Set([
+      ...(task.noteId ? [task.noteId] : []),
+      ...(task.notes?.map(({ note }) => note.id) || []),
+    ]);
+
+    const dependencyTasks = tasks.filter((candidate) =>
+      executionMeta.dependencyTaskIds.includes(candidate.id),
+    );
+
+    const hasLiveDependencyBlock = dependencyTasks.some(
+      (candidate) => candidate.status !== "done",
+    );
+    const hasManualBlocker = Boolean(executionMeta.blockerReason?.trim());
+    const hasReferenceBlock =
+      executionMeta.requireReferenceNote && linkedNoteIds.size === 0;
+
+    if (hasLiveDependencyBlock || hasManualBlocker || hasReferenceBlock) return;
+
+    persistExecutionMeta({
+      ...executionMeta,
+      executionState:
+        task.status === "in_progress"
+          ? "in_progress"
+          : task.startDate && new Date(task.startDate) > new Date()
+            ? "waiting"
+            : task.description || linkedNoteIds.size > 0 || task.dreamId
+              ? "ready"
+              : "queued",
+      updatedAt: new Date().toISOString(),
+    });
+  }, [executionMeta, task, tasks]);
+
   const handleStatusToggle = async () => {
     if (!task) return;
     const currentIndex = statuses.indexOf(task.status);
     const nextStatus = statuses[(currentIndex + 1) % statuses.length];
+
+    if (schedule.recurrence !== "none" && nextStatus === "done") {
+      handleRecurringOccurrenceRecord();
+      return;
+    }
     
     // Check for incomplete subtasks if trying to complete the task
     if (nextStatus === "done" && task.subtasks && task.subtasks.length > 0) {
@@ -187,6 +257,11 @@ export default function TaskDetailView({
 
   const handleMarkDone = async () => {
     if (!task || isCompleted) return;
+
+    if (schedule.recurrence !== "none") {
+      handleRecurringOccurrenceRecord();
+      return;
+    }
     
     // Check for incomplete subtasks
     if (task.subtasks && task.subtasks.length > 0) {
@@ -351,6 +426,11 @@ export default function TaskDetailView({
     setExecutionMeta(next);
   };
 
+  const persistSchedule = (next: TaskScheduleMeta) => {
+    persistTaskScheduleMeta(next);
+    setScheduleMeta(next);
+  };
+
   const maybeAdvanceMilestone = async (candidateTask?: Task | null) => {
     if (!candidateTask?.dreamId || !dream || !milestoneContext.milestone) return;
     if (!milestoneContext.requireLinkedTasksComplete) return;
@@ -463,7 +543,23 @@ export default function TaskDetailView({
 
     if (!task) return;
 
+    if (schedule.recurrence !== "none" && session.status === "completed") {
+      recordTaskOccurrence(task.id);
+      setScheduleMeta((current) =>
+        current
+          ? {
+              ...current,
+              occurrenceDates: Array.from(
+                new Set([...(current.occurrenceDates || []), toDateKey(new Date())]),
+              ).sort(),
+              updatedAt: new Date().toISOString(),
+            }
+          : current,
+      );
+    }
+
     const shouldComplete =
+      schedule.recurrence === "none" &&
       session.status === "completed" &&
       readiness.blockers.length === 0 &&
       task.status !== "done";
@@ -471,7 +567,12 @@ export default function TaskDetailView({
     const updatedTask = await updateTaskAsync({
       id: task.id,
       updates: {
-        status: shouldComplete ? "done" : "in_progress",
+        status:
+          schedule.recurrence !== "none"
+            ? "in_progress"
+            : shouldComplete
+              ? "done"
+              : "in_progress",
       },
     });
 
@@ -480,9 +581,116 @@ export default function TaskDetailView({
     }
   };
 
+  const handleScheduleDateChange = async (value: string) => {
+    if (!task || isCompleted) return;
+    const normalized = value || null;
+    const next = {
+      ...(scheduleMeta || buildDefaultTaskScheduleMeta(task)),
+      scheduledDate: normalized,
+      updatedAt: new Date().toISOString(),
+    };
+    persistSchedule(next);
+    await updateTaskAsync({
+      id: task.id,
+      updates: { startDate: normalized || null },
+    });
+  };
+
+  const handleRecurrenceChange = async (value: string) => {
+    if (!task || isCompleted) return;
+    const nextRecurrence = value as TaskRecurrence;
+    const defaultWeeklyDay = schedule.scheduledDate
+      ? new Date(`${schedule.scheduledDate}T00:00:00`).getDay()
+      : dayjs().day();
+    persistSchedule({
+      ...(scheduleMeta || buildDefaultTaskScheduleMeta(task)),
+      recurrence: nextRecurrence,
+      weeklyDays:
+        nextRecurrence === "weekly"
+          ? (scheduleMeta?.weeklyDays?.length
+              ? scheduleMeta.weeklyDays
+              : [defaultWeeklyDay])
+          : [],
+      occurrenceDates:
+        nextRecurrence === "none" ? [] : scheduleMeta?.occurrenceDates || [],
+      updatedAt: new Date().toISOString(),
+    });
+
+    if (nextRecurrence !== "none" && task.status === "done") {
+      await updateTaskAsync({
+        id: task.id,
+        updates: { status: "todo" },
+      });
+    }
+  };
+
+  const handleWeeklyDayToggle = (weekday: number) => {
+    if (!task || isCompleted) return;
+    const currentDays = scheduleMeta?.weeklyDays || [];
+    const nextDays = currentDays.includes(weekday)
+      ? currentDays.filter((day) => day !== weekday)
+      : [...currentDays, weekday].sort((left, right) => left - right);
+
+    persistSchedule({
+      ...(scheduleMeta || buildDefaultTaskScheduleMeta(task)),
+      recurrence: "weekly",
+      weeklyDays: nextDays,
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  const handleTodayCommitmentToggle = () => {
+    if (!task || isCompleted) return;
+    persistSchedule({
+      ...(scheduleMeta || buildDefaultTaskScheduleMeta(task)),
+      isTodayCommitment: !(scheduleMeta?.isTodayCommitment || false),
+      updatedAt: new Date().toISOString(),
+    });
+  };
+
+  const handleQuickReschedule = async (days: number) => {
+    if (!task || isCompleted) return;
+    const nextDate = toDateKey(dayjs().add(days, "day").toDate());
+    persistSchedule({
+      ...(scheduleMeta || buildDefaultTaskScheduleMeta(task)),
+      scheduledDate: nextDate,
+      isTodayCommitment: false,
+      lastRescheduledAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+    await updateTaskAsync({
+      id: task.id,
+      updates: { startDate: nextDate },
+    });
+  };
+
+  const handleRecurringOccurrenceRecord = async () => {
+    if (!task || isCompleted) return;
+    if (schedule.todayOccurrenceCompleted) return;
+    recordTaskOccurrence(task.id);
+    setScheduleMeta((current) =>
+      current
+        ? {
+            ...current,
+            occurrenceDates: Array.from(
+              new Set([...(current.occurrenceDates || []), toDateKey(new Date())]),
+            ).sort(),
+            updatedAt: new Date().toISOString(),
+          }
+        : current,
+    );
+
+    if (task.status === "todo") {
+      await updateTaskAsync({
+        id: task.id,
+        updates: { status: "in_progress" },
+      });
+    }
+  };
+
   if (isLoading)
     return (
-      <div className="w-full md:w-96 lg:w-112.5 absolute md:relative inset-0 border-l border-white/5 bg-surface-soft p-4 sm:p-6 lg:p-8 space-y-6 z-20">
+      <div className="absolute inset-0 z-20 w-full border-l border-white/5 bg-surface-soft p-4 sm:p-5 lg:relative lg:w-[38rem] lg:p-6 xl:w-[42rem] 2xl:w-[46rem] space-y-6">
         <div className="h-8 w-32 bg-white/5 animate-pulse rounded-lg" />
         <div className="h-24 w-full bg-white/5 animate-pulse rounded-2xl" />
         <div className="h-48 w-full bg-white/5 animate-pulse rounded-2xl" />
@@ -491,7 +699,7 @@ export default function TaskDetailView({
 
   if (!task)
     return (
-      <div className="w-full md:w-96 lg:w-112.5 absolute md:relative inset-0 border-l border-white/5 bg-surface-soft p-4 sm:p-6 lg:p-8 flex items-center justify-center z-20">
+      <div className="absolute inset-0 z-20 flex w-full items-center justify-center border-l border-white/5 bg-surface-soft p-4 sm:p-5 lg:relative lg:w-[38rem] lg:p-6 xl:w-[42rem] 2xl:w-[46rem]">
         <p className="text-text-muted">Task context not found</p>
       </div>
     );
@@ -515,6 +723,7 @@ export default function TaskDetailView({
     ? inboxItems.find((item) => item.id === task.sourceInboxId)
     : null;
   const milestoneContext = getTaskMilestoneContext(task, dream);
+  const schedule = getTaskScheduleSnapshot(task, scheduleMeta);
   const taskLedgerLogs = logs.filter((log) => log.taskId === task.id).slice(0, 4);
   const focusMinutesCompleted = Math.round(
     focusSessions.reduce((sum, session) => sum + session.durationMinutes, 0),
@@ -536,9 +745,9 @@ export default function TaskDetailView({
   );
 
   return (
-    <div className="w-full md:w-96 lg:w-112.5 absolute md:relative inset-0 border-l border-white/5 bg-surface-soft flex flex-col h-full animate-in slide-in-from-right duration-500 ease-out z-20 shadow-2xl shadow-black/50">
+    <div className="absolute inset-0 z-20 flex h-full w-full flex-col border-l border-white/5 bg-surface-soft shadow-2xl shadow-black/50 animate-in slide-in-from-right duration-500 ease-out lg:relative lg:w-[38rem] xl:w-[42rem] 2xl:w-[46rem]">
       {/* Header */}
-      <div className="p-6 border-b border-white/10 flex items-center justify-between glass">
+      <div className="glass flex items-center justify-between border-b border-white/10 p-4 sm:p-5 xl:p-6">
         <div className="flex items-center gap-2">
           <button
             onClick={() => useTasksStore.getState().setSelectedTaskId(null)}
@@ -593,7 +802,7 @@ export default function TaskDetailView({
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 custom-scrollbar">
+      <div className="custom-scrollbar flex-1 overflow-y-auto p-4 sm:p-5 xl:p-6">
         {/* Warning Toast */}
         <AnimatePresence>
           {showSubtaskWarning && (
@@ -633,7 +842,7 @@ export default function TaskDetailView({
 
         {/* Title Section */}
         <div className="mb-10">
-          <div className="flex items-start gap-4 mb-4">
+          <div className="mb-4 flex min-w-0 items-start gap-4">
             <button
               onClick={handleStatusToggle}
               className={`mt-1.5 shrink-0 transition-all active:scale-75 ${task.status === "done" ? "text-brand-primary" : "text-text-muted/40 hover:text-text-main"}`}
@@ -653,13 +862,13 @@ export default function TaskDetailView({
               )}
             </button>
             <h2
-              className={`text-2xl font-display font-extrabold leading-tight ${task.status === "done" ? "text-text-muted/50 line-through" : "text-text-main"}`}
+              className={`min-w-0 text-xl sm:text-2xl font-display font-extrabold leading-tight break-words ${task.status === "done" ? "text-text-muted/50 line-through" : "text-text-main"}`}
             >
               {task.title}
             </h2>
           </div>
 
-          <div className="flex flex-wrap gap-2 ml-10">
+          <div className="ml-0 flex flex-wrap gap-2 sm:ml-10">
             {(task.tags || []).map((tagObj, index) => {
               const tagName = getTagName(tagObj);
               if (!tagName) return null;
@@ -737,7 +946,7 @@ export default function TaskDetailView({
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 xl:grid-cols-2">
+          <div className="mt-4 grid gap-3 2xl:grid-cols-2">
             <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
                 Structure
@@ -852,7 +1061,7 @@ export default function TaskDetailView({
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 xl:grid-cols-[1.1fr_0.9fr]">
+          <div className="mt-4 grid gap-3 2xl:grid-cols-[1.1fr_0.9fr]">
             <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
                 Current Blocker
@@ -892,14 +1101,16 @@ export default function TaskDetailView({
                         key={candidate.id}
                         type="button"
                         onClick={() => handleDependencyToggle(candidate.id)}
-                        className={`rounded-2xl border px-3 py-3 text-left transition ${
+                        className={`rounded-2xl border px-3 py-2.5 text-left transition ${
                           active
                             ? "border-brand-primary/30 bg-brand-primary/10 text-white"
                             : "border-white/10 bg-white/5 text-text-muted hover:text-text-main"
                         }`}
                       >
-                        <p className="text-sm font-bold">{candidate.title}</p>
-                        <p className="mt-1 text-[10px] font-black uppercase tracking-[0.18em]">
+                        <p className="text-xs font-bold leading-5 sm:text-sm">
+                          {candidate.title}
+                        </p>
+                        <p className="mt-1 text-[9px] font-black uppercase tracking-[0.16em] sm:text-[10px]">
                           {candidate.status === "done" ? "Done" : "Open dependency"}
                         </p>
                       </button>
@@ -933,29 +1144,299 @@ export default function TaskDetailView({
           ) : null}
         </div>
 
+        <div className="mb-10 rounded-3xl border border-white/10 bg-white/5 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
+                Scheduling Window
+              </p>
+              <p className="mt-2 text-sm leading-6 text-text-muted">
+                Define when this task should surface, when it becomes carryover,
+                and whether it is part of today&apos;s committed queue.
+              </p>
+            </div>
+            <div
+              className={`rounded-2xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] ${
+                schedule.bucket === "today"
+                  ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+                  : schedule.bucket === "carryover"
+                    ? "border-amber-400/20 bg-amber-400/10 text-amber-200"
+                    : schedule.bucket === "overdue"
+                      ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
+                      : "border-white/10 bg-black/20 text-text-main"
+              }`}
+            >
+              {schedule.statusLabel}
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 2xl:grid-cols-[1.05fr_0.95fr]">
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                Date Window
+              </p>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <label className="space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
+                    Scheduled Date
+                  </span>
+                  <input
+                    type="date"
+                    value={schedule.scheduledDate || ""}
+                    onChange={(event) => handleScheduleDateChange(event.target.value)}
+                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-text-main outline-none"
+                    disabled={isCompleted}
+                  />
+                </label>
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
+                    Due Date
+                  </span>
+                  <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-text-main">
+                    {schedule.dueDate
+                      ? dayjs(schedule.dueDate).format("MMM DD, YYYY")
+                      : "No due date"}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
+                    Active Until
+                  </span>
+                  <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-text-main">
+                    {schedule.endDate
+                      ? dayjs(schedule.endDate).format("MMM DD, YYYY")
+                      : "No active window"}
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <span className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
+                    Recurrence
+                  </span>
+                  <Select
+                    value={schedule.recurrence}
+                    onValueChange={handleRecurrenceChange}
+                    disabled={isCompleted}
+                  >
+                    <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
+                      <SelectValue placeholder="Choose recurrence" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No recurrence</SelectItem>
+                      <SelectItem value="daily">Daily</SelectItem>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {schedule.recurrence === "weekly" ? (
+                <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-main">
+                    Weekly Active Days
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {weekdayOptions.map((option) => {
+                      const active = schedule.weeklyDays.includes(option.value);
+                      return (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => handleWeeklyDayToggle(option.value)}
+                          disabled={isCompleted}
+                          className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] transition ${
+                            active
+                              ? "border-brand-primary/30 bg-brand-primary/10 text-white"
+                              : "border-white/10 bg-black/20 text-text-muted hover:text-text-main"
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <p className="mt-3 text-xs leading-5 text-text-muted">
+                    {formatWeeklyDays(schedule.weeklyDays)}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                Recovery Actions
+              </p>
+              <div className="mt-3 grid gap-3">
+                <button
+                  type="button"
+                  onClick={handleTodayCommitmentToggle}
+                  disabled={isCompleted}
+                  className={`rounded-2xl border px-4 py-3 text-left transition ${
+                    schedule.isTodayCommitment
+                      ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100"
+                      : "border-white/10 bg-white/5 text-text-main hover:bg-white/10"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em]">
+                    <FiClock size={12} />
+                    Commit To Today
+                  </div>
+                  <p className="mt-1 text-xs leading-5 text-current/80">
+                    Keep this in today&apos;s queue even if it is not strictly due
+                    today.
+                  </p>
+                </button>
+
+                {schedule.recurrence !== "none" ? (
+                  <button
+                    type="button"
+                    onClick={handleRecurringOccurrenceRecord}
+                    disabled={isCompleted || schedule.todayOccurrenceCompleted}
+                    className={`rounded-2xl border px-4 py-3 text-left transition ${
+                      schedule.todayOccurrenceCompleted
+                        ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100"
+                        : "border-brand-primary/30 bg-brand-primary/10 text-white hover:bg-brand-primary/15"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em]">
+                      <FiCheckCircle size={12} />
+                      {schedule.todayOccurrenceCompleted
+                        ? "Today's Occurrence Logged"
+                        : "Record Today's Occurrence"}
+                    </div>
+                    <p className="mt-1 text-xs leading-5 text-current/80">
+                      Use this for repeating commitments so the task stays alive
+                      while the current period progresses.
+                    </p>
+                  </button>
+                ) : null}
+
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => handleQuickReschedule(1)}
+                    disabled={isCompleted}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-text-main transition hover:bg-white/10"
+                  >
+                    <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em]">
+                      <FiCalendar size={12} />
+                      Move To Tomorrow
+                    </div>
+                    <p className="mt-1 text-xs leading-5 text-text-muted">
+                      Shift the task out of today and restart its active window tomorrow.
+                    </p>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleQuickReschedule(3)}
+                    disabled={isCompleted}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-text-main transition hover:bg-white/10"
+                  >
+                    <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em]">
+                      <FiCornerDownRight size={12} />
+                      Defer 3 Days
+                    </div>
+                    <p className="mt-1 text-xs leading-5 text-text-muted">
+                      Useful for carryover recovery when this work should leave today&apos;s stack.
+                    </p>
+                  </button>
+                </div>
+
+                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-main">
+                    Recurrence Intelligence
+                  </p>
+                  <div className="mt-2 space-y-1.5 text-xs leading-5 text-text-muted">
+                    <p>Today only holds scheduled, due, active-window, recurring-due, or explicitly committed work.</p>
+                    <p>Carryover means the execution window has passed, or a repeating occurrence earlier in the current period was missed.</p>
+                    <p>Duration controls how many days the active window remains visible after the scheduled date.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {schedule.recurrence !== "none" ? (
+          <div className="mb-10 rounded-3xl border border-white/10 bg-white/5 p-5">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
+                  Recurrence Pulse
+                </p>
+                <p className="mt-2 text-sm leading-6 text-text-muted">
+                  Track this recurring commitment by valid occurrences instead
+                  of permanently completing the task.
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+                {schedule.progressLabel || "Recurring"}
+              </div>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
+                  Completed This Period
+                </p>
+                <p className="mt-2 text-lg font-extrabold text-white">
+                  {schedule.completedThisPeriod}
+                  <span className="ml-1 text-sm text-text-muted">
+                    / {schedule.requiredThisPeriod || 1}
+                  </span>
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
+                  Missed So Far
+                </p>
+                <p className="mt-2 text-lg font-extrabold text-amber-300">
+                  {schedule.missedThisPeriod}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
+                  Next Occurrence
+                </p>
+                <p className="mt-2 text-sm font-bold text-white">
+                  {schedule.nextOccurrenceDate
+                    ? dayjs(schedule.nextOccurrenceDate).format("ddd, MMM DD")
+                    : schedule.todayOccurrenceCompleted
+                      ? "Waiting for next cycle"
+                      : schedule.isRecurringDueToday
+                        ? "Due today"
+                        : "No next slot"}
+                </p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         {/* Quick Stats Grid */}
-        <div className="grid grid-cols-2 gap-4 mb-10">
+        <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="p-4 rounded-2xl bg-surface-base/80 border border-white/5 group hover:border-brand-primary/30 transition-all duration-300">
             <div className="flex items-center gap-2 mb-2">
               <div className="p-1.5 rounded-lg bg-brand-primary/10 text-brand-primary">
                 <FiClock size={12} />
               </div>
               <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
-                Target Date
+                Schedule State
               </span>
             </div>
             <p className="text-sm text-text-main font-bold">
-              {task.dueDate ? (
-                dayjs(task.dueDate).format("MMM DD, YYYY")
+              {schedule.scheduledDate ? (
+                dayjs(schedule.scheduledDate).format("MMM DD, YYYY")
               ) : (
                 <span className="text-text-muted font-medium italic opacity-40">
                   Not scheduled
                 </span>
               )}
             </p>
-            {task.dueDate && (
+            {(schedule.endDate || task.dueDate) && (
               <p className="text-[10px] text-text-muted mt-1 uppercase font-semibold">
-                {dayjs(task.dueDate).format("HH:mm")}
+                {schedule.endDate
+                  ? `Window ends ${dayjs(schedule.endDate).format("MMM DD")}`
+                  : `Due ${dayjs(task.dueDate).format("MMM DD")}`}
               </p>
             )}
           </div>
@@ -1040,7 +1521,7 @@ export default function TaskDetailView({
               </p>
             </div>
             <p className="text-[10px] text-text-muted mt-1 uppercase font-semibold">
-              Execution Span
+              {schedule.progressLabel || "Execution Span"}
             </p>
           </button>
         </div>
@@ -1268,7 +1749,7 @@ export default function TaskDetailView({
           ) : null}
         </div>
 
-        <div className="mb-10 grid gap-4 xl:grid-cols-2">
+        <div className="mb-10 grid gap-4 2xl:grid-cols-2">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
               Source Trace
@@ -1527,7 +2008,7 @@ export default function TaskDetailView({
       </div>
 
       {/* Footer Actions */}
-      <div className="p-6 border-t border-white/5 glass">
+      <div className="glass border-t border-white/5 p-4 sm:p-5 xl:p-6">
         <button
           onClick={handleMarkDone}
           disabled={isCompleted || isUpdating}
@@ -1604,6 +2085,24 @@ export default function TaskDetailView({
         isOpen={showReadingSession}
         onClose={() => setShowReadingSession(false)}
         onSubmit={async (payload) => {
+          if (
+            schedule.recurrence !== "none" &&
+            payload.activeDurationMinutes >=
+              (payload.requiredMinutes || executionMeta?.focusMinutesTarget || readiness.focusMinutesTarget)
+          ) {
+            recordTaskOccurrence(task.id);
+            setScheduleMeta((current) =>
+              current
+                ? {
+                    ...current,
+                    occurrenceDates: Array.from(
+                      new Set([...(current.occurrenceDates || []), toDateKey(new Date())]),
+                    ).sort(),
+                    updatedAt: new Date().toISOString(),
+                  }
+                : current,
+            );
+          }
           const updatedTask = await logReadingSessionAsync({ taskId: task.id, payload });
           await maybeAdvanceMilestone(updatedTask);
           setShowReadingSession(false);
