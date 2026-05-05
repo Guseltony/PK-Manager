@@ -134,6 +134,57 @@ const taskInclude = {
 
 const READING_COMPLETION_THRESHOLD = 25;
 
+const toDateKey = (value) => {
+  const date = value instanceof Date ? value : new Date(value);
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    .toISOString()
+    .slice(0, 10);
+};
+
+const addDays = (dateKey, days) => {
+  const date = new Date(`${dateKey}T00:00:00`);
+  date.setDate(date.getDate() + days);
+  return toDateKey(date);
+};
+
+const compareDateKeys = (left, right) => {
+  if (left < right) return -1;
+  if (left > right) return 1;
+  return 0;
+};
+
+const getScheduleBucket = (task, today) => {
+  if (task.status === "done") return "completed";
+
+  const scheduledDate = task.startDate ? toDateKey(task.startDate) : null;
+  const dueDate = task.dueDate ? toDateKey(task.dueDate) : null;
+  const durationDays = Math.max(task.duration || 1, 1);
+  const endDate = scheduledDate ? addDays(scheduledDate, durationDays - 1) : null;
+
+  if ((dueDate && compareDateKeys(dueDate, today) < 0) || (endDate && compareDateKeys(endDate, today) < 0)) {
+    return scheduledDate ? "carryover" : "overdue";
+  }
+
+  if (
+    (dueDate && compareDateKeys(dueDate, today) === 0) ||
+    (scheduledDate && compareDateKeys(scheduledDate, today) === 0) ||
+    (scheduledDate && endDate && compareDateKeys(scheduledDate, today) <= 0 && compareDateKeys(endDate, today) >= 0)
+  ) {
+    return "today";
+  }
+
+  if (
+    (scheduledDate && compareDateKeys(scheduledDate, today) > 0) ||
+    (dueDate && compareDateKeys(dueDate, today) > 0)
+  ) {
+    return "upcoming";
+  }
+
+  if (task.status === "in_progress") return "active";
+
+  return "backlog";
+};
+
 export const taskCreation = async (data, userId) => {
   const {
     title,
@@ -207,7 +258,7 @@ export const createManyTasks = async (tasks, userId, shared = {}) => {
 };
 
 export const getUserTasks = async (userId, filters = {}) => {
-  const { status, priority, tag, dreamId, projectId, noteId, today, upcoming, overdue, focus } = filters;
+  const { status, priority, tag, dreamId, projectId, noteId, today, upcoming, overdue, carryover, focus } = filters;
   
   const where = {
     userId,
@@ -240,38 +291,12 @@ export const getUserTasks = async (userId, filters = {}) => {
     ];
   }
 
-  const now = new Date();
-  const startOfToday = new Date(now.setHours(0, 0, 0, 0));
-  const endOfToday = new Date(now.setHours(23, 59, 59, 999));
-
-  if (today) {
-    where.OR = [
-      { dueDate: { gte: startOfToday, lte: endOfToday } },
-      { 
-        AND: [
-          { startDate: { lte: endOfToday } },
-          { status: { not: "done" } }
-        ]
-      }
-    ];
-  } else if (upcoming) {
-    where.AND = [
-      { dueDate: { gt: endOfToday } },
-      { status: { not: "done" } }
-    ];
-  } else if (overdue) {
-    where.AND = [
-      { dueDate: { lt: startOfToday } },
-      { status: { not: "done" } }
-    ];
-  }
-
   if (focus || filters["high-priority"]) {
     where.priority = { in: ["high", "urgent"] };
     where.status = { not: "done" };
   }
 
-  return await prisma.task.findMany({
+  const tasks = await prisma.task.findMany({
     where,
     include: {
       ...taskInclude,
@@ -282,6 +307,23 @@ export const getUserTasks = async (userId, filters = {}) => {
       { createdAt: "desc" },
     ],
   });
+
+  const todayKey = toDateKey(new Date());
+
+  if (today) {
+    return tasks.filter((task) => getScheduleBucket(task, todayKey) === "today");
+  }
+  if (upcoming) {
+    return tasks.filter((task) => getScheduleBucket(task, todayKey) === "upcoming");
+  }
+  if (overdue) {
+    return tasks.filter((task) => getScheduleBucket(task, todayKey) === "overdue");
+  }
+  if (carryover) {
+    return tasks.filter((task) => getScheduleBucket(task, todayKey) === "carryover");
+  }
+
+  return tasks;
 };
 
 export const getTask = async (taskId, userId) => {
