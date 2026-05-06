@@ -21,11 +21,18 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const bootstrapAuth = async () => {
+      // 0. Don't run bootstrap on sign-in or auth pages
+      if (typeof window !== "undefined" && (
+        window.location.pathname.startsWith("/sign-in") || 
+        window.location.pathname.startsWith("/api/auth")
+      )) {
+        return;
+      }
+
       // 1. Check if we already have a CSRF token in cookies
       // This helps avoid a race condition right after login
       const hasCsrf = document.cookie.split("; ").some((c) => c.startsWith("csrf="));
       if (hasCsrf) {
-        console.log("Auth session already active, skipping bootstrap refresh.");
         return;
       }
 

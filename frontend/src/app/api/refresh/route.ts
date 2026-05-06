@@ -29,10 +29,14 @@ async function handleRefresh(req: Request) {
         return redirectRes;
       }
 
-      // For POST (background refresh), we just return the error but DON'T wipe cookies
-      // This prevents accidental logouts if there's a network blip or race condition
+      // For POST (background refresh), we wipe cookies and return 401
+      // This ensures the frontend knows to redirect the user
       const errorBody = await backendRes.json().catch(() => ({ error: "Session expired" }));
-      return NextResponse.json(errorBody, { status: backendRes.status });
+      const errorRes = NextResponse.json(errorBody, { status: backendRes.status });
+      errorRes.cookies.set("refreshToken", "", { maxAge: 0, path: "/" });
+      errorRes.cookies.set("accessToken", "", { maxAge: 0, path: "/" });
+      errorRes.cookies.set("csrf", "", { maxAge: 0, path: "/" });
+      return errorRes;
     }
 
     if (req.method === "GET") {
