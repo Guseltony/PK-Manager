@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { BACKEND_URL } from "@/src/constants/constants";
+import { cookies } from "next/headers";
+import { getCookies } from "@/src/utils/getCookie";
 
 async function handleRefresh(req: Request) {
-  const cookieHeader = req.headers.get("cookie") || "";
-  const csrf = cookieHeader
-    .split("; ")
-    .find((c) => c.startsWith("csrf="))
-    ?.split("=")[1];
+  const cookieHeader = await getCookies();
+  const cookieStore = await cookies();
+  const csrf = cookieStore.get("csrf")?.value;
 
   try {
     const backendRes = await fetch(`${BACKEND_URL}/auth/refresh`, {

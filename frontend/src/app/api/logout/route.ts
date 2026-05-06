@@ -28,10 +28,8 @@ export async function POST(req: Request) {
   const res = NextResponse.json({ success: true });
 
   // 🔑 forward Set-Cookie (cookie deletion)
-  const setCookie = backendRes.headers.get("set-cookie");
-  if (setCookie) {
-    res.headers.set("set-cookie", setCookie);
-  }
+  const mirroredCookies = backendRes.headers.getSetCookie?.() ?? [];
+  mirroredCookies.forEach((cookie) => res.headers.append("set-cookie", cookie));
 
   return res;
 }
