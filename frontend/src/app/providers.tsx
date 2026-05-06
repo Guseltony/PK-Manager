@@ -21,21 +21,30 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const bootstrapAuth = async () => {
+      // 1. Check if we already have a CSRF token in cookies
+      // This helps avoid a race condition right after login
+      const hasCsrf = document.cookie.split("; ").some((c) => c.startsWith("csrf="));
+      if (hasCsrf) {
+        console.log("Auth session already active, skipping bootstrap refresh.");
+        return;
+      }
+
       try {
         const response = await fetch("/api/refresh", {
           method: "POST",
+          // credentials: "include" is important for the browser to send cookies to our API
           credentials: "include",
         });
 
-        const data = await response.json().catch(() => ({}));
-        const csrfToken = data?.csrfToken || data?.data?.csrfToken;
-
-        if (response.ok && csrfToken) {
-          setManualCsrfToken(csrfToken);
+        if (response.ok) {
+          const data = await response.json().catch(() => ({}));
+          const csrfToken = data?.csrfToken || data?.data?.csrfToken;
+          if (csrfToken) {
+            setManualCsrfToken(csrfToken);
+          }
         }
       } catch (err) {
-        console.warn("Auth bootstrap failed (user likely not logged in)");
-        console.error(err);
+        console.error("Auth bootstrap failed:", err);
       }
     };
 
