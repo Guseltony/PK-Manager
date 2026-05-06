@@ -217,7 +217,7 @@ export default function TaskListView({
             {selectedBulkIds.length} selected
           </span>
         </div>
-        <div className="mt-3 grid gap-3 xl:grid-cols-[1fr_1fr_0.9fr_0.9fr_0.9fr_auto]">
+        <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-[1fr_1fr_0.9fr_0.9fr_0.9fr_auto]">
           <Select
             value={bulkDreamId || "none"}
             onValueChange={(value) => {
@@ -225,7 +225,7 @@ export default function TaskListView({
               setBulkProjectId("");
             }}
           >
-            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-6 text-sm text-text-main outline-none">
+            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-xs text-text-main outline-none">
               <SelectValue placeholder="No dream" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
@@ -242,7 +242,7 @@ export default function TaskListView({
             value={bulkProjectId || "none"}
             onValueChange={(value) => setBulkProjectId(value === "none" ? "" : value)}
           >
-            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-6 text-sm text-text-main outline-none">
+            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-xs text-text-main outline-none">
               <SelectValue placeholder="No project" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
@@ -259,7 +259,7 @@ export default function TaskListView({
             value={bulkStatus || "none"}
             onValueChange={(value) => setBulkStatus(value === "none" ? "" : (value as TaskStatus))}
           >
-            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-6 text-sm text-text-main outline-none">
+            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-xs text-text-main outline-none">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
@@ -274,7 +274,7 @@ export default function TaskListView({
             value={bulkPriority || "none"}
             onValueChange={(value) => setBulkPriority(value === "none" ? "" : (value as Priority))}
           >
-            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-6 text-sm text-text-main outline-none">
+            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-xs text-text-main outline-none">
               <SelectValue placeholder="Priority" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
@@ -292,7 +292,7 @@ export default function TaskListView({
               setBulkExecutionState(value === "none" ? "" : (value as ExecutionState))
             }
           >
-            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-6 text-sm text-text-main outline-none">
+            <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-xs text-text-main outline-none">
               <SelectValue placeholder="Execution state" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
@@ -309,7 +309,7 @@ export default function TaskListView({
             type="button"
             onClick={applyBulkAssignment}
             disabled={!selectedBulkIds.length || isUpdating}
-            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-black/20 px-4 py-2.5 text-[9px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
           >
             <FiArrowRight />
             {isUpdating ? "Applying..." : "Apply"}
@@ -320,13 +320,13 @@ export default function TaskListView({
       {groupedTasks.map(([groupTitle, groupTasks]) => (
         <section key={groupTitle} className="space-y-3">
           <div className="flex items-center gap-3 px-1 sm:px-0">
-            <div className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
-              {groupBy === "execution" ? <FiTarget className="inline mr-1" size={10} /> : null}
-              {groupBy === "smart" ? <FiLayers className="inline mr-1" size={10} /> : null}
-              {groupBy === "priority" ? <FiFlag className="inline mr-1" size={10} /> : null}
+            <div className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.18em] text-text-main">
+              {groupBy === "execution" ? <FiTarget className="inline mr-1" size={8} /> : null}
+              {groupBy === "smart" ? <FiLayers className="inline mr-1" size={8} /> : null}
+              {groupBy === "priority" ? <FiFlag className="inline mr-1" size={8} /> : null}
               {groupTitle}
             </div>
-            <span className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+            <span className="text-[8px] font-black uppercase tracking-[0.18em] text-text-muted">
               {groupTasks.length} items
             </span>
             <div className="h-px flex-1 bg-white/5" />

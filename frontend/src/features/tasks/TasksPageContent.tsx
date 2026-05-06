@@ -95,30 +95,30 @@ export default function TasksPageContent() {
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-surface-base relative">
       {/* Top Filter Tabs - Ledger Style */}
-      <div className="w-full bg-surface-soft border-b border-white/5 px-4 sm:px-8 py-4 shrink-0 overflow-x-auto custom-scrollbar">
+      <div className="w-full bg-surface-soft border-b border-white/5 px-4 sm:px-8 py-2 shrink-0 overflow-x-auto custom-scrollbar">
         <div className="flex items-center gap-2 min-w-max">
-          <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
+          <div className="flex bg-white/5 p-1 rounded-lg border border-white/5">
             {filters.map((f) => (
               <button
                 key={f.id}
                 onClick={() => setFilter(f.id)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[9px] font-bold transition-all ${
                   filter === f.id
                     ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
                     : "text-text-muted hover:text-text-main hover:bg-white/5"
                 }`}
               >
-                <f.icon className={filter === f.id ? "text-white" : f.color || ""} size={14} />
+                <f.icon className={filter === f.id ? "text-white" : f.color || ""} size={12} />
                 {f.label}
               </button>
             ))}
           </div>
           
-          <div className="h-6 w-px bg-white/10 mx-2" />
+          <div className="h-5 w-px bg-white/10 mx-1" />
           
-          <div className="flex items-center gap-2 bg-amber-400/10 px-3 py-2 rounded-xl border border-amber-400/20">
-            <FiZap className="text-amber-400" size={12} />
-            <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">AI Optimized</span>
+          <div className="flex items-center gap-1.5 bg-amber-400/10 px-2 py-1.5 rounded-lg border border-amber-400/20">
+            <FiZap className="text-amber-400" size={10} />
+            <span className="text-[9px] font-black uppercase tracking-widest text-amber-400">AI</span>
           </div>
         </div>
       </div>
@@ -126,57 +126,51 @@ export default function TasksPageContent() {
       <div className="flex flex-1 overflow-hidden relative">
         {/* Main Engine: Execution Layer */}
         <div className={`flex-1 flex flex-col relative ${selectedTaskId ? "hidden lg:flex" : "flex"}`}>
-          <div className="px-4 py-4 sm:px-8 sm:py-6 border-b border-white/5 space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+          <div className="px-4 py-2 sm:px-8 sm:py-3 border-b border-white/5 space-y-2">
+            <div className="grid gap-2 grid-cols-3 xl:grid-cols-6">
               <TaskOverviewCard
-                label="Due Today"
+                label="Today"
                 value={String(dueTodayCount)}
-                detail="Strictly active or scheduled today"
-                icon={<FiClock size={14} />}
+                icon={<FiClock size={12} />}
               />
               <TaskOverviewCard
                 label="Carryover"
                 value={String(carryoverCount)}
-                detail="Open work whose active window has passed"
-                icon={<FiCornerDownRight size={14} />}
+                icon={<FiCornerDownRight size={12} />}
                 tone="warm"
               />
               <TaskOverviewCard
                 label="Overdue"
                 value={String(overdueCount)}
-                detail="Past due and still open"
-                icon={<FiAlertCircle size={14} />}
+                icon={<FiAlertCircle size={12} />}
                 tone="danger"
               />
               <TaskOverviewCard
-                label="In Progress"
+                label="In Motion"
                 value={String(inProgressCount)}
-                detail="Objectives already in motion"
-                icon={<FiTrendingUp size={14} />}
+                icon={<FiTrendingUp size={12} />}
                 tone="warm"
               />
               <TaskOverviewCard
                 label="Blocked"
                 value={String(blockedCount)}
-                detail="Waiting on context or dependency"
-                icon={<FiTarget size={14} />}
+                icon={<FiTarget size={12} />}
                 tone="danger"
               />
               <TaskOverviewCard
-                label="Focus Today"
+                label="Focus"
                 value={`${focusMinutesToday}m`}
-                detail={`${completedTodayCount} ledger completions today`}
-                icon={<FiZap size={14} />}
+                icon={<FiZap size={12} />}
                 tone="brand"
               />
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 p-1">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-0.5">
                 {[
                   { id: "smart", label: "Smart" },
-                  { id: "dream", label: "By Dream" },
-                  { id: "priority", label: "By Priority" },
+                  { id: "dream", label: "Dream" },
+                  { id: "priority", label: "Priority" },
                   { id: "execution", label: "Execution" },
                 ].map((option) => (
                   <button
@@ -185,7 +179,7 @@ export default function TasksPageContent() {
                     onClick={() =>
                       setGroupBy(option.id as "smart" | "dream" | "priority" | "execution")
                     }
-                    className={`rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition ${
+                    className={`rounded-lg px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.18em] transition ${
                       groupBy === option.id
                         ? "bg-brand-primary text-white"
                         : "text-text-muted hover:text-text-main"
@@ -195,9 +189,9 @@ export default function TasksPageContent() {
                   </button>
                 ))}
               </div>
-              <div className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
-                <FiLayers size={12} className="text-brand-primary" />
-                Grouped execution view
+              <div className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-black/20 px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.18em] text-text-main">
+                <FiLayers size={10} className="text-brand-primary" />
+                Execution view
               </div>
             </div>
             <TaskQuickAdd />
@@ -227,13 +221,11 @@ export default function TasksPageContent() {
 function TaskOverviewCard({
   label,
   value,
-  detail,
   icon,
   tone = "neutral",
 }: {
   label: string;
   value: string;
-  detail: string;
   icon: ReactNode;
   tone?: "neutral" | "brand" | "danger" | "warm";
 }) {
@@ -247,17 +239,16 @@ function TaskOverviewCard({
           : "border-white/10 bg-white/5 text-text-main";
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-surface-soft/70 p-4">
-      <div className="flex items-center justify-between gap-3">
+    <div className="rounded-2xl border border-white/5 bg-surface-soft/70 px-3 py-2">
+      <div className="flex items-center justify-between gap-2">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+          <p className="text-[8px] font-black uppercase tracking-[0.1em] text-text-muted whitespace-nowrap">
             {label}
           </p>
-          <p className="mt-2 text-2xl font-black text-white">{value}</p>
+          <p className="text-base font-black text-white">{value}</p>
         </div>
-        <div className={`rounded-2xl border px-3 py-3 ${toneClass}`}>{icon}</div>
+        <div className={`rounded-xl border px-1.5 py-1.5 ${toneClass}`}>{icon}</div>
       </div>
-      <p className="mt-3 text-xs leading-5 text-text-muted">{detail}</p>
     </div>
   );
 }

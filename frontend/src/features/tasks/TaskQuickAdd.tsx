@@ -43,7 +43,7 @@ export default function TaskQuickAdd() {
   };
 
   return (
-    <div className="space-y-4 bg-surface-base sticky top-0 z-10 border-b border-white/5">
+    <div className="space-y-2 bg-surface-base sticky top-0 z-10 border-b border-white/5">
       <form onSubmit={handleSubmit} className="relative group max-w-4xl mx-auto">
         <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
           <FiPlus className="h-4 w-4 text-text-muted group-focus-within:text-brand-primary transition-colors" />
@@ -53,7 +53,7 @@ export default function TaskQuickAdd() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="What needs to be done? Enter task title..."
-          className="w-full bg-surface-soft border border-white/5 rounded-2xl py-3 pl-11 pr-28 text-sm text-text-main placeholder:text-text-muted transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 shadow-inner"
+          className="w-full bg-surface-soft border border-white/5 rounded-2xl py-2 pl-11 pr-28 text-sm text-text-main placeholder:text-text-muted transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 shadow-inner"
         />
         <div className="absolute inset-y-0 right-3 flex items-center gap-2">
             <button
