@@ -29,6 +29,10 @@ import insightsRoutes from "./routes/insightsRoutes.js";
 import knowledgeRoutes from "./routes/knowledgeRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import settingsRoutes from "./routes/settingsRoutes.js";
+import habitRoutes from "./routes/habitRoutes.js";
+import constitutionRoutes from "./routes/constitutionRoutes.js";
+import chaosRoutes from "./routes/chaosRoutes.js";
+import scorecardRoutes from "./routes/scorecardRoutes.js";
 
 // connect to the database
 connectDB();
@@ -107,6 +111,10 @@ app.use("/insights", authMiddleware, insightsRoutes);
 app.use("/knowledge", knowledgeRoutes);
 app.use("/project", authMiddleware, projectRoutes);
 app.use("/settings", authMiddleware, settingsRoutes);
+app.use("/habit", authMiddleware, habitRoutes);
+app.use("/constitution", authMiddleware, constitutionRoutes);
+app.use("/chaos", authMiddleware, chaosRoutes);
+app.use("/scorecard", authMiddleware, scorecardRoutes);
 
 // 6. 404 Not Found Handler
 app.use((req, res) => {
@@ -155,3 +163,4 @@ process.on("SIGTERM", async () => {
     process.exit(0);
   });
 });
+// Trigger restart — Prisma client regenerated
