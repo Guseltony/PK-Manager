@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { BiSolidDashboard, BiSolidNotepad } from "react-icons/bi";
 import { BsFillLightbulbFill, BsFillTagFill } from "react-icons/bs";
 import { IoMdArchive } from "react-icons/io";
-import { FiBook, FiCheckSquare, FiStar, FiActivity, FiZap, FiInbox, FiCalendar, FiShare2, FiTrendingUp, FiLayers, FiSettings } from "react-icons/fi";
+import { FiBook, FiCheckSquare, FiStar, FiActivity, FiZap, FiInbox, FiCalendar, FiShare2, FiTrendingUp, FiLayers, FiSettings, FiShield, FiTarget, FiAlertTriangle, FiBarChart2 } from "react-icons/fi";
 import { NavLink } from "../type/type";
 import GlobalSearch from "./GlobalSearch";
 
@@ -29,13 +29,17 @@ const navSections: NavSection[] = [
   {
     label: "Strategic",
     links: [
+      { href: "/constitution", name: "constitution", icon: FiShield },
       { href: "/dreams", name: "dreams", icon: FiStar },
       { href: "/journal", name: "journal", icon: FiBook },
+      { href: "/chaos", name: "chaos ledger", icon: FiAlertTriangle },
+      { href: "/scorecard", name: "scorecard", icon: FiBarChart2 },
     ],
   },
   {
     label: "Execution",
     links: [
+      { href: "/habits", name: "habits", icon: FiTarget },
       { href: "/projects", name: "projects", icon: FiLayers },
       { href: "/tasks", name: "tasks", icon: FiCheckSquare },
       { href: "/calendar", name: "calendar", icon: FiCalendar },
