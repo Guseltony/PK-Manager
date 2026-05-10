@@ -33,9 +33,16 @@ const apiFetch = async (url: string, options: ApiOptions = {}) => {
   } as Record<string, string>;
 
   if (typeof window !== "undefined") {
-    const manualToken = localStorage.getItem("csrf-token");
-    if (manualToken) {
-      headers["x-csrf-token"] = manualToken;
+    let csrfToken = localStorage.getItem("csrf-token");
+    
+    // Fallback: extract from document.cookie
+    if (!csrfToken) {
+      const match = document.cookie.match(new RegExp('(^| )csrf=([^;]+)'));
+      if (match) csrfToken = match[2];
+    }
+
+    if (csrfToken) {
+      headers["x-csrf-token"] = csrfToken;
     }
   }
 

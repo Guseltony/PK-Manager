@@ -47,19 +47,31 @@ export default function HeroSection({ isAuthenticated }: HeroSectionProps) {
         {/* CTAs */}
         <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
           <Link
-            href={isAuthenticated ? "/dashboard" : "/sign-in"}
+            href={isAuthenticated ? "/dashboard" : "/onboarding"}
             className="group flex items-center gap-2 rounded-xl bg-brand-primary px-8 py-4 text-base font-bold text-white shadow-2xl shadow-brand-primary/30 transition-all hover:bg-brand-primary/90 hover:shadow-brand-primary/50 hover:gap-3"
           >
             {isAuthenticated ? "Go to Dashboard" : "Start for Free"}
             <FiArrowRight className="transition-transform group-hover:translate-x-1" />
           </Link>
           {!isAuthenticated && (
-            <a
-              href="#features"
-              className="rounded-xl border border-white/10 px-8 py-4 text-base font-semibold text-text-muted transition-all hover:border-white/20 hover:bg-white/5 hover:text-text-main"
-            >
-              See Features
-            </a>
+            <div className="flex flex-col sm:flex-row gap-4 items-center">
+              <a
+                href="#features"
+                className="rounded-xl border border-white/10 px-8 py-4 text-base font-semibold text-text-muted transition-all hover:border-white/20 hover:bg-white/5 hover:text-text-main"
+              >
+                See Features
+              </a>
+              <a
+                href="/apk" 
+                className="rounded-xl border border-white/10 px-8 py-4 text-base font-semibold text-text-muted transition-all hover:border-white/20 hover:bg-white/5 hover:text-text-main flex items-center gap-2"
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert("To download the APK, generate it via Android Studio following the instructions or host the compiled app-release.apk on this server!");
+                }}
+              >
+                Download APK
+              </a>
+            </div>
           )}
         </div>
 

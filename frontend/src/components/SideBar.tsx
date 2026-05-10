@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import NavLinks from "./navLinks";
-import { HiLightningBolt } from "react-icons/hi";
 import { FiMenu, FiX } from "react-icons/fi";
 import { useUIStore } from "../store/uiStore";
+import Image from "next/image";
 
 // ============================================================
 // Mobile sidebar trigger button
@@ -41,22 +41,22 @@ export function MobileSidebarDrawer() {
       {/* Backdrop */}
       {open && (
         <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-md z-[100] lg:hidden animate-in fade-in duration-300"
+          className="fixed inset-0 bg-black/60 backdrop-blur-md z-100 lg:hidden animate-in fade-in duration-300"
           onClick={() => setOpen(false)}
         />
       )}
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 left-0 h-full w-72 bg-surface-soft border-r border-white/5 flex flex-col p-6 z-[101] transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) lg:hidden ${
+        className={`fixed top-0 left-0 h-full w-72 bg-surface-soft border-r border-white/5 flex flex-col p-6 z-101 transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) lg:hidden ${
           open ? "translate-x-0 overflow-hidden" : "-translate-x-full"
         }`}
       >
         {/* Logo + close */}
         <div className="flex items-center justify-between mb-10 px-2 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-brand-primary rounded-xl flex items-center justify-center shadow-lg shadow-brand-primary/20">
-              <HiLightningBolt className="text-white text-xl" />
+            <div className="flex items-center justify-center">
+              <Image src="/pkmlogo.png" alt="PKM Logo" width={36} height={36} className="w-full h-full object-cover" />
             </div>
             <div>
               <h1 className="text-lg font-display font-bold tracking-tight text-text-main">
@@ -77,8 +77,8 @@ export function MobileSidebarDrawer() {
 
         <div className="flex-1 overflow-y-auto custom-scrollbar -mx-2 px-2">
           <div className="mb-6 px-4">
-             <p className="text-[10px] font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">Workspace Menu</p>
-             <NavLinks onLinkClick={() => setOpen(false)} />
+            <p className="text-[10px] font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">Workspace Menu</p>
+            <NavLinks onLinkClick={() => setOpen(false)} />
           </div>
         </div>
       </div>
@@ -91,11 +91,11 @@ export function MobileSidebarDrawer() {
 // ============================================================
 const SideBar = () => {
   return (
-    <div className="hidden lg:flex bg-surface-soft w-64 xl:w-72 h-screen sticky top-0 border-r border-white/5 flex-col p-6 flex-shrink-0 overflow-hidden">
+    <div className="hidden lg:flex bg-surface-soft w-64 xl:w-72 h-screen sticky top-0 border-r border-white/5 flex-col p-6 shrink-0 overflow-hidden">
       {/* Logo */}
       <div className="flex items-center gap-3 mb-10 px-2 shrink-0">
-        <div className="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center shadow-lg shadow-brand-primary/20">
-          <HiLightningBolt className="text-white text-2xl" />
+        <div className="flex items-center justify-center">
+          <Image src="/pkmlogo.png" alt="PKM Logo" width={40} height={40} className="w-full h-full object-cover" />
         </div>
         <div>
           <h1 className="text-xl font-display font-bold tracking-tight text-text-main">
