@@ -6,7 +6,7 @@ const isProd = process.env.NODE_ENV === "production" || !!process.env.VERCEL;
 const oauthCookieOptions = {
   httpOnly: true,
   secure: isProd,
-  sameSite: isProd ? "none" : "lax",
+  sameSite: "lax",
   path: "/",
 } as const;
 

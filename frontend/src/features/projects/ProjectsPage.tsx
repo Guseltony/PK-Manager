@@ -57,6 +57,7 @@ export default function ProjectsPage() {
   } = useProjects();
 
   const [selectedDreamId, setSelectedDreamId] = useState<string>("all");
+  const [showCreateForm, setShowCreateForm] = useState(false);
   const [draft, setDraft] = useState({
     title: "",
     description: "",
@@ -110,7 +111,10 @@ export default function ProjectsPage() {
         dreamId: draft.dreamId,
       },
       {
-        onSuccess: () => setDraft({ title: "", description: "", dreamId: "" }),
+        onSuccess: () => {
+          setDraft({ title: "", description: "", dreamId: "" });
+          setShowCreateForm(false);
+        },
       },
     );
   };
@@ -160,156 +164,181 @@ export default function ProjectsPage() {
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-[1.05fr_1.45fr]">
-        <div className="space-y-6">
-          <form
-            onSubmit={handleCreateProject}
-            className="rounded-2xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-4 sm:p-6"
-          >
-            <div className="flex items-center gap-3">
-              <div className="rounded-2xl bg-brand-primary/15 p-3 text-brand-primary">
-                <FiPlus />
-              </div>
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-primary">
-                  Manual Project Creation
-                </p>
-                <h2 className="mt-1 text-xl font-black text-white">
-                  Create execution structure
-                </h2>
-              </div>
-            </div>
-
-            <div className="mt-6 space-y-4">
-              <input
-                value={draft.title}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    title: event.target.value,
-                  }))
-                }
-                placeholder="Example: Build portfolio API"
-                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-primary/30 focus:ring-2 focus:ring-brand-primary/20"
-              />
-              <textarea
-                value={draft.description}
-                onChange={(event) =>
-                  setDraft((current) => ({
-                    ...current,
-                    description: event.target.value,
-                  }))
-                }
-                placeholder="Define the scope, outcome, and why this initiative matters."
-                rows={4}
-                className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-primary/30 focus:ring-2 focus:ring-brand-primary/20"
-              />
-              <Select
-                value={draft.dreamId}
-                onValueChange={(value) =>
-                  setDraft((current) => ({
-                    ...current,
-                    dreamId: value,
-                  }))
-                }
-              >
-                <SelectTrigger className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-6 text-sm text-white outline-none transition focus:border-brand-primary/30 focus:ring-2 focus:ring-brand-primary/20">
-                  <SelectValue placeholder="Select parent dream" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border border-white/10 bg-surface-soft text-white">
-                  {dreams.map((dream) => (
-                    <SelectItem 
-                      key={dream.id} 
-                      value={dream.id}
-                      className="rounded-xl hover:bg-white/5 focus:bg-white/10 transition-colors"
-                    >
-                      {dream.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <button
-              type="submit"
-              disabled={isCreating || !draft.title.trim() || !draft.dreamId}
-              className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-brand-primary px-5 py-3 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-50"
+      <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        <div className="flex flex-col">
+          {showCreateForm ? (
+            <form
+              onSubmit={handleCreateProject}
+              className="flex-1 rounded-2xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-4 sm:p-6 animate-in fade-in slide-in-from-top-4"
             >
-              {isCreating ? (
-                <FiLoader className="animate-spin" size={14} />
-              ) : (
-                <FiPlus size={14} />
-              )}
-              Create project
-            </button>
-          </form>
-
-          <div className="rounded-2xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-4 sm:p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-primary">
-                  AI Project Generator
-                </p>
-                <h2 className="mt-1 text-xl font-black text-white">
-                  Break dreams into projects
-                </h2>
-                <p className="mt-2 text-sm leading-7 text-text-muted">
-                  Generate missing execution units from an existing dream when
-                  the bridge from vision to action is still vague.
-                </p>
-              </div>
-              <div className="rounded-2xl bg-brand-accent/10 p-3 text-brand-accent">
-                <FiZap />
-              </div>
-            </div>
-
-            <div className="mt-5 space-y-3">
-              {dreams.map((dream) => (
-                <button
-                  key={dream.id}
-                  type="button"
-                  onClick={() =>
-                    generateProjectsAsync({ dreamId: dream.id, persist: true })
-                  }
-                  disabled={isGenerating}
-                  className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-left transition hover:border-brand-primary/20 hover:bg-black/30 disabled:opacity-50"
-                >
-                  <div>
-                    <p className="text-sm font-bold text-white">
-                      {dream.title}
-                    </p>
-                    <p className="mt-1 text-xs text-text-muted">
-                      {dream.tasks?.length || 0} linked tasks •{" "}
-                      {Math.round(dream.progress)}% dream progress
-                    </p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-2xl bg-brand-primary/15 p-3 text-brand-primary">
+                    <FiPlus />
                   </div>
-                  <FiArrowRight className="text-text-muted" />
+                  <div>
+                    <h2 className="text-xl font-black text-white">
+                      Create execution
+                    </h2>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowCreateForm(false)}
+                  className="text-text-muted hover:text-white transition"
+                >
+                  Cancel
                 </button>
-              ))}
+              </div>
+
+              <div className="mt-6 space-y-4">
+                <input
+                  value={draft.title}
+                  onChange={(event) =>
+                    setDraft((current) => ({
+                      ...current,
+                      title: event.target.value,
+                    }))
+                  }
+                  placeholder="Example: Build portfolio API"
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-primary/30"
+                />
+                <textarea
+                  value={draft.description}
+                  onChange={(event) =>
+                    setDraft((current) => ({
+                      ...current,
+                      description: event.target.value,
+                    }))
+                  }
+                  placeholder="Scope, outcome, etc."
+                  rows={2}
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-primary/30"
+                />
+                <Select
+                  value={draft.dreamId}
+                  onValueChange={(value) =>
+                    setDraft((current) => ({
+                      ...current,
+                      dreamId: value,
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-sm text-white outline-none transition focus:border-brand-primary/30">
+                    <SelectValue placeholder="Select parent dream" />
+                  </SelectTrigger>
+                  <SelectContent className="rounded-2xl border border-white/10 bg-surface-soft text-white">
+                    {dreams.map((dream) => (
+                      <SelectItem 
+                        key={dream.id} 
+                        value={dream.id}
+                        className="rounded-xl hover:bg-white/5 focus:bg-white/10 transition-colors"
+                      >
+                        {dream.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isCreating || !draft.title.trim() || !draft.dreamId}
+                className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-brand-primary px-5 py-3 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-50 w-full justify-center"
+              >
+                {isCreating ? (
+                  <FiLoader className="animate-spin" size={14} />
+                ) : (
+                  <FiPlus size={14} />
+                )}
+                Create project
+              </button>
+            </form>
+          ) : (
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="flex-1 w-full rounded-2xl sm:rounded-[28px] border border-dashed border-white/15 bg-surface-soft p-6 flex flex-col items-center justify-center text-center hover:bg-white/5 transition"
+            >
+              <div className="rounded-full bg-brand-primary/10 p-4 text-brand-primary mb-4">
+                <FiPlus size={24} />
+              </div>
+              <h2 className="text-xl font-black text-white">New Project</h2>
+              <p className="mt-2 text-sm text-text-muted max-w-sm">
+                Manually structure a new execution lane for your tasks.
+              </p>
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-col rounded-2xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-4 sm:p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-primary">
+                AI Project Generator
+              </p>
+              <h2 className="mt-1 text-xl font-black text-white">
+                Break dreams
+              </h2>
+              <p className="mt-2 text-sm leading-7 text-text-muted">
+                Select a dream to generate structured projects.
+              </p>
+            </div>
+            <div className="rounded-2xl bg-brand-accent/10 p-3 text-brand-accent">
+              <FiZap />
             </div>
           </div>
 
-          <div className="rounded-2xl sm:rounded-[28px] border border-amber-400/20 bg-amber-400/10 p-4 sm:p-6">
-            <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">
-              Task Context Gap
-            </p>
-            <h3 className="mt-2 text-xl font-black text-white">
-              {orphanTasks.length} tasks still lack project structure
-            </h3>
-            <p className="mt-2 text-sm leading-7 text-amber-100/80">
-              Projects are optional in the data model, but this page treats them
-              as the preferred execution context between dreams and tasks.
-            </p>
-            {projectsMissingNearTermTasks > 0 ? (
-              <p className="mt-3 text-xs font-bold uppercase tracking-[0.18em] text-amber-100">
-                {projectsMissingNearTermTasks} project{projectsMissingNearTermTasks === 1 ? "" : "s"} have no task scheduled in the next 7 days.
-              </p>
-            ) : null}
+          <div className="mt-auto pt-5 flex gap-2">
+            <Select
+              value={selectedDreamId !== "all" ? selectedDreamId : ""}
+              onValueChange={(val) => val && generateProjectsAsync({ dreamId: val, persist: true })}
+            >
+              <SelectTrigger className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-sm text-white outline-none transition focus:border-brand-primary/30">
+                <SelectValue placeholder="Select a dream to analyze..." />
+              </SelectTrigger>
+              <SelectContent className="rounded-2xl border border-white/10 bg-surface-soft text-white">
+                {dreams.map((dream) => (
+                  <SelectItem 
+                    key={dream.id} 
+                    value={dream.id}
+                    className="rounded-xl hover:bg-white/5 focus:bg-white/10"
+                  >
+                    {dream.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
-        <div className="rounded-none border border-white/10 bg-surface-soft p-4 sm:p-6">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col rounded-2xl sm:rounded-[28px] border border-amber-400/20 bg-amber-400/10 p-4 sm:p-6">
+          <p className="text-xs font-black uppercase tracking-[0.2em] text-amber-300">
+            Task Context Gap
+          </p>
+          <h3 className="mt-2 text-xl font-black text-white">
+            {orphanTasks.length} orphan tasks
+          </h3>
+          <p className="mt-2 text-sm leading-7 text-amber-100/80">
+            {projectsMissingNearTermTasks > 0 
+              ? `${projectsMissingNearTermTasks} projects have no upcoming tasks.`
+              : "Projects act as the preferred execution context."}
+          </p>
+          
+          <div className="mt-auto pt-5">
+            {orphanTasks.length > 0 && (
+              <button 
+                onClick={() => alert("Quick assign modal would open here!")}
+                className="w-full rounded-xl bg-amber-400 text-amber-950 font-bold py-3 text-sm transition hover:bg-amber-300"
+              >
+                Organize Orphan Tasks
+              </button>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="rounded-[32px] border border-white/10 bg-surface-soft p-4 sm:p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-primary">
                 Project Control Board
@@ -341,7 +370,7 @@ export default function ProjectsPage() {
             </Select>
           </div>
 
-          <div className="mt-6 space-y-4">
+          <div className="grid gap-6 grid-cols-1 xl:grid-cols-2">
             {isLoading
               ? Array.from({ length: 4 }).map((_, index) => (
                   <div
@@ -355,7 +384,7 @@ export default function ProjectsPage() {
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.04 }}
-                    className="rounded-none border border-white/10 bg-black/20 p-2 sm:p-5"
+                    className="rounded-2xl border border-white/10 bg-black/20 p-4 sm:p-6 flex flex-col"
                   >
                     <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                       <div className="max-w-3xl">
@@ -381,7 +410,7 @@ export default function ProjectsPage() {
                         <h3 className="mt-4 text-2xl font-black tracking-tight text-white">
                           {project.title}
                         </h3>
-                        <p className="mt-3 text-sm leading-7 text-text-muted">
+                        <p className="mt-3 text-sm leading-7 text-text-muted line-clamp-2">
                           {project.description ||
                             "This project is the structured execution layer translating the parent dream into practical work."}
                         </p>
@@ -411,7 +440,7 @@ export default function ProjectsPage() {
                     </div>
 
                     <div className="mt-5 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-                      <div className="rounded-[22px] border border-white/10 bg-white/5 p-4">
+                      <div className="rounded-[22px] border border-white/10 bg-white/5 p-4 flex flex-col justify-center">
                         <div className="flex items-center justify-between">
                           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                             Progress
@@ -453,99 +482,26 @@ export default function ProjectsPage() {
                           label="Health"
                           value={project.health.state}
                         />
-                        <SignalCard
-                          icon={FiTarget}
-                          label="Parent Dream"
-                          value={project.dream.title}
-                        />
-                        <SignalCard
-                          icon={FiTrendingUp}
-                          label="Dream Progress"
-                          value={`${Math.round(project.dream.progress)}%`}
-                        />
                       </div>
                     </div>
 
-                    {project.taskSummary.total > 0 &&
-                    project.taskSummary.total === project.taskSummary.completed ? (
-                      <div className="mt-5 rounded-[22px] border border-emerald-400/20 bg-emerald-400/10 px-4 py-3">
-                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-300">
-                          Parent Dream Review
-                        </p>
-                        <p className="mt-2 text-sm text-emerald-100">
-                          This project is fully complete. Review the parent ambition
-                          to decide whether it should advance, pause, or close.
-                        </p>
-                      </div>
-                    ) : null}
-
-                    <div className="mt-5 grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
-                          Linked tasks
-                        </p>
-                        <div className="mt-3 space-y-2">
-                          {project.tasks.length ? (
-                            project.tasks.slice(0, 5).map((task) => (
-                              <div
-                                key={task.id}
-                                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3"
-                              >
-                                <div className="flex items-center justify-between gap-3">
-                                  <div>
-                                    <p className="text-sm font-bold text-white">
-                                      {task.title}
-                                    </p>
-                                    <p className="mt-1 text-xs text-text-muted">
-                                      {task.status.replace("_", " ")} •{" "}
-                                      {task.priority}
-                                    </p>
-                                  </div>
-                                  <span className="text-xs text-text-muted">
-                                    {task.dueDate
-                                      ? new Date(
-                                          task.dueDate,
-                                        ).toLocaleDateString()
-                                      : "No date"}
-                                  </span>
-                                </div>
-                              </div>
-                            ))
-                          ) : (
-                            <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-6 text-sm text-text-muted">
-                              No tasks are linked yet. This project is
-                              underdefined and needs execution units.
-                            </div>
-                          )}
+                    <div className="mt-auto pt-5">
+                      {project.tasks.length ? (
+                        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between">
+                            <span className="text-sm font-bold text-white">{project.tasks.length} active tasks inside</span>
+                            <button className="text-xs text-brand-primary font-bold hover:underline">View All</button>
                         </div>
-                      </div>
-
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
-                          Health guidance
-                        </p>
-                        <div className="mt-3 space-y-2">
-                          {(project.health.recommendations.length
-                            ? project.health.recommendations
-                            : [
-                                "Project structure looks healthy right now. Keep shipping tasks inside this lane.",
-                              ]
-                          ).map((recommendation) => (
-                            <div
-                              key={recommendation}
-                              className="rounded-2xl border border-brand-primary/20 bg-brand-primary/10 px-4 py-3 text-sm leading-7 text-text-main"
-                            >
-                              {recommendation}
-                            </div>
-                          ))}
+                      ) : (
+                        <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-4 text-center text-sm text-text-muted">
+                          No tasks linked yet.
                         </div>
-                      </div>
+                      )}
                     </div>
                   </motion.div>
                 ))}
 
             {!isLoading && filteredProjects.length === 0 ? (
-              <div className="rounded-[26px] border border-dashed border-white/15 bg-black/20 px-6 py-12 text-center">
+              <div className="col-span-full rounded-[26px] border border-dashed border-white/15 bg-black/20 px-6 py-12 text-center">
                 <p className="text-lg font-black text-white">No projects yet</p>
                 <p className="mt-2 text-sm text-text-muted">
                   Create one manually or generate structure from a dream to
@@ -554,7 +510,6 @@ export default function ProjectsPage() {
               </div>
             ) : null}
           </div>
-        </div>
       </section>
     </div>
   );

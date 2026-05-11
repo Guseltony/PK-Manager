@@ -6,7 +6,15 @@ type ApiOptions = RequestInit & {
 };
 
 const apiFetch = async (url: string, options: ApiOptions = {}) => {
-  let fullUrl = url.startsWith("http") ? url : `${BACKEND_URL}${url}`;
+  let fullUrl = "";
+  
+  if (typeof window !== "undefined") {
+    // In the browser, we use our local Next.js proxy to avoid cross-domain cookie issues
+    fullUrl = url.startsWith("/") ? `/api/backend${url}` : `/api/backend/${url}`;
+  } else {
+    // On the server, we can call the backend directly
+    fullUrl = url.startsWith("http") ? url : `${BACKEND_URL}${url}`;
+  }
 
   if (options.params) {
     const searchParams = new URLSearchParams();
@@ -25,9 +33,16 @@ const apiFetch = async (url: string, options: ApiOptions = {}) => {
   } as Record<string, string>;
 
   if (typeof window !== "undefined") {
-    const manualToken = localStorage.getItem("csrf-token");
-    if (manualToken) {
-      headers["x-csrf-token"] = manualToken;
+    let csrfToken = localStorage.getItem("csrf-token");
+    
+    // Fallback: extract from document.cookie
+    if (!csrfToken) {
+      const match = document.cookie.match(new RegExp('(^| )csrf=([^;]+)'));
+      if (match) csrfToken = match[2];
+    }
+
+    if (csrfToken) {
+      headers["x-csrf-token"] = csrfToken;
     }
   }
 

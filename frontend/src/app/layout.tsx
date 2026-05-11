@@ -18,6 +18,9 @@ const plusJakarta = Plus_Jakarta_Sans({
 export const viewport = {
   width: "device-width",
   initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
@@ -33,6 +36,12 @@ export const metadata: Metadata = {
     "SaaS",
   ],
   authors: [{ name: "Gusel-OS Team" }],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "PKM",
+  },
 };
 
 export default async function RootLayout({
@@ -43,7 +52,7 @@ export default async function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <body
-        className={`${outfit.variable} ${plusJakarta.variable} font-sans antialiased bg-surface-base text-text-main min-h-screen selection:bg-brand-primary/30`}
+        className={`${outfit.variable} ${plusJakarta.variable} font-sans antialiased bg-surface-base text-text-main min-h-[100dvh] selection:bg-brand-primary/30 overscroll-none`}
       >
         <Providers>{children}</Providers>
         <script

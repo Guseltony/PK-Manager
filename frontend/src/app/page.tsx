@@ -17,7 +17,6 @@
  */
 
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 import { auth } from "@/src/libs/auth";
 
 import LandingNav from "@/src/components/landing/LandingNav";

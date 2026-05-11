@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PKM</string>
+    <string name="title_activity_main">PKM</string>
+    <string name="package_name">com.anthony.pkm</string>
+    <string name="custom_url_scheme">com.anthony.pkm</string>
+</resources>

@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { FiZap, FiMenu, FiX } from "react-icons/fi";
+import { FiMenu, FiX } from "react-icons/fi";
 
 interface LandingNavProps {
   isAuthenticated: boolean;
@@ -29,9 +30,7 @@ export default function LandingNav({ isAuthenticated }: LandingNavProps) {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand-primary shadow-lg shadow-brand-primary/30">
-            <FiZap className="text-lg text-white" />
-          </div>
+          <Image src="/pkmlogo.png" alt="PKM Logo" width={40} height={40} className="w-10 h-10 object-cover" />
           <span className="text-lg font-bold text-text-main">
             PK<span className="text-brand-primary">Manager</span>
           </span>

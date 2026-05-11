@@ -6,14 +6,14 @@ const isProd = process.env.NODE_ENV === "production" || !!process.env.VERCEL;
 const authCookieOptions = {
   httpOnly: true,
   secure: isProd,
-  sameSite: isProd ? "none" : "lax",
+  sameSite: "lax",
   path: "/",
 } as const;
 
 const csrfCookieOptions = {
   httpOnly: false,
   secure: isProd,
-  sameSite: isProd ? "none" : "lax",
+  sameSite: "lax",
   path: "/",
 } as const;
 

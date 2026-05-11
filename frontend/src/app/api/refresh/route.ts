@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { BACKEND_URL } from "@/src/constants/constants";
+import { cookies } from "next/headers";
+import { getCookies } from "@/src/utils/getCookie";
 
 async function handleRefresh(req: Request) {
-  const cookieHeader = req.headers.get("cookie") || "";
-  const csrf = cookieHeader
-    .split("; ")
-    .find((c) => c.startsWith("csrf="))
-    ?.split("=")[1];
+  const cookieHeader = await getCookies();
+  const cookieStore = await cookies();
+  const csrf = cookieStore.get("csrf")?.value;
 
   try {
     const backendRes = await fetch(`${BACKEND_URL}/auth/refresh`, {
@@ -15,7 +15,6 @@ async function handleRefresh(req: Request) {
         Cookie: cookieHeader,
         "x-csrf-token": csrf ?? "",
       },
-      credentials: "include",
       cache: "no-store",
     });
 
@@ -30,6 +29,8 @@ async function handleRefresh(req: Request) {
         return redirectRes;
       }
 
+      // For POST (background refresh), we wipe cookies and return 401
+      // This ensures the frontend knows to redirect the user
       const errorBody = await backendRes.json().catch(() => ({ error: "Session expired" }));
       const errorRes = NextResponse.json(errorBody, { status: backendRes.status });
       errorRes.cookies.set("refreshToken", "", { maxAge: 0, path: "/" });

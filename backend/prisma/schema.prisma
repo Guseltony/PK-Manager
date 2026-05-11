@@ -63,6 +63,11 @@ model User {
   plannedFocusBlocks   PlannedFocusBlock[]
   insightRecords       InsightRecord[]
   knowledgeEdges       KnowledgeEdge[]
+  habits               Habit[]
+  habitLogs            HabitLog[]
+  constitution         Constitution?
+  chaosLedger          ChaosTrigger[]
+  scorecards           MonthlyScorecard[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -788,4 +793,110 @@ model NoteVersion {
   createdAt    DateTime @default(now())
 
   @@index([noteId, createdAt])
+}
+
+// ==========================================
+// 🔥 HABITS & CONSISTENCY SYSTEM
+// ==========================================
+
+model Habit {
+  id          String     @id @default(uuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  pillarName  String?
+  frequency   String     @default("daily")
+  color       String     @default("brand-primary")
+  icon        String     @default("FiCheckCircle")
+  logs        HabitLog[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([userId])
+}
+
+model HabitLog {
+  id        String   @id @default(uuid())
+  habitId   String
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date      DateTime // Store as standardized midnight UTC date
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([habitId, date])
+  @@index([userId, date])
+}
+
+// ==========================================
+// 📜 CONSTITUTION SYSTEM
+// ==========================================
+
+model Constitution {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title          String   @default("My Constitution")
+  phase          String   @default("Phase 1: Foundation")
+  mission        String   @db.Text @default("")
+  vision         String   @db.Text @default("")
+  
+  pillars        Json     @default("[]")
+  nonNegotiables String[] @default([])
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+// ==========================================
+// ⚡ CHAOS / TRIGGER LEDGER
+// ==========================================
+
+model ChaosTrigger {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  trigger    String   @db.Text          // What broke you / caused chaos
+  context    String?  @db.Text          // Circumstances / what was happening
+  resolution String   @db.Text          // How you will prevent / resolve it
+  category   String   @default("general") // e.g. "focus", "social", "health", "discipline"
+  severity   Int      @default(1)       // 1–5 scale
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+  @@index([userId, createdAt])
+}
+// ==========================================
+// 📊 MONTHLY SCORECARD
+// ==========================================
+
+model MonthlyScorecard {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  month           Int      // 1–12
+  year            Int
+
+  // Habit performance (JSON: { pillarName: string, score: number }[])
+  pillarScores    Json     @default("[]")
+
+  // Reflection
+  overallScore    Int      @default(0)  // 0–100
+  reflection      String?  @db.Text     // Free-form monthly reflection
+  winOfMonth      String?  @db.Text     // Biggest win
+  missOfMonth     String?  @db.Text     // What you missed
+  intentNextMonth String?  @db.Text     // Focus for next month
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, month, year])
+  @@index([userId])
 }

@@ -4,11 +4,12 @@ import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import { FiMail, FiLock, FiUser, FiEye, FiEyeOff, FiAlertCircle, FiZap } from "react-icons/fi";
+import { FiMail, FiLock, FiUser, FiEye, FiEyeOff, FiAlertCircle } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
 import { loginSchema, registerSchema, type RegisterFormData, type LoginFormData } from "./schema";
 import { loginAction, registerAction } from "./actions";
 import { setManualCsrfToken } from "@/src/libs/api";
+import Image from "next/image";
 
 export default function SignInForm() {
   const [isLogin, setIsLogin] = useState(true);
@@ -98,9 +99,7 @@ export default function SignInForm() {
     <div className="w-full rounded-2xl border border-white/5 bg-surface-soft p-8 shadow-2xl shadow-black/40">
       {/* Brand Header */}
       <div className="mb-8 flex flex-col items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-primary shadow-lg shadow-brand-primary/30">
-          <FiZap className="text-2xl text-white" />
-        </div>
+        <Image src="/pkmlogo.png" alt="PKM Logo" width={60} height={60} className="w-16 h-16 object-cover" />
         <div className="text-center">
           <h1 className="text-2xl font-display font-bold text-text-main">
             {isLogin ? "Welcome back" : "Create account"}
