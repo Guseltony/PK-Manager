@@ -29,10 +29,14 @@ export const updateUserController = async (req, res) => {
     const { name, username, avatar, email } = req.body;
 
     const data = await updateUser(user_id, {
-      ...(name && { name }),
-      ...(username && { username }),
-      ...(avatar && { avatar }),
-      ...(email && { email }),
+      ...(Object.prototype.hasOwnProperty.call(req.body, "name") && { name }),
+      ...(Object.prototype.hasOwnProperty.call(req.body, "username") && {
+        username: username || null,
+      }),
+      ...(Object.prototype.hasOwnProperty.call(req.body, "avatar") && {
+        avatar: avatar || null,
+      }),
+      ...(Object.prototype.hasOwnProperty.call(req.body, "email") && { email }),
     });
 
     res.status(200).json({
