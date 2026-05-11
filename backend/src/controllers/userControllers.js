@@ -1,4 +1,4 @@
-import { getAllUser, getUser } from "../services/user.service.js";
+import { getAllUser, getUser, updateUser, getUserStats } from "../services/user.service.js";
 
 export const getUserController = async (req, res) => {
   try {
@@ -19,6 +19,46 @@ export const getUserController = async (req, res) => {
   } catch (error) {
     res.status(400).json({
       error: error,
+    });
+  }
+};
+
+export const updateUserController = async (req, res) => {
+  try {
+    const user_id = req.user.id;
+    const { name, username, avatar, email } = req.body;
+
+    const data = await updateUser(user_id, {
+      ...(name && { name }),
+      ...(username && { username }),
+      ...(avatar && { avatar }),
+      ...(email && { email }),
+    });
+
+    res.status(200).json({
+      message: "User successfully updated",
+      data,
+    });
+  } catch (error) {
+    res.status(400).json({
+      error: error.message,
+    });
+  }
+};
+
+export const getUserStatsController = async (req, res) => {
+  try {
+    const user_id = req.user.id;
+
+    const data = await getUserStats(user_id);
+
+    res.status(200).json({
+      message: "User stats successfully fetched",
+      data,
+    });
+  } catch (error) {
+    res.status(400).json({
+      error: error.message,
     });
   }
 };
