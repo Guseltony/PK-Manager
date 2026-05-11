@@ -1,7 +1,14 @@
 "use client";
 
 import type { UserStats } from "@/src/types/user";
-import { FileText, CheckSquare, Star, FolderOpen } from "lucide-react";
+import {
+  FiBookOpen,
+  FiFolder,
+  FiInbox,
+  FiLayers,
+  FiStar,
+  FiZap,
+} from "react-icons/fi";
 
 interface ProfileStatsProps {
   stats: UserStats | undefined;
@@ -14,52 +21,68 @@ export default function ProfileStats({ stats }: ProfileStatsProps) {
     {
       label: "Notes",
       value: stats.notesCount,
-      icon: FileText,
-      color: "text-blue-400",
-      bg: "bg-blue-400/10",
+      detail: "Knowledge nodes captured",
+      icon: FiBookOpen,
+      tone: "text-sky-300 bg-sky-400/10 border-sky-400/20",
     },
     {
       label: "Tasks",
       value: stats.tasksCount,
-      icon: CheckSquare,
-      color: "text-green-400",
-      bg: "bg-green-400/10",
+      detail: `${stats.activeTasksCount} currently open`,
+      icon: FiLayers,
+      tone: "text-emerald-300 bg-emerald-400/10 border-emerald-400/20",
     },
     {
       label: "Dreams",
       value: stats.dreamsCount,
-      icon: Star,
-      color: "text-yellow-400",
-      bg: "bg-yellow-400/10",
+      detail: `${stats.projectsCount} projects under them`,
+      icon: FiStar,
+      tone: "text-amber-300 bg-amber-400/10 border-amber-400/20",
     },
     {
-      label: "Projects",
-      value: stats.projectsCount,
-      icon: FolderOpen,
-      color: "text-purple-400",
-      bg: "bg-purple-400/10",
+      label: "Inbox",
+      value: stats.inboxCount,
+      detail: `${stats.ideasCount} ideas routed into the system`,
+      icon: FiInbox,
+      tone: "text-brand-primary bg-brand-primary/10 border-brand-primary/20",
+    },
+    {
+      label: "Ledger",
+      value: stats.ledgerEntriesCount,
+      detail: `${stats.completedThisWeek} completions this week`,
+      icon: FiZap,
+      tone: "text-rose-300 bg-rose-400/10 border-rose-400/20",
+    },
+    {
+      label: "Focus Blocks",
+      value: stats.plannedFocusBlocksCount,
+      detail: `${stats.focusSessionsCount} sessions archived`,
+      icon: FiFolder,
+      tone: "text-violet-300 bg-violet-400/10 border-violet-400/20",
     },
   ];
 
   return (
-    <div className="rounded-lg border border-gray-800 bg-surface-soft p-6">
-      <h2 className="mb-4 text-lg font-semibold text-white">Activity Stats</h2>
-      <div className="space-y-4">
-        {statItems.map((item) => (
-          <div
-            key={item.label}
-            className="flex items-center justify-between rounded-lg bg-gray-900/50 p-3"
-          >
-            <div className="flex items-center gap-3">
-              <div className={`rounded-lg ${item.bg} p-2`}>
-                <item.icon className={`h-4 w-4 ${item.color}`} />
-              </div>
-              <span className="text-sm text-gray-300">{item.label}</span>
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      {statItems.map((item) => (
+        <div
+          key={item.label}
+          className="rounded-3xl border border-white/10 bg-surface-soft/70 p-4"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
+                {item.label}
+              </p>
+              <p className="mt-2 text-2xl font-extrabold text-white">{item.value}</p>
             </div>
-            <span className="text-lg font-bold text-white">{item.value}</span>
+            <div className={`rounded-2xl border p-3 ${item.tone}`}>
+              <item.icon size={16} />
+            </div>
           </div>
-        ))}
-      </div>
+          <p className="mt-3 text-xs leading-5 text-text-muted">{item.detail}</p>
+        </div>
+      ))}
     </div>
   );
 }

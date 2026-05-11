@@ -48,22 +48,26 @@ export default function ProfileForm({
         const payload: UpdateUserPayload = {};
         if (data.name !== user.name) payload.name = data.name;
         if (data.username !== (user.username || ""))
-          payload.username = data.username || undefined;
+          payload.username = data.username;
         if (data.email !== user.email) payload.email = data.email;
         if (data.avatar !== (user.avatar || ""))
-          payload.avatar = data.avatar || undefined;
+          payload.avatar = data.avatar;
         onSubmit(payload);
       })}
-      className="space-y-6 rounded-lg border border-gray-800 bg-surface-soft p-6"
+      className="space-y-6 rounded-3xl border border-white/10 bg-surface-soft/80 p-5 sm:p-6"
     >
-      <h2 className="text-lg font-semibold text-white">Edit Profile</h2>
+      <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-text-main">
+        Edit Profile
+      </h2>
 
       <div className="flex items-center gap-4">
-        <div className="relative h-20 w-20 overflow-hidden rounded-full bg-brand-primary/20 flex items-center justify-center">
+        <div className="relative flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl border border-white/10 bg-brand-primary/20">
           {user.avatar ? (
             <Image
               src={user.avatar}
               alt={user.name}
+              width={80}
+              height={80}
               className="h-full w-full object-cover"
             />
           ) : (
@@ -74,7 +78,7 @@ export default function ProfileForm({
         </div>
         <button
           type="button"
-          className="flex items-center gap-2 rounded-lg border border-gray-700 px-4 py-2 text-sm text-gray-300 hover:bg-gray-800"
+          className="flex items-center gap-2 rounded-2xl border border-white/10 px-4 py-2 text-sm text-text-muted hover:bg-white/5"
         >
           <Camera className="h-4 w-4" />
           Change Photo
@@ -88,7 +92,7 @@ export default function ProfileForm({
           </label>
           <input
             {...register("name")}
-            className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-white focus:border-brand-primary focus:outline-none"
+            className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-brand-primary"
           />
           {errors.name && (
             <p className="mt-1 text-sm text-red-400">{errors.name.message}</p>
@@ -101,7 +105,7 @@ export default function ProfileForm({
           </label>
           <input
             {...register("username")}
-            className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-white focus:border-brand-primary focus:outline-none"
+            className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-brand-primary"
             placeholder="Enter username"
           />
           {errors.username && (
@@ -118,7 +122,7 @@ export default function ProfileForm({
           <input
             {...register("email")}
             type="email"
-            className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-white focus:border-brand-primary focus:outline-none"
+            className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-brand-primary"
           />
           {errors.email && (
             <p className="mt-1 text-sm text-red-400">{errors.email.message}</p>
@@ -132,7 +136,7 @@ export default function ProfileForm({
           <input
             {...register("avatar")}
             type="url"
-            className="mt-1 w-full rounded-lg border border-gray-700 bg-gray-900 px-4 py-2 text-white focus:border-brand-primary focus:outline-none"
+            className="mt-1 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-white outline-none focus:border-brand-primary"
             placeholder="https://example.com/avatar.jpg"
           />
           {errors.avatar && (
@@ -145,14 +149,14 @@ export default function ProfileForm({
         <button
           type="submit"
           disabled={isPending}
-          className="rounded-lg bg-brand-primary px-6 py-2 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
+          className="rounded-2xl bg-brand-primary px-6 py-3 text-sm font-bold text-white hover:bg-brand-primary/90 disabled:opacity-50"
         >
           {isPending ? "Saving..." : "Save Changes"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-gray-700 px-6 py-2 text-sm text-gray-300 hover:bg-gray-800"
+          className="rounded-2xl border border-white/10 px-6 py-3 text-sm font-bold text-text-muted hover:bg-white/5"
         >
           Cancel
         </button>
