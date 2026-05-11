@@ -1,19 +1,9 @@
+﻿/* eslint-disable @next/next/no-page-custom-font */
 import type { Metadata } from "next";
-import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
+import Script from "next/script";
+
 import "./globals.css";
 import { Providers } from "./providers";
-
-const outfit = Outfit({
-  variable: "--font-outfit",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
-
-const plusJakarta = Plus_Jakarta_Sans({
-  variable: "--font-plus-jakarta",
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-});
 
 export const viewport = {
   width: "device-width",
@@ -51,15 +41,20 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body
-        className={`${outfit.variable} ${plusJakarta.variable} font-sans antialiased bg-surface-base text-text-main min-h-[100dvh] selection:bg-brand-primary/30 overscroll-none`}
-      >
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="font-sans antialiased bg-surface-base text-text-main min-h-dvh selection:bg-brand-primary/30 overscroll-none">
         <Providers>{children}</Providers>
-        <script
+        <Script
           src="https://accounts.google.com/gsi/client"
-          async
-          defer
-        ></script>
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

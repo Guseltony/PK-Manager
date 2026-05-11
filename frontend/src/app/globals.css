@@ -22,6 +22,10 @@
 }
 
 :root {
+  /* Font variables used by @theme and utilities. */
+  --font-plus-jakarta: "Plus Jakarta Sans";
+  --font-outfit: "Outfit";
+
   --accent: oklch(0.97 0 0);
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
