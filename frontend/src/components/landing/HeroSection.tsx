@@ -66,7 +66,7 @@ export default function HeroSection({ isAuthenticated }: HeroSectionProps) {
                 className="rounded-xl border border-white/10 px-8 py-4 text-base font-semibold text-text-muted transition-all hover:border-white/20 hover:bg-white/5 hover:text-text-main flex items-center gap-2"
                 onClick={(e) => {
                   e.preventDefault();
-                  alert("To download the APK, generate it via Android Studio following the instructions or host the compiled app-release.apk on this server!");
+                  window.location.href = "/downloads/pkm.apk";
                 }}
               >
                 Download APK

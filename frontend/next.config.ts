@@ -8,7 +8,6 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-  turbopack: {},
   async headers() {
     return [
       {
@@ -21,6 +20,23 @@ const nextConfig: NextConfig = {
           {
             key: "Cross-Origin-Embedder-Policy",
             value: "unsafe-none",
+          },
+        ],
+      },
+      {
+        source: "/downloads/:path*.apk",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/vnd.android.package-archive",
+          },
+          {
+            key: "Content-Disposition",
+            value: "attachment",
+          },
+          {
+            key: "Cache-Control",
+            value: "public, max-age=3600",
           },
         ],
       },

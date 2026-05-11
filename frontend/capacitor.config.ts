@@ -1,14 +1,19 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
+const serverUrl = process.env.CAPACITOR_SERVER_URL;
+
 const config: CapacitorConfig = {
   appId: 'com.anthony.pkm',
   appName: 'PKM',
   webDir: 'out',
-  server: {
-    // Replace with your Vercel URL when deploying to production
-    url: 'http://10.0.2.2:3000', // Default Android emulator localhost equivalent
-    cleartext: true
-  }
+  ...(serverUrl
+    ? {
+        server: {
+          url: serverUrl,
+          cleartext: serverUrl.startsWith("http://"),
+        },
+      }
+    : {}),
 };
 
 export default config;
