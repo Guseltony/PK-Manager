@@ -179,6 +179,13 @@ enum Priority {
   urgent
 }
 
+enum TaskRecurrence {
+  none
+  daily
+  weekly
+  monthly
+}
+
 enum DreamStatus {
   active
   paused
@@ -334,6 +341,11 @@ model Task {
 
   startDate DateTime? @default(now())
   duration  Int?      @default(1) // in days
+  recurrence TaskRecurrence @default(none)
+  weeklyDays Int[] @default([])
+  occurrenceDates String[] @default([])
+  isTodayCommitment Boolean @default(false)
+  lastRescheduledAt DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
