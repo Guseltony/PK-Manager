@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { IoMdSettings } from "react-icons/io";
 import { FaRegUser } from "react-icons/fa";
 import { IoIosNotifications } from "react-icons/io";
@@ -43,9 +44,9 @@ const Header = ({ auth }: { auth: AuthResult }) => {
               <span className="text-sm font-semibold text-text-main leading-none">{user?.name}</span>
               <span className="text-[10px] text-text-muted font-medium uppercase tracking-wider">Free Plan</span>
             </div>
-            <div className="relative h-9 w-9 overflow-hidden rounded-full ring-2 ring-white/5 bg-brand-primary/20 flex items-center justify-center flex-shrink-0">
+            <Link href="/profile" className="relative h-9 w-9 overflow-hidden rounded-full ring-2 ring-white/5 bg-brand-primary/20 flex items-center justify-center flex-shrink-0 hover:ring-brand-primary/50 transition-all">
               <FaRegUser className="text-brand-primary" size={16} />
-            </div>
+            </Link>
             <SignOut />
           </div>
         ) : (

@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { BiSolidDashboard, BiSolidNotepad } from "react-icons/bi";
 import { BsFillLightbulbFill, BsFillTagFill } from "react-icons/bs";
 import { IoMdArchive } from "react-icons/io";
-import { FiBook, FiCheckSquare, FiStar, FiActivity, FiZap, FiInbox, FiCalendar, FiShare2, FiTrendingUp, FiLayers, FiSettings } from "react-icons/fi";
+import { FiBook, FiCheckSquare, FiStar, FiActivity, FiZap, FiInbox, FiCalendar, FiShare2, FiTrendingUp, FiLayers, FiSettings, FiUser } from "react-icons/fi";
 import { NavLink } from "../type/type";
 import GlobalSearch from "./GlobalSearch";
 
@@ -49,6 +49,13 @@ const navSections: NavSection[] = [
     label: "Library",
     links: [
       { href: "/archive", name: "archive", icon: IoMdArchive },
+    ],
+  },
+  {
+    label: "Account",
+    links: [
+      { href: "/profile", name: "profile", icon: FiUser },
+      { href: "/settings", name: "settings", icon: FiSettings },
     ],
   },
 ];
