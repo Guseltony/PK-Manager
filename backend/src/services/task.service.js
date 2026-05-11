@@ -47,6 +47,24 @@ const normalizeNoteIds = (noteIds = [], noteId) => {
   return Array.from(new Set(merged));
 };
 
+const normalizeWeeklyDays = (weeklyDays = []) =>
+  Array.from(
+    new Set(
+      (Array.isArray(weeklyDays) ? weeklyDays : [])
+        .map((value) => Number(value))
+        .filter((value) => Number.isInteger(value) && value >= 0 && value <= 6),
+    ),
+  ).sort((left, right) => left - right);
+
+const normalizeOccurrenceDates = (occurrenceDates = []) =>
+  Array.from(
+    new Set(
+      (Array.isArray(occurrenceDates) ? occurrenceDates : [])
+        .map((value) => String(value).trim())
+        .filter(Boolean),
+    ),
+  ).sort();
+
 const resolveOwnedNoteIds = async (candidateNoteIds, userId) => {
   if (!candidateNoteIds.length) {
     return [];
@@ -160,15 +178,35 @@ const getScheduleBucket = (task, today) => {
   const dueDate = task.dueDate ? toDateKey(task.dueDate) : null;
   const durationDays = Math.max(task.duration || 1, 1);
   const endDate = scheduledDate ? addDays(scheduledDate, durationDays - 1) : null;
+  const recurrence = task.recurrence || "none";
+  const weeklyDays = normalizeWeeklyDays(task.weeklyDays || []);
+  const occurrenceDates = normalizeOccurrenceDates(task.occurrenceDates || []);
+  const todayWeekday = new Date(`${today}T00:00:00`).getDay();
 
-  if ((dueDate && compareDateKeys(dueDate, today) < 0) || (endDate && compareDateKeys(endDate, today) < 0)) {
+  const recurringDueToday =
+    recurrence === "daily"
+      ? !occurrenceDates.includes(today)
+      : recurrence === "weekly"
+        ? weeklyDays.includes(todayWeekday) && !occurrenceDates.includes(today)
+        : false;
+
+  if (
+    (dueDate && compareDateKeys(dueDate, today) < 0) ||
+    (recurrence === "none" && endDate && compareDateKeys(endDate, today) < 0)
+  ) {
     return scheduledDate ? "carryover" : "overdue";
   }
 
   if (
+    recurringDueToday ||
+    task.isTodayCommitment ||
     (dueDate && compareDateKeys(dueDate, today) === 0) ||
     (scheduledDate && compareDateKeys(scheduledDate, today) === 0) ||
-    (scheduledDate && endDate && compareDateKeys(scheduledDate, today) <= 0 && compareDateKeys(endDate, today) >= 0)
+    (recurrence === "none" &&
+      scheduledDate &&
+      endDate &&
+      compareDateKeys(scheduledDate, today) <= 0 &&
+      compareDateKeys(endDate, today) >= 0)
   ) {
     return "today";
   }
@@ -195,6 +233,11 @@ export const taskCreation = async (data, userId) => {
     startDate,
     estimatedTime,
     duration,
+    recurrence,
+    weeklyDays,
+    occurrenceDates,
+    isTodayCommitment,
+    lastRescheduledAt,
     tags,
     noteId,
     noteIds,
@@ -224,6 +267,11 @@ export const taskCreation = async (data, userId) => {
       startDate: startDate ? new Date(startDate) : undefined,
       estimatedTime,
       duration,
+      recurrence: recurrence || "none",
+      weeklyDays: normalizeWeeklyDays(weeklyDays),
+      occurrenceDates: normalizeOccurrenceDates(occurrenceDates),
+      isTodayCommitment: Boolean(isTodayCommitment),
+      lastRescheduledAt: lastRescheduledAt ? new Date(lastRescheduledAt) : null,
       tags: createTagLinks(normalizedTags, userId),
       userId,
       noteId: resolvedNoteIds[0] || null,
@@ -402,6 +450,11 @@ export const logReadingSession = async (taskId, userId, payload) => {
       });
     }
 
+    const nextOccurrenceDates =
+      task.recurrence && task.recurrence !== "none" && engaged
+        ? normalizeOccurrenceDates([...(task.occurrenceDates || []), toDateKey(new Date())])
+        : task.occurrenceDates || [];
+
     await tx.taskCompletionLog.create({
       data: {
         userId,
@@ -431,11 +484,25 @@ export const logReadingSession = async (taskId, userId, payload) => {
     });
 
     const updateData = {
-      status: engaged ? "done" : "in_progress",
-      completedAt: engaged ? new Date() : task.completedAt,
+      status:
+        task.recurrence && task.recurrence !== "none"
+          ? "in_progress"
+          : engaged
+            ? "done"
+            : "in_progress",
+      completedAt:
+        task.recurrence && task.recurrence !== "none"
+          ? null
+          : engaged
+            ? new Date()
+            : task.completedAt,
+      occurrenceDates: nextOccurrenceDates,
       activities: {
         create: {
-          action: engaged
+          action:
+            task.recurrence && task.recurrence !== "none" && engaged
+              ? `recurring reading occurrence logged (${activeDurationMinutes}m)`
+              : engaged
             ? `completed via active reading (${activeDurationMinutes}m)`
             : `reading session logged (${activeDurationMinutes}m partial)`,
         },
@@ -471,6 +538,11 @@ export const updateTask = async (taskId, userId, data) => {
     startDate,
     duration,
     estimatedTime,
+    recurrence,
+    weeklyDays,
+    occurrenceDates,
+    isTodayCommitment,
+    lastRescheduledAt,
     tags,
     noteId,
     noteIds,
@@ -513,6 +585,15 @@ export const updateTask = async (taskId, userId, data) => {
       startDate: startDate ? new Date(startDate) : startDate,
       duration,
       estimatedTime,
+      recurrence,
+      weeklyDays: weeklyDays ? normalizeWeeklyDays(weeklyDays) : undefined,
+      occurrenceDates: occurrenceDates
+        ? normalizeOccurrenceDates(occurrenceDates)
+        : undefined,
+      isTodayCommitment,
+      lastRescheduledAt: lastRescheduledAt
+        ? new Date(lastRescheduledAt)
+        : lastRescheduledAt,
       tags: tags ? syncTags(ensureRequiredTags(normalizedTags, title), userId) : undefined,
       noteId: shouldSyncNotes ? resolvedNoteIds[0] || null : undefined,
       notes: shouldSyncNotes ? syncTaskNoteLinks(resolvedNoteIds) : undefined,
