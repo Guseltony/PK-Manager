@@ -17,7 +17,6 @@ import {
   deriveTaskReadiness,
   getTaskScheduleSnapshot,
   readTaskExecutionMetaMap,
-  readTaskScheduleMetaMap,
   subscribeTaskMetaChange,
   writeTaskExecutionMetaMap,
 } from "./taskIntelligence";
@@ -66,14 +65,13 @@ export default function TaskListView({
     [bulkDreamId, projects],
   );
   const executionMetaMap = useMemo(() => readTaskExecutionMetaMap(), [metaVersion]);
-  const scheduleMetaMap = useMemo(() => readTaskScheduleMetaMap(), [metaVersion]);
 
   const groupedTasks = useMemo(() => {
     const groups = new Map<string, typeof tasks>();
 
     tasks.forEach((task) => {
       const readiness = deriveTaskReadiness(task, tasks, executionMetaMap[task.id]);
-      const schedule = getTaskScheduleSnapshot(task, scheduleMetaMap[task.id]);
+      const schedule = getTaskScheduleSnapshot(task);
       let groupLabel = "Execution Queue";
 
       if (groupBy === "dream") {
@@ -110,7 +108,7 @@ export default function TaskListView({
     });
 
     return Array.from(groups.entries());
-  }, [executionMetaMap, groupBy, scheduleMetaMap, tasks]);
+  }, [executionMetaMap, groupBy, tasks]);
 
   const toggleTaskSelection = (taskId: string) => {
     setSelectedBulkIds((current) =>

@@ -26,7 +26,6 @@ import {
   getTaskScheduleSnapshot,
   getTodayFocusMinutesForTasks,
   readTaskExecutionMetaMap,
-  readTaskScheduleMetaMap,
   subscribeTaskMetaChange,
 } from "./taskIntelligence";
 
@@ -71,20 +70,19 @@ export default function TasksPageContent() {
   }, [searchParams, setSelectedTaskId]);
 
   const executionMetaMap = useMemo(() => readTaskExecutionMetaMap(), [metaVersion]);
-  const scheduleMetaMap = useMemo(() => readTaskScheduleMetaMap(), [metaVersion]);
   const blockedCount = allTasks.filter((task) =>
     deriveTaskReadiness(task, allTasks, executionMetaMap[task.id]).executionState ===
     "blocked",
   ).length;
   const inProgressCount = allTasks.filter((task) => task.status === "in_progress").length;
   const dueTodayCount = allTasks.filter(
-    (task) => getTaskScheduleSnapshot(task, scheduleMetaMap[task.id]).bucket === "today",
+    (task) => getTaskScheduleSnapshot(task).bucket === "today",
   ).length;
   const carryoverCount = allTasks.filter(
-    (task) => getTaskScheduleSnapshot(task, scheduleMetaMap[task.id]).bucket === "carryover",
+    (task) => getTaskScheduleSnapshot(task).bucket === "carryover",
   ).length;
   const overdueCount = allTasks.filter(
-    (task) => getTaskScheduleSnapshot(task, scheduleMetaMap[task.id]).bucket === "overdue",
+    (task) => getTaskScheduleSnapshot(task).bucket === "overdue",
   ).length;
   const completedTodayCount = logs.filter((log) => {
     if (!log.taskId) return false;

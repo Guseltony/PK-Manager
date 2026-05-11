@@ -159,11 +159,11 @@ export function buildDefaultTaskScheduleMeta(task: Task): TaskScheduleMeta {
   return {
     taskId: task.id,
     scheduledDate: task.startDate ? toDateKey(task.startDate) : null,
-    recurrence: "none",
-    weeklyDays: [],
-    occurrenceDates: [],
-    isTodayCommitment: false,
-    lastRescheduledAt: null,
+    recurrence: task.recurrence || "none",
+    weeklyDays: task.weeklyDays || [],
+    occurrenceDates: task.occurrenceDates || [],
+    isTodayCommitment: task.isTodayCommitment || false,
+    lastRescheduledAt: task.lastRescheduledAt || null,
     updatedAt: new Date().toISOString(),
   };
 }
@@ -517,7 +517,10 @@ export function getTaskScheduleSnapshot(
   meta?: TaskScheduleMeta | null,
   today = toDateKey(new Date()),
 ): TaskScheduleSnapshot {
-  const mergedMeta = meta || buildDefaultTaskScheduleMeta(task);
+  const mergedMeta = {
+    ...buildDefaultTaskScheduleMeta(task),
+    ...(meta || {}),
+  };
   const scheduledDate = mergedMeta.scheduledDate || (task.startDate ? toDateKey(task.startDate) : null);
   const dueDate = task.dueDate ? toDateKey(task.dueDate) : null;
   const durationDays = Math.max(task.duration || 1, 1);

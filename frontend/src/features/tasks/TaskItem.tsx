@@ -17,9 +17,7 @@ import { useTasks } from "../../hooks/useTasks";
 import {
   deriveTaskReadiness,
   getTaskScheduleSnapshot,
-  recordTaskOccurrence,
   readTaskExecutionMetaMap,
-  readTaskScheduleMetaMap,
 } from "./taskIntelligence";
 
 interface TaskItemProps {
@@ -50,18 +48,22 @@ export default function TaskItem({
     allTasks,
     readTaskExecutionMetaMap()[task.id],
   );
-  const schedule = getTaskScheduleSnapshot(
-    task,
-    readTaskScheduleMetaMap()[task.id],
-  );
+  const schedule = getTaskScheduleSnapshot(task);
 
   const handleToggleStatus = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (schedule.recurrence !== "none") {
-      recordTaskOccurrence(task.id);
       updateTask({
         id: task.id,
-        updates: { status: task.status === "todo" ? "in_progress" : task.status },
+        updates: {
+          status: task.status === "todo" ? "in_progress" : task.status,
+          occurrenceDates: Array.from(
+            new Set([
+              ...(task.occurrenceDates || []),
+              new Date().toISOString().slice(0, 10),
+            ]),
+          ).sort(),
+        },
       });
       return;
     }

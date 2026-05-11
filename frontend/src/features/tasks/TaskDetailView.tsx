@@ -61,11 +61,8 @@ import {
   formatWeeklyDays,
   getTaskScheduleSnapshot,
   getTaskMilestoneContext,
-  recordTaskOccurrence,
   readTaskExecutionMetaMap,
   readTaskFocusSessions,
-  readTaskScheduleMetaMap,
-  persistTaskScheduleMeta,
   toDateKey,
   writeTaskExecutionMetaMap,
   writeTaskFocusSessions,
@@ -158,7 +155,7 @@ export default function TaskDetailView({
   };
 
   const isRecurringTask =
-    scheduleMeta?.recurrence !== undefined && scheduleMeta.recurrence !== "none";
+    (scheduleMeta?.recurrence || task?.recurrence || "none") !== "none";
   const isCompleted = task?.status === "done" && !isRecurringTask;
 
   useEffect(() => {
@@ -170,15 +167,12 @@ export default function TaskDetailView({
   useEffect(() => {
     if (!task) return;
     const metaMap = readTaskExecutionMetaMap();
-    const scheduleMap = readTaskScheduleMetaMap();
     const linkedNoteCount = new Set([
       ...(task.noteId ? [task.noteId] : []),
       ...(task.notes?.map(({ note }) => note.id) || []),
     ]).size;
     setExecutionMeta(metaMap[task.id] || buildDefaultTaskExecutionMeta(task, linkedNoteCount));
-    setScheduleMeta(
-      scheduleMap[task.id] || buildDefaultTaskScheduleMeta(task),
-    );
+    setScheduleMeta(buildDefaultTaskScheduleMeta(task));
     setFocusSessions(
       readTaskFocusSessions().filter((session) => session.taskId === task.id),
     );
@@ -427,7 +421,6 @@ export default function TaskDetailView({
   };
 
   const persistSchedule = (next: TaskScheduleMeta) => {
-    persistTaskScheduleMeta(next);
     setScheduleMeta(next);
   };
 
@@ -544,18 +537,22 @@ export default function TaskDetailView({
     if (!task) return;
 
     if (schedule.recurrence !== "none" && session.status === "completed") {
-      recordTaskOccurrence(task.id);
+      const nextOccurrenceDates = Array.from(
+        new Set([...(scheduleMeta?.occurrenceDates || task.occurrenceDates || []), toDateKey(new Date())]),
+      ).sort();
       setScheduleMeta((current) =>
         current
           ? {
               ...current,
-              occurrenceDates: Array.from(
-                new Set([...(current.occurrenceDates || []), toDateKey(new Date())]),
-              ).sort(),
+              occurrenceDates: nextOccurrenceDates,
               updatedAt: new Date().toISOString(),
             }
           : current,
       );
+      await updateTaskAsync({
+        id: task.id,
+        updates: { occurrenceDates: nextOccurrenceDates },
+      });
     }
 
     const shouldComplete =
@@ -592,7 +589,10 @@ export default function TaskDetailView({
     persistSchedule(next);
     await updateTaskAsync({
       id: task.id,
-      updates: { startDate: normalized || null },
+      updates: {
+        startDate: normalized || null,
+        lastRescheduledAt: new Date().toISOString(),
+      },
     });
   };
 
@@ -602,7 +602,7 @@ export default function TaskDetailView({
     const defaultWeeklyDay = schedule.scheduledDate
       ? new Date(`${schedule.scheduledDate}T00:00:00`).getDay()
       : dayjs().day();
-    persistSchedule({
+    const nextMeta = {
       ...(scheduleMeta || buildDefaultTaskScheduleMeta(task)),
       recurrence: nextRecurrence,
       weeklyDays:
@@ -614,37 +614,54 @@ export default function TaskDetailView({
       occurrenceDates:
         nextRecurrence === "none" ? [] : scheduleMeta?.occurrenceDates || [],
       updatedAt: new Date().toISOString(),
-    });
+    };
+    persistSchedule(nextMeta);
 
-    if (nextRecurrence !== "none" && task.status === "done") {
-      await updateTaskAsync({
-        id: task.id,
-        updates: { status: "todo" },
-      });
-    }
+    await updateTaskAsync({
+      id: task.id,
+      updates: {
+        recurrence: nextMeta.recurrence,
+        weeklyDays: nextMeta.weeklyDays || [],
+        occurrenceDates: nextMeta.occurrenceDates || [],
+        status: nextRecurrence !== "none" && task.status === "done" ? "todo" : task.status,
+      },
+    });
   };
 
-  const handleWeeklyDayToggle = (weekday: number) => {
+  const handleWeeklyDayToggle = async (weekday: number) => {
     if (!task || isCompleted) return;
     const currentDays = scheduleMeta?.weeklyDays || [];
     const nextDays = currentDays.includes(weekday)
       ? currentDays.filter((day) => day !== weekday)
       : [...currentDays, weekday].sort((left, right) => left - right);
 
-    persistSchedule({
+    const nextMeta: TaskScheduleMeta = {
       ...(scheduleMeta || buildDefaultTaskScheduleMeta(task)),
       recurrence: "weekly",
       weeklyDays: nextDays,
       updatedAt: new Date().toISOString(),
+    };
+    persistSchedule(nextMeta);
+    await updateTaskAsync({
+      id: task.id,
+      updates: {
+        recurrence: "weekly",
+        weeklyDays: nextDays,
+      },
     });
   };
 
-  const handleTodayCommitmentToggle = () => {
+  const handleTodayCommitmentToggle = async () => {
     if (!task || isCompleted) return;
+    const nextValue = !(scheduleMeta?.isTodayCommitment || false);
     persistSchedule({
       ...(scheduleMeta || buildDefaultTaskScheduleMeta(task)),
-      isTodayCommitment: !(scheduleMeta?.isTodayCommitment || false),
+      isTodayCommitment: nextValue,
       updatedAt: new Date().toISOString(),
+    });
+    await updateTaskAsync({
+      id: task.id,
+      updates: { isTodayCommitment: nextValue },
     });
   };
 
@@ -660,32 +677,37 @@ export default function TaskDetailView({
     });
     await updateTaskAsync({
       id: task.id,
-      updates: { startDate: nextDate },
+      updates: {
+        startDate: nextDate,
+        isTodayCommitment: false,
+        lastRescheduledAt: new Date().toISOString(),
+      },
     });
   };
 
   const handleRecurringOccurrenceRecord = async () => {
     if (!task || isCompleted) return;
     if (schedule.todayOccurrenceCompleted) return;
-    recordTaskOccurrence(task.id);
+    const nextOccurrenceDates = Array.from(
+      new Set([...(scheduleMeta?.occurrenceDates || task.occurrenceDates || []), toDateKey(new Date())]),
+    ).sort();
     setScheduleMeta((current) =>
       current
         ? {
             ...current,
-            occurrenceDates: Array.from(
-              new Set([...(current.occurrenceDates || []), toDateKey(new Date())]),
-            ).sort(),
+            occurrenceDates: nextOccurrenceDates,
             updatedAt: new Date().toISOString(),
           }
         : current,
     );
 
-    if (task.status === "todo") {
-      await updateTaskAsync({
-        id: task.id,
-        updates: { status: "in_progress" },
-      });
-    }
+    await updateTaskAsync({
+      id: task.id,
+      updates: {
+        occurrenceDates: nextOccurrenceDates,
+        status: task.status === "todo" ? "in_progress" : task.status,
+      },
+    });
   };
 
   if (isLoading)
@@ -2090,18 +2112,22 @@ export default function TaskDetailView({
             payload.activeDurationMinutes >=
               (payload.requiredMinutes || executionMeta?.focusMinutesTarget || readiness.focusMinutesTarget)
           ) {
-            recordTaskOccurrence(task.id);
+            const nextOccurrenceDates = Array.from(
+              new Set([...(scheduleMeta?.occurrenceDates || task.occurrenceDates || []), toDateKey(new Date())]),
+            ).sort();
             setScheduleMeta((current) =>
               current
                 ? {
                     ...current,
-                    occurrenceDates: Array.from(
-                      new Set([...(current.occurrenceDates || []), toDateKey(new Date())]),
-                    ).sort(),
+                    occurrenceDates: nextOccurrenceDates,
                     updatedAt: new Date().toISOString(),
                   }
                 : current,
             );
+            await updateTaskAsync({
+              id: task.id,
+              updates: { occurrenceDates: nextOccurrenceDates },
+            });
           }
           const updatedTask = await logReadingSessionAsync({ taskId: task.id, payload });
           await maybeAdvanceMilestone(updatedTask);
