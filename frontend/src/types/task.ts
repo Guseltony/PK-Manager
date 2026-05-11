@@ -99,6 +99,11 @@ export interface Task {
   completedAt: string | null;
   startDate: string | null;
   duration: number | null;
+  recurrence?: TaskRecurrence;
+  weeklyDays?: number[];
+  occurrenceDates?: string[];
+  isTodayCommitment?: boolean;
+  lastRescheduledAt?: string | null;
   createdAt: string;
   updatedAt: string;
   subtasks?: Subtask[];

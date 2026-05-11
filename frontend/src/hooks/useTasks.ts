@@ -5,7 +5,6 @@ import { useTasksStore } from "../store/tasksStore";
 import { useEffect, useMemo, useState } from "react";
 import {
   filterTasksBySchedule,
-  readTaskScheduleMetaMap,
   subscribeTaskMetaChange,
 } from "../features/tasks/taskIntelligence";
 
@@ -76,7 +75,7 @@ export function useTasks(activeFilter = "all") {
 
   const tasks = useMemo(() => {
     const base = fetchedTasks || [];
-    return filterTasksBySchedule(base, activeFilter, readTaskScheduleMetaMap());
+    return filterTasksBySchedule(base, activeFilter, {});
   }, [activeFilter, fetchedTasks, scheduleVersion]);
 
   // Sync with Zustand (optional, but keep it for consistency)
