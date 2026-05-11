@@ -1,10 +1,50 @@
-"use client";
+﻿"use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import NavLinks from "./navLinks";
-import { FiMenu, FiX } from "react-icons/fi";
+import { FiMenu, FiX, FiDownload } from "react-icons/fi";
 import { useUIStore } from "../store/uiStore";
 import Image from "next/image";
+
+
+function MobileApkDownload() {
+  const [hidden, setHidden] = useState(true);
+
+  useEffect(() => {
+    try {
+      const already = window.localStorage.getItem("apk-downloaded") === "1";
+      setHidden(already);
+    } catch {
+      setHidden(false);
+    }
+  }, []);
+
+  if (hidden) return null;
+
+  return (
+    <a
+      href="/downloads/pkm.apk"
+      onClick={() => {
+        try {
+          window.localStorage.setItem("apk-downloaded", "1");
+        } catch {}
+      }}
+      className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10"
+    >
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+          Download App (APK)
+        </p>
+        <p className="mt-1 text-xs leading-5 text-text-muted">
+          Android install package for mobile and tablets.
+        </p>
+      </div>
+      <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-black/20 text-text-main">
+        <FiDownload size={16} />
+      </span>
+    </a>
+  );
+}
 
 // ============================================================
 // Mobile sidebar trigger button
@@ -79,7 +119,7 @@ export function MobileSidebarDrawer() {
           <div className="mb-6 px-4">
             <p className="text-[10px] font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">Workspace Menu</p>
             <NavLinks onLinkClick={() => setOpen(false)} />
-          </div>
+          \n            <MobileApkDownload />\n</div>
         </div>
       </div>
     </>
@@ -87,7 +127,7 @@ export function MobileSidebarDrawer() {
 }
 
 // ============================================================
-// Desktop sidebar — hidden on mobile
+// Desktop sidebar â€” hidden on mobile
 // ============================================================
 const SideBar = () => {
   return (
@@ -116,3 +156,7 @@ const SideBar = () => {
 };
 
 export default SideBar;
+
+
+
+

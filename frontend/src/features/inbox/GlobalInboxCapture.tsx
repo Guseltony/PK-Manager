@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
@@ -23,9 +23,9 @@ export default function GlobalInboxCapture() {
         type="button"
         onClick={() => setIsOpen(true)}
         aria-label="Open universal capture"
-        className="fixed bottom-5 right-4 z-[110] inline-flex items-center gap-3 rounded-full border border-brand-primary/30 bg-brand-primary px-4 py-3 text-sm font-black uppercase tracking-[0.18em] text-black shadow-[0_18px_45px_rgba(99,102,241,0.35)] transition hover:scale-[1.02] sm:bottom-6 sm:right-6"
+        className="fixed bottom-20 right-4 z-[110] inline-flex items-center gap-2 rounded-2xl border border-brand-primary/30 bg-brand-primary px-3 py-2 text-[11px] font-black uppercase tracking-[0.16em] text-black shadow-[0_18px_45px_rgba(99,102,241,0.35)] transition hover:scale-[1.02] sm:bottom-6 sm:right-6 sm:gap-3 sm:rounded-full sm:px-4 sm:py-3 sm:text-sm sm:tracking-[0.18em]"
       >
-        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-black/10 text-base">
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-black/10 text-base sm:h-9 sm:w-9 sm:rounded-full">
           <FiPlus />
         </span>
         <span className="hidden sm:inline">Capture</span>
@@ -75,3 +75,4 @@ export default function GlobalInboxCapture() {
     </>
   );
 }
+
