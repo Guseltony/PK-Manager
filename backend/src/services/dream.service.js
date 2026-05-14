@@ -1,10 +1,11 @@
 import { prisma } from "../config/db.js";
 import { createTagLinks, syncTags, tagInclude } from "../utils/tagHelper.js";
+import { NotificationService } from "./notificationService.js";
 
 export const dreamCreation = async (data, userId) => {
   const { title, description, category, priority, targetDate } = data;
   
-  return await prisma.dream.create({
+  const dream = await prisma.dream.create({
     data: {
       title,
       description,
@@ -26,6 +27,16 @@ export const dreamCreation = async (data, userId) => {
       notes: true,
     },
   });
+
+  await NotificationService.sendNotification({
+    userId,
+    title: "New Dream Seeded! 🌱",
+    message: `Your dream "${dream.title}" has been added. Let's make it real.`,
+    type: "DREAM_UPDATE",
+    link: `/dreams/${dream.id}`,
+  });
+
+  return dream;
 };
 
 export const getUserDreams = async (userId) => {
@@ -133,6 +144,17 @@ export const toggleMilestone = async (milestoneId, dreamId, userId) => {
     where: { id: milestoneId },
     data: { completed: !milestone.completed }
   });
+
+  // Trigger Notification on Completion
+  if (updated.completed) {
+    await NotificationService.sendNotification({
+      userId,
+      title: "Milestone Reached! 🏆",
+      message: `You've completed "${updated.title}" in your dream: ${dream.title}.`,
+      type: "SUCCESS",
+      link: `/dreams/${dreamId}`,
+    });
+  }
 
   // Log activity
   await prisma.dreamActivity.create({
