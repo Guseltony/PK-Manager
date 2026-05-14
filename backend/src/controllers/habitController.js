@@ -1,4 +1,5 @@
 import { prisma } from '../libs/prisma.js';
+import { NotificationService } from '../services/notificationService.js';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc.js';
 import timezone from 'dayjs/plugin/timezone.js';
@@ -42,6 +43,14 @@ export const createHabit = async (req, res) => {
       }
     });
     // return with empty logs array for frontend consistency
+    await NotificationService.sendNotification({
+      userId: req.user.id,
+      title: "New Habit Started! ⚡",
+      message: `You've committed to "${habit.title}". Small steps lead to big changes!`,
+      type: "INFO",
+      link: "/habits",
+    });
+
     res.status(201).json({ ...habit, logs: [] });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -101,6 +110,16 @@ export const toggleHabitLog = async (req, res) => {
           date: logDate,
           completed
         }
+      });
+    }
+
+    if (completed) {
+      await NotificationService.sendNotification({
+        userId: req.user.id,
+        title: "Habit Logged! ✅",
+        message: `Great job! You've logged your habit for today. Keep going!`,
+        type: "SUCCESS",
+        link: "/habits",
       });
     }
 
