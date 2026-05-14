@@ -9,6 +9,10 @@ import { PushNotificationProvider } from "../components/providers/PushNotificati
 
 import { BACKEND_URL } from "../constants/constants";
 
+const PROXY_URL = process.env.NODE_ENV === "development" && typeof window !== "undefined" 
+  ? "/local-api" 
+  : BACKEND_URL;
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
@@ -41,7 +45,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
+        const response = await fetch(`${PROXY_URL}/auth/refresh`, {
           method: "POST",
           // credentials: "include" is important for the browser to send cookies to our API
           credentials: "include",

@@ -1,5 +1,9 @@
 import { BACKEND_URL } from "../constants/constants";
 
+const PROXY_URL = process.env.NODE_ENV === "development" && typeof window !== "undefined" 
+  ? "/local-api" 
+  : BACKEND_URL;
+
 type ApiOptions = RequestInit & {
   params?: Record<string, string | number | boolean | undefined>;
   _retry?: boolean;
@@ -8,7 +12,7 @@ type ApiOptions = RequestInit & {
 let refreshPromise: Promise<unknown> | null = null;
 
 const apiFetch = async (url: string, options: ApiOptions = {}) => {
-  let fullUrl = url.startsWith("http") ? url : (url.startsWith("/") ? `${BACKEND_URL}${url}` : `${BACKEND_URL}/${url}`);
+  let fullUrl = url.startsWith("http") ? url : (url.startsWith("/") ? `${PROXY_URL}${url}` : `${PROXY_URL}/${url}`);
 
   if (options.params) {
     const searchParams = new URLSearchParams();
@@ -50,7 +54,7 @@ const apiFetch = async (url: string, options: ApiOptions = {}) => {
     try {
       // Singleton refresh logic
       if (!refreshPromise) {
-        refreshPromise = fetch(`${BACKEND_URL}/auth/refresh`, {
+        refreshPromise = fetch(`${PROXY_URL}/auth/refresh`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",

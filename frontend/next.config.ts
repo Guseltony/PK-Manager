@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
   },
   // Custom headers are only supported when NOT using static export
   ...(isProd ? {} : {
+    async rewrites() {
+      return [
+        {
+          source: "/local-api/:path*",
+          destination: "http://localhost:5000/:path*",
+        },
+      ];
+    },
     async headers() {
       return [
         {
