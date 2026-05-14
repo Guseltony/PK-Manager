@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BACKEND_URL } from "@/src/constants/constants";
 import { setManualCsrfToken } from "@/src/libs/api";
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
@@ -47,9 +47,9 @@ export default function AuthCallbackPage() {
         }
 
         router.push("/dashboard");
-      } catch (err: any) {
+      } catch (err) {
         console.error("Auth exchange error:", err);
-        setError(err.message || "An error occurred during sign-in.");
+        setError(err instanceof Error ? err.message : "An error occurred during sign-in.");
       }
     };
 
@@ -80,5 +80,17 @@ export default function AuthCallbackPage() {
         <p className="text-lg font-medium text-text-main">Finalizing sign-in...</p>
       </div>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-surface-base">
+        <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-primary border-t-transparent" />
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
   );
 }
