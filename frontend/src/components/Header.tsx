@@ -14,11 +14,13 @@ const Header = ({ auth }: { auth: AuthResult }) => {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-white/5 bg-surface-base/80 px-4 md:px-6 backdrop-blur-md gap-4">
-      <div className="flex items-center gap-3 lg:hidden">
-        <MobileSidebarTrigger />
-        <span className="text-sm font-display font-bold text-text-main lg:hidden">
-          PKM <span className="text-brand-primary">Manager</span>
-        </span>
+      <div className="flex items-center gap-3">
+        <Link href="/dashboard" className="flex items-center gap-2">
+          <img src="/pkmlogo.png" alt="PKM" className="h-8 w-8 rounded-lg object-cover" />
+          <span className="text-sm font-display font-bold text-text-main hidden xs:block">
+            PKM <span className="text-brand-primary">Manager</span>
+          </span>
+        </Link>
       </div>
 
       {/* Spacer for desktop (sidebar takes the space) */}

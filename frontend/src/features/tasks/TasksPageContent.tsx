@@ -119,52 +119,87 @@ export default function TasksPageContent() {
             <span className="text-[9px] font-black uppercase tracking-widest text-amber-400">AI</span>
           </div>
         </div>
+  const completedTodayCount = logs.filter((log) => {
+    if (!log.taskId) return false;
+    return log.completedAt.slice(0, 10) === new Date().toISOString().slice(0, 10);
+  }).length;
+  const focusMinutesToday = getTodayFocusMinutesForTasks(allTasks);
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-surface-base relative">
+      {/* Top Filter Tabs - Ledger Style */}
+      <div className="w-full bg-surface-soft border-b border-white/5 px-4 sm:px-8 py-2 shrink-0 overflow-x-auto custom-scrollbar">
+        <div className="flex items-center gap-2 min-w-max">
+          <div className="flex bg-white/5 p-1 rounded-lg border border-white/5">
+            {filters.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setFilter(f.id)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[9px] font-bold transition-all ${
+                  filter === f.id
+                    ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
+                    : "text-text-muted hover:text-text-main hover:bg-white/5"
+                }`}
+              >
+                <f.icon className={filter === f.id ? "text-white" : f.color || ""} size={12} />
+                {f.label}
+              </button>
+            ))}
+          </div>
+          
+          <div className="h-5 w-px bg-white/10 mx-1" />
+          
+          <div className="flex items-center gap-1.5 bg-amber-400/10 px-2 py-1.5 rounded-lg border border-amber-400/20">
+            <FiZap className="text-amber-400" size={10} />
+            <span className="text-[9px] font-black uppercase tracking-widest text-amber-400">AI</span>
+          </div>
+        </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Main Engine: Execution Layer */}
         <div className={`flex-1 flex flex-col relative ${selectedTaskId ? "hidden lg:flex" : "flex"}`}>
           <div className="px-4 py-2 sm:px-8 sm:py-3 border-b border-white/5 space-y-2">
-            <div className="grid gap-2 grid-cols-3 xl:grid-cols-6">
+            <div className="grid gap-1.5 grid-cols-3 xl:grid-cols-6 sm:gap-2">
               <TaskOverviewCard
                 label="Today"
                 value={String(dueTodayCount)}
-                icon={<FiClock size={12} />}
+                icon={<FiClock size={10} className="sm:size-3" />}
               />
               <TaskOverviewCard
                 label="Carryover"
                 value={String(carryoverCount)}
-                icon={<FiCornerDownRight size={12} />}
+                icon={<FiCornerDownRight size={10} className="sm:size-3" />}
                 tone="warm"
               />
               <TaskOverviewCard
                 label="Overdue"
                 value={String(overdueCount)}
-                icon={<FiAlertCircle size={12} />}
+                icon={<FiAlertCircle size={10} className="sm:size-3" />}
                 tone="danger"
               />
               <TaskOverviewCard
                 label="In Motion"
                 value={String(inProgressCount)}
-                icon={<FiTrendingUp size={12} />}
+                icon={<FiTrendingUp size={10} className="sm:size-3" />}
                 tone="warm"
               />
               <TaskOverviewCard
                 label="Blocked"
                 value={String(blockedCount)}
-                icon={<FiTarget size={12} />}
+                icon={<FiTarget size={10} className="sm:size-3" />}
                 tone="danger"
               />
               <TaskOverviewCard
                 label="Focus"
                 value={`${focusMinutesToday}m`}
-                icon={<FiZap size={12} />}
+                icon={<FiZap size={10} className="sm:size-3" />}
                 tone="brand"
               />
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-0.5">
+            <div className="flex items-center justify-between gap-1 sm:gap-2">
+              <div className="flex items-center gap-0.5 sm:gap-1 rounded-xl border border-white/10 bg-white/5 p-0.5 overflow-x-auto custom-scrollbar max-w-[calc(100%-120px)] sm:max-w-none">
                 {[
                   { id: "smart", label: "Smart" },
                   { id: "dream", label: "Dream" },
@@ -177,7 +212,7 @@ export default function TasksPageContent() {
                     onClick={() =>
                       setGroupBy(option.id as "smart" | "dream" | "priority" | "execution")
                     }
-                    className={`rounded-lg px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.18em] transition ${
+                    className={`rounded-lg px-2 py-1 sm:px-2.5 text-[7px] sm:text-[8px] font-black uppercase tracking-[0.1em] sm:tracking-[0.18em] transition whitespace-nowrap ${
                       groupBy === option.id
                         ? "bg-brand-primary text-white"
                         : "text-text-muted hover:text-text-main"
@@ -187,9 +222,10 @@ export default function TasksPageContent() {
                   </button>
                 ))}
               </div>
-              <div className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-black/20 px-2.5 py-1 text-[8px] font-black uppercase tracking-[0.18em] text-text-main">
+              <div className="inline-flex items-center gap-1 sm:gap-1.5 rounded-xl border border-white/10 bg-black/20 px-2 sm:px-2.5 py-1 text-[7px] sm:text-[8px] font-black uppercase tracking-[0.1em] sm:tracking-[0.18em] text-text-main shrink-0">
                 <FiLayers size={10} className="text-brand-primary" />
-                Execution view
+                <span className="hidden xs:inline">Execution view</span>
+                <span className="xs:hidden">Exec</span>
               </div>
             </div>
             <TaskQuickAdd />
@@ -237,15 +273,15 @@ function TaskOverviewCard({
           : "border-white/10 bg-white/5 text-text-main";
 
   return (
-    <div className="rounded-2xl border border-white/5 bg-surface-soft/70 px-3 py-2">
-      <div className="flex items-center justify-between gap-2">
+    <div className="rounded-2xl border border-white/5 bg-surface-soft/70 px-2 py-1.5 sm:px-3 sm:py-2">
+      <div className="flex items-center justify-between gap-1.5 sm:gap-2">
         <div>
-          <p className="text-[8px] font-black uppercase tracking-[0.1em] text-text-muted whitespace-nowrap">
+          <p className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.1em] text-text-muted whitespace-nowrap">
             {label}
           </p>
-          <p className="text-base font-black text-white">{value}</p>
+          <p className="text-sm sm:text-base font-black text-white">{value}</p>
         </div>
-        <div className={`rounded-xl border px-1.5 py-1.5 ${toneClass}`}>{icon}</div>
+        <div className={`rounded-xl border p-1 sm:p-1.5 ${toneClass}`}>{icon}</div>
       </div>
     </div>
   );

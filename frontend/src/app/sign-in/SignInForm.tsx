@@ -73,7 +73,8 @@ export default function SignInForm() {
   };
 
   const handleGoogleAuth = () => {
-    window.location.href = `/api/auth/google/start?mode=${isLogin ? "login" : "signup"}`;
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    window.location.href = `${backendUrl}/auth/google?mode=${isLogin ? "login" : "signup"}`;
   };
 
   const onSubmit = (e: React.FormEvent) => {
