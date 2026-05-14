@@ -4,10 +4,10 @@ import { prisma } from "../libs/prisma.js";
 
 export const authMiddleware = async (req, res, next) => {
   try {
-    // console.log(`AUTH_DEBUG: [${req.method}] ${req.path}`);
-    // console.log("AUTH_DEBUG: Cookies keys:", Object.keys(req.cookies || {}));
-    // console.log("AUTH_DEBUG: AccessToken cookie:", !!req.cookies?.accessToken);
-    // console.log("AUTH_DEBUG: Auth Header:", !!req.headers.authorization);
+    console.log(`AUTH_DEBUG: [${req.method}] ${req.path}`);
+    console.log("AUTH_DEBUG: Cookies:", JSON.stringify(req.cookies || {}, null, 2));
+    console.log("AUTH_DEBUG: AccessToken cookie exists:", !!req.cookies?.accessToken);
+    console.log("AUTH_DEBUG: Auth Header exists:", !!req.headers.authorization);
 
     let token = req.headers.authorization?.startsWith("Bearer ") 
       ? req.headers.authorization.split(" ")[1] 

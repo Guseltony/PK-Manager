@@ -29,6 +29,7 @@ export const buildAuthCookies = async ({
 export const setAuthCookies = async (res, cookies) => {
   cookies.forEach(({ name, token, options }) => {
     if (!token) return;
+    console.log(`[SetAuthCookies] Setting ${name}: secure=${options.secure}, sameSite=${options.sameSite}, path=${options.path}`);
     res.cookie(name, token, options);
   });
 };

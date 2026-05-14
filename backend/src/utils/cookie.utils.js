@@ -1,11 +1,13 @@
 const isProd = process.env.NODE_ENV === "production";
-console.log(`[CookieUtils] Environment: ${process.env.NODE_ENV}, isProd: ${isProd}`);
+// Force local mode if not production to avoid any secure cookie issues on http://localhost
+const isLocal = !isProd;
+console.log(`[CookieUtils] Environment: ${process.env.NODE_ENV}, isProd: ${isProd}, isLocal: ${isLocal}`);
 
 export const getRefreshTokenCookieOptions = () => {
   const options = {
     httpOnly: true,
-    secure: isProd, // Only secure in production
-    sameSite: isProd ? "none" : "lax", // "none" is required for cross-site (Vercel -> Render)
+    secure: true, // Chrome allows Secure cookies on localhost HTTP
+    sameSite: "none", // Required for cross-origin fetch (3000 -> 5000)
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/",
   };
@@ -16,8 +18,8 @@ export const getRefreshTokenCookieOptions = () => {
 export const getAccessTokenCookieOptions = () => {
   const options = {
     httpOnly: true,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    secure: true,
+    sameSite: "none",
     maxAge: 15 * 60 * 1000,
     path: "/",
   };
@@ -28,8 +30,8 @@ export const getAccessTokenCookieOptions = () => {
 export const getCsrfTokenCookieOptions = () => {
   const options = {
     httpOnly: false,
-    secure: isProd,
-    sameSite: isProd ? "none" : "lax",
+    secure: true,
+    sameSite: "none",
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/",
   };

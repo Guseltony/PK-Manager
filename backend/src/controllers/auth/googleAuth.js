@@ -25,21 +25,21 @@ export const googleAuth = async (req, res) => {
 
   res.cookie("mode", mode, {
     httpOnly: true,
-    sameSite: isProd ? "none" : "lax",
-    secure: isProd,
+    sameSite: "none",
+    secure: true,
   });
 
   // 3️⃣ Store securely (cookies)
   res.cookie("oauth_state", state, {
     httpOnly: true,
-    sameSite: isProd ? "none" : "lax",
-    secure: isProd,
+    sameSite: "none",
+    secure: true,
   });
 
   res.cookie("pkce_verifier", codeVerifier, {
     httpOnly: true,
-    sameSite: isProd ? "none" : "lax",
-    secure: isProd,
+    sameSite: "none",
+    secure: true,
   });
 
   // 4️⃣ Build Google redirect

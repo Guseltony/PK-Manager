@@ -43,7 +43,7 @@ export default function TaskQuickAdd() {
   };
 
   return (
-    <div className="space-y-2 bg-surface-base sticky top-0 z-10 border-b border-white/5">
+    <div className="space-y-2 bg-surface-base sm:sticky sm:top-0 z-10 border-b border-white/5">
       <form onSubmit={handleSubmit} className="relative group max-w-4xl mx-auto flex flex-col sm:block gap-3">
         <div className="relative w-full">
           <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
