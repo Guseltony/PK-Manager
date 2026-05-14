@@ -1,25 +1,26 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import NavLinks from "./navLinks";
 import { FiMenu, FiX, FiDownload } from "react-icons/fi";
 import { useUIStore } from "../store/uiStore";
 import Image from "next/image";
 
 
+// Helper to subscribe to storage events
+function subscribe(callback: () => void) {
+  window.addEventListener("storage", callback);
+  return () => window.removeEventListener("storage", callback);
+}
+
 function MobileApkDownload() {
-  const [hidden, setHidden] = useState(true);
+  const isDownloaded = useSyncExternalStore(
+    subscribe,
+    () => window.localStorage.getItem("apk-downloaded") === "1",
+    () => true // Initial value for server-side rendering
+  );
 
-  useEffect(() => {
-    try {
-      const already = window.localStorage.getItem("apk-downloaded") === "1";
-      setHidden(already);
-    } catch {
-      setHidden(false);
-    }
-  }, []);
-
-  if (hidden) return null;
+  if (isDownloaded) return null;
 
   return (
     <a
@@ -119,7 +120,8 @@ export function MobileSidebarDrawer() {
           <div className="mb-6 px-4">
             <p className="text-[10px] font-bold text-brand-primary uppercase tracking-[0.2em] mb-4">Workspace Menu</p>
             <NavLinks onLinkClick={() => setOpen(false)} />
-          \n            <MobileApkDownload />\n</div>
+            <MobileApkDownload />
+          </div>
         </div>
       </div>
     </>

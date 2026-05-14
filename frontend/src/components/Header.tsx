@@ -1,13 +1,13 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { IoMdSettings } from "react-icons/io";
 import { FaRegUser } from "react-icons/fa";
-import { IoIosNotifications } from "react-icons/io";
 import SignOut from "../utils/SignOut";
 import { AuthResult } from "../libs/auth";
 import { MobileSidebarTrigger } from "./SideBar";
 import PwaInstallIcon from "./PwaInstallIcon";
+import NotificationDropdown from "./NotificationDropdown";
 
 const Header = ({ auth }: { auth: AuthResult }) => {
   const { authenticated, user } = auth;
@@ -28,9 +28,8 @@ const Header = ({ auth }: { auth: AuthResult }) => {
       <div className="flex items-center gap-3 md:gap-4 ml-auto">
         {/* Actions */}
         <div className="flex items-center gap-1">
-          <button className="flex h-9 w-9 items-center justify-center rounded-lg text-text-muted hover:bg-surface-soft hover:text-text-main transition-all">
-            <IoIosNotifications size={20} />
-          </button>\r\n          <PwaInstallIcon />
+          <NotificationDropdown />
+          <PwaInstallIcon />
           <button className="hidden sm:flex h-9 w-9 items-center justify-center rounded-lg text-text-muted hover:bg-surface-soft hover:text-text-main transition-all">
             <IoMdSettings size={20} />
           </button>
@@ -61,5 +60,3 @@ const Header = ({ auth }: { auth: AuthResult }) => {
 };
 
 export default Header;
-
-
