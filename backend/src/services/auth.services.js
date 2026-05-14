@@ -122,17 +122,22 @@ const googleOAuthSignIn = async (
 
   try {
     // / 2️⃣ Exchange code for tokens
+    const body = {
+      client_id: process.env.GOOGLE_CLIENT_ID,
+      client_secret: process.env.GOOGLE_CLIENT_SECRET,
+      code: code,
+      grant_type: "authorization_code",
+      redirect_uri: redirectUri,
+    };
+
+    if (codeVerifier) {
+      body.code_verifier = codeVerifier;
+    }
+
     const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        client_id: process.env.GOOGLE_CLIENT_ID,
-        client_secret: process.env.GOOGLE_CLIENT_SECRET,
-        code: code,
-        code_verifier: codeVerifier,
-        grant_type: "authorization_code",
-        redirect_uri: redirectUri,
-      }),
+      body: new URLSearchParams(body),
     });
     
     if (!tokenRes) {
@@ -144,11 +149,12 @@ const googleOAuthSignIn = async (
     }
 
     const tokens = await tokenRes.json();
-
-    console.log("response from google:", tokens);
+    console.log("[GoogleAuth] Status:", tokenRes.status);
+    console.log("[GoogleAuth] Response:", JSON.stringify(tokens, null, 2));
 
     if (!tokens.id_token) {
-      throw new Error("No id_token returned");
+      console.error("[GoogleAuth] No id_token in response. Error:", tokens.error, tokens.error_description);
+      throw new Error(`Google Auth Failed: ${tokens.error_description || tokens.error || "No id_token returned"}`);
     }
 
     // 3️⃣ Verify ID token
