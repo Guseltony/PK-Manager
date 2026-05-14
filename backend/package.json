@@ -4,7 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server": "nodemon src/server.js",
+    "server": "node src/server.js",
+    "dev": "nodemon src/server.js",
     "db:migrate": "npx prisma migrate dev --name",
     "db:generate": "npx prisma generate",
     "postinstall": "npx prisma generate",
