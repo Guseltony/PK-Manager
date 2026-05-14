@@ -1,5 +1,6 @@
 import { prisma } from "../libs/prisma.js";
 import { createTagLinks, syncTags, tagInclude } from "../utils/tagHelper.js";
+import { NotificationService } from "./notificationService.js";
 
 const normalizeTags = (tags = []) =>
   tags
@@ -24,7 +25,7 @@ export const createIdea = async (data, userId) => {
   const { title, description, content, tags } = data;
   const normalizedTags = normalizeTags(tags);
   
-  return await prisma.idea.create({
+  const idea = await prisma.idea.create({
     data: {
       title: title || "Untitled Idea",
       description: description || null,
@@ -37,6 +38,16 @@ export const createIdea = async (data, userId) => {
       links: true
     }
   });
+
+  await NotificationService.sendNotification({
+    userId,
+    title: "Insight Captured! 💡",
+    message: `New idea: "${idea.title}" saved. Don't let it fade away!`,
+    type: "IDEA_INSIGHT",
+    link: `/ideas/${idea.id}`,
+  });
+
+  return idea;
 };
 
 export const getUserIdeas = async (userId) => {
@@ -132,6 +143,14 @@ export const convertIdeaToEntity = async (ideaId, userId, targetType) => {
     data: { status: "converted" }
   });
 
+  await NotificationService.sendNotification({
+    userId,
+    title: "Idea Manifested! ✨",
+    message: `Your idea "${idea.title}" has been successfully converted into a ${targetType}.`,
+    type: "SUCCESS",
+    link: `/${targetType}s/${createdEntity.id}`,
+  });
+
   return { entity: createdEntity, type: targetType };
 };
 
@@ -210,6 +229,14 @@ export const mergeIdeas = async (primaryIdeaId, secondaryIdeaId, userId) => {
       where: { id: secondaryIdeaId, userId },
     }),
   ]);
+
+  await NotificationService.sendNotification({
+    userId,
+    title: "Ideas Merged! 🤝",
+    message: `Combining forces! Your ideas have been merged into "${primary.title}".`,
+    type: "INFO",
+    link: `/ideas/${primaryIdeaId}`,
+  });
 
   return prisma.idea.findFirst({
     where: { id: primaryIdeaId, userId },

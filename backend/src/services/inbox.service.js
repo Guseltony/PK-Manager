@@ -3,6 +3,7 @@ import { createTagLinks } from "../utils/tagHelper.js";
 import { groqJsonCompletion } from "./groq.service.js";
 import { loadPrompt } from "../utils/promptLoader.js";
 import { inboxRoutingResponseSchema } from "../validators/ai.schema.js";
+import { NotificationService } from "./notificationService.js";
 
 const normalizeTagNames = (tags = []) =>
   Array.from(
@@ -563,6 +564,14 @@ const processInboxRecord = async (userId, inboxItem) => {
     },
   });
 
+  await NotificationService.sendNotification({
+    userId,
+    title: `Inbox Item Routed: ${mergedClassification.type.toUpperCase()} 📥`,
+    message: `Captured "${mergedClassification.title}" and routed it to your ${mergedClassification.type}.`,
+    type: "INFO",
+    link: `/${mergedClassification.type}${mergedClassification.type === 'journal' ? '' : 's'}/${routedEntity.id}`,
+  });
+
   return {
     ...updated,
     routedEntity,
@@ -678,7 +687,7 @@ export const rerouteInboxItem = async (userId, inboxItemId, targetType) => {
     sourceInboxId: item.id,
   });
 
-  return prisma.inboxItem.update({
+  const updated = await prisma.inboxItem.update({
     where: { id: item.id },
     data: {
       type: targetType.toUpperCase(),
@@ -698,6 +707,16 @@ export const rerouteInboxItem = async (userId, inboxItemId, targetType) => {
       ],
     },
   });
+
+  await NotificationService.sendNotification({
+    userId,
+    title: "Item Rerouted 🔄",
+    message: `Your inbox item was successfully moved to ${targetType}.`,
+    type: "INFO",
+    link: `/${targetType}${targetType === 'journal' ? '' : 's'}/${routedEntity.id}`,
+  });
+
+  return updated;
 };
 
 export const deleteInboxItem = async (userId, inboxItemId) => {
