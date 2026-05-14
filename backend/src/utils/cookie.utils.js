@@ -6,8 +6,8 @@ console.log(`[CookieUtils] Environment: ${process.env.NODE_ENV}, isProd: ${isPro
 export const getRefreshTokenCookieOptions = () => {
   const options = {
     httpOnly: true,
-    secure: true, // Chrome allows Secure cookies on localhost HTTP
-    sameSite: "none", // Required for cross-origin fetch (3000 -> 5000)
+    secure: !isLocal, // false for localhost
+    sameSite: isLocal ? "lax" : "none", 
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/",
   };
@@ -18,8 +18,8 @@ export const getRefreshTokenCookieOptions = () => {
 export const getAccessTokenCookieOptions = () => {
   const options = {
     httpOnly: true,
-    secure: true,
-    sameSite: "none",
+    secure: !isLocal,
+    sameSite: isLocal ? "lax" : "none",
     maxAge: 15 * 60 * 1000,
     path: "/",
   };
@@ -30,8 +30,8 @@ export const getAccessTokenCookieOptions = () => {
 export const getCsrfTokenCookieOptions = () => {
   const options = {
     httpOnly: false,
-    secure: true,
-    sameSite: "none",
+    secure: !isLocal,
+    sameSite: isLocal ? "lax" : "none",
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/",
   };

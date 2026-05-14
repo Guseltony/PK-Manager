@@ -21,26 +21,19 @@ export const googleAuth = async (req, res) => {
 
   console.log("gauthMode:", mode);
 
-  const isProd = process.env.NODE_ENV === "production" || !!process.env.RENDER || !!process.env.VERCEL;
-
-  res.cookie("mode", mode, {
+  const isLocal = process.env.NODE_ENV !== "production";
+  const cookieOptions = {
     httpOnly: true,
-    sameSite: "none",
-    secure: true,
-  });
+    secure: !isLocal,
+    sameSite: isLocal ? "lax" : "none",
+  };
+
+  res.cookie("mode", mode, cookieOptions);
 
   // 3️⃣ Store securely (cookies)
-  res.cookie("oauth_state", state, {
-    httpOnly: true,
-    sameSite: "none",
-    secure: true,
-  });
+  res.cookie("oauth_state", state, cookieOptions);
 
-  res.cookie("pkce_verifier", codeVerifier, {
-    httpOnly: true,
-    sameSite: "none",
-    secure: true,
-  });
+  res.cookie("pkce_verifier", codeVerifier, cookieOptions);
 
   // 4️⃣ Build Google redirect
   const params = email
