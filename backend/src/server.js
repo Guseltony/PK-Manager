@@ -3,6 +3,8 @@ import helmet from "helmet";
 import compression from "compression";
 import morgan from "morgan";
 import { rateLimit } from "express-rate-limit";
+import { createServer } from "http";
+import { initSocket } from "./libs/socket.js";
 
 import "dotenv/config";
 import { connectDB, disconnectDB } from "./config/db.js";
@@ -33,6 +35,8 @@ import habitRoutes from "./routes/habitRoutes.js";
 import constitutionRoutes from "./routes/constitutionRoutes.js";
 import chaosRoutes from "./routes/chaosRoutes.js";
 import scorecardRoutes from "./routes/scorecardRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
+import { initCronJobs } from "./libs/cron.js";
 
 // connect to the database
 connectDB();
@@ -42,6 +46,10 @@ startLedgerCron();
 
 // setup our app
 const app = express();
+const httpServer = createServer(app);
+
+// Initialize Socket.io
+initSocket(httpServer);
 
 // 1. Security Headers
 app.use(helmet());
@@ -74,6 +82,8 @@ app.use(
       "http://localhost:3000",
       "http://localhost:5000",
       "https://pkmanager.vercel.app",
+      "capacitor://localhost",
+      "http://localhost",
       env.FRONTEND_URL,
     ].filter(Boolean),
     credentials: true,
@@ -94,6 +104,7 @@ app.get("/health", (req, res) => {
 
 // api endpoints
 app.use("/auth", authLimiter, authRoute);
+app.use("/notifications", authMiddleware, notificationRoutes);
 app.use("/note", authMiddleware, noteRoutes);
 app.use("/tag", authMiddleware, tagRoutes);
 app.use("/task", authMiddleware, tasksRoutes);
@@ -133,8 +144,9 @@ app.use((err, req, res, next) => {
 });
 
 // port and listening
-const server = app.listen(env.PORT || 5555, () => {
+const server = httpServer.listen(env.PORT || 5555, () => {
   console.log(`server connected on port ${env.PORT}`);
+  initCronJobs();
 });
 
 // ERROR HANDLING
