@@ -27,10 +27,12 @@ export default function AuthCallbackPage() {
         const res = await fetch(`${BACKEND_URL}/auth/google/exchange`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          credentials: "include",
           body: JSON.stringify({
             code,
             state,
             storedState,
+            redirectUri: `${window.location.origin}/auth/callback`,
           }),
         });
 
