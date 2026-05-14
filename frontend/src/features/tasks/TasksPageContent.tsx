@@ -119,41 +119,6 @@ export default function TasksPageContent() {
             <span className="text-[9px] font-black uppercase tracking-widest text-amber-400">AI</span>
           </div>
         </div>
-  const completedTodayCount = logs.filter((log) => {
-    if (!log.taskId) return false;
-    return log.completedAt.slice(0, 10) === new Date().toISOString().slice(0, 10);
-  }).length;
-  const focusMinutesToday = getTodayFocusMinutesForTasks(allTasks);
-
-  return (
-    <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-surface-base relative">
-      {/* Top Filter Tabs - Ledger Style */}
-      <div className="w-full bg-surface-soft border-b border-white/5 px-4 sm:px-8 py-2 shrink-0 overflow-x-auto custom-scrollbar">
-        <div className="flex items-center gap-2 min-w-max">
-          <div className="flex bg-white/5 p-1 rounded-lg border border-white/5">
-            {filters.map((f) => (
-              <button
-                key={f.id}
-                onClick={() => setFilter(f.id)}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[9px] font-bold transition-all ${
-                  filter === f.id
-                    ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
-                    : "text-text-muted hover:text-text-main hover:bg-white/5"
-                }`}
-              >
-                <f.icon className={filter === f.id ? "text-white" : f.color || ""} size={12} />
-                {f.label}
-              </button>
-            ))}
-          </div>
-          
-          <div className="h-5 w-px bg-white/10 mx-1" />
-          
-          <div className="flex items-center gap-1.5 bg-amber-400/10 px-2 py-1.5 rounded-lg border border-amber-400/20">
-            <FiZap className="text-amber-400" size={10} />
-            <span className="text-[9px] font-black uppercase tracking-widest text-amber-400">AI</span>
-          </div>
-        </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
