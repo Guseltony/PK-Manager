@@ -73,8 +73,23 @@ export default function SignInForm() {
   };
 
   const handleGoogleAuth = () => {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-    window.location.href = `${backendUrl}/auth/google?mode=${isLogin ? "login" : "signup"}`;
+    const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+    const redirectUri = `${window.location.origin}/auth/callback`;
+    
+    // Generate simple state
+    const state = Math.random().toString(36).substring(2);
+    localStorage.setItem("oauth_state", state);
+
+    const params = new URLSearchParams({
+      client_id: googleClientId || "",
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: "openid email profile",
+      state: state,
+      prompt: "select_account",
+    });
+
+    window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
   };
 
   const onSubmit = (e: React.FormEvent) => {

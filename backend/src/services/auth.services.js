@@ -100,16 +100,15 @@ const registerUser = async ({ email, password, name }, userAgent, ip) => {
 const googleOAuthSignIn = async (
   code,
   state,
-  cookiesState,
-  cookiesPkce,
+  storedState,
+  codeVerifier,
   userAgent,
   ip,
   mode,
   redirectUri = process.env.GOOGLE_REDIRECT_URI,
 ) => {
   // 1️⃣ CSRF protection
-  if (!state || state !== cookiesState) {
-    // return res.redirect("http://localhost:3000/auth/error?reason=csrf");
+  if (!state || state !== storedState) {
     throw new Error("CSRF Attack suspected");
   }
 
@@ -130,7 +129,7 @@ const googleOAuthSignIn = async (
         client_id: process.env.GOOGLE_CLIENT_ID,
         client_secret: process.env.GOOGLE_CLIENT_SECRET,
         code: code,
-        code_verifier: cookiesPkce,
+        code_verifier: codeVerifier,
         grant_type: "authorization_code",
         redirect_uri: redirectUri,
       }),
