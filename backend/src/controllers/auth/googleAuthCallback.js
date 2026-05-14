@@ -87,6 +87,15 @@ export const authCodeExchange = async (req, res) => {
     }
 
     const { refreshToken, accessToken, csrfToken, user } = data;
+
+    const cookies = await buildAuthCookies({
+      refreshToken,
+      accessToken,
+      csrfToken,
+    });
+
+    await setAuthCookies(res, cookies);
+
     return res.status(200).json({
       data: {
         refreshToken,
