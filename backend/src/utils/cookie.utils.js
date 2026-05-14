@@ -3,8 +3,8 @@ const isProd = process.env.NODE_ENV === "production" || !!process.env.RENDER || 
 export const getRefreshTokenCookieOptions = () => {
   return {
     httpOnly: true,
-    secure: true, // Must be true for SameSite: None (but Lax is safer)
-    sameSite: "lax",
+    secure: isProd, // Only secure in production
+    sameSite: isProd ? "none" : "lax", // "none" is required for cross-site (Vercel -> Render)
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/",
   };
@@ -13,8 +13,8 @@ export const getRefreshTokenCookieOptions = () => {
 export const getAccessTokenCookieOptions = () => {
   return {
     httpOnly: true,
-    secure: true, // Must be true for SameSite: None
-    sameSite: "lax",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
     maxAge: 15 * 60 * 1000,
     path: "/",
   };
@@ -23,8 +23,8 @@ export const getAccessTokenCookieOptions = () => {
 export const getCsrfTokenCookieOptions = () => {
   return {
     httpOnly: false,
-    secure: true, // Must be true for SameSite: None
-    sameSite: "lax",
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/",
   };

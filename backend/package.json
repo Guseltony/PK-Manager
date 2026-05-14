@@ -9,7 +9,7 @@
     "db:migrate": "npx prisma migrate dev --name",
     "db:generate": "npx prisma generate",
     "postinstall": "npx prisma generate",
-    "build": "npx prisma generate"
+    "build": "npx prisma generate && npx prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
