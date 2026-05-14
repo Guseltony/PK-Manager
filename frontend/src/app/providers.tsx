@@ -7,6 +7,8 @@ import { setManualCsrfToken } from "../libs/api";
 import { SocketProvider } from "../components/providers/SocketProvider";
 import { PushNotificationProvider } from "../components/providers/PushNotificationProvider";
 
+import { BACKEND_URL } from "../constants/constants";
+
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () =>
@@ -26,7 +28,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       // 0. Don't run bootstrap on sign-in or auth pages
       if (typeof window !== "undefined" && (
         window.location.pathname.startsWith("/sign-in") || 
-        window.location.pathname.startsWith("/api/auth")
+        window.location.pathname.startsWith("/auth")
       )) {
         return;
       }
@@ -39,7 +41,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       }
 
       try {
-        const response = await fetch("/api/refresh", {
+        const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
           method: "POST",
           // credentials: "include" is important for the browser to send cookies to our API
           credentials: "include",

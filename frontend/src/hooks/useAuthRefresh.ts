@@ -1,6 +1,7 @@
 // hooks/useAuthRefresh.ts
 "use client";
 import { useEffect, useState } from "react";
+import { BACKEND_URL } from "../constants/constants";
 
 export function useAuthRefresh() {
   const [done, setDone] = useState(false);
@@ -8,7 +9,7 @@ export function useAuthRefresh() {
   useEffect(() => {
     const refresh = async () => {
       try {
-        const res = await fetch("/api/refresh", {
+        const res = await fetch(`${BACKEND_URL}/auth/refresh`, {
           method: "POST",
           credentials: "include",
         });

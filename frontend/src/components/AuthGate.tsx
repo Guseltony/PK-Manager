@@ -3,6 +3,8 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+import { BACKEND_URL } from "../constants/constants";
+
 export default function AuthGate({
   authenticated,
   children,
@@ -20,7 +22,7 @@ export default function AuthGate({
     console.log("starting refreshing");
 
     async function refresh() {
-      const res = await fetch("/api/refresh", {
+      const res = await fetch(`${BACKEND_URL}/auth/refresh`, {
         method: "POST",
         credentials: "include",
       });
