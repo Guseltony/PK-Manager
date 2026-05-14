@@ -46,7 +46,7 @@ const apiFetch = async (url: string, options: ApiOptions = {}) => {
 
   if ((response.status === 401 || response.status === 403) && !options._retry) {
     try {
-      const refreshRes = await fetch("/api/refresh", {
+      const refreshRes = await fetch(`${BACKEND_URL}/auth/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
