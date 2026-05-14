@@ -5,6 +5,8 @@ type ApiOptions = RequestInit & {
   _retry?: boolean;
 };
 
+let refreshPromise: Promise<unknown> | null = null;
+
 const apiFetch = async (url: string, options: ApiOptions = {}) => {
   let fullUrl = url.startsWith("http") ? url : (url.startsWith("/") ? `${BACKEND_URL}${url}` : `${BACKEND_URL}/${url}`);
 
@@ -46,25 +48,29 @@ const apiFetch = async (url: string, options: ApiOptions = {}) => {
 
   if ((response.status === 401 || response.status === 403) && !options._retry) {
     try {
-      const refreshRes = await fetch(`${BACKEND_URL}/auth/refresh`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-      });
-
-      const refreshData = await refreshRes.json().catch(() => ({}));
-      const csrfToken = refreshData?.data?.csrfToken || refreshData?.csrfToken;
-      if (csrfToken && typeof window !== "undefined") {
-        localStorage.setItem("csrf-token", csrfToken);
+      // Singleton refresh logic
+      if (!refreshPromise) {
+        refreshPromise = fetch(`${BACKEND_URL}/auth/refresh`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        }).then(async (res) => {
+          const data = await res.json().catch(() => ({}));
+          const csrfToken = data?.data?.csrfToken || data?.csrfToken;
+          if (csrfToken && typeof window !== "undefined") {
+            localStorage.setItem("csrf-token", csrfToken);
+          }
+          if (!res.ok) throw new Error("Refresh failed");
+          return data;
+        }).finally(() => {
+          refreshPromise = null;
+        });
       }
 
-      if (!refreshRes.ok) {
-        throw new Error("Refresh failed");
-      }
-
+      await refreshPromise;
       return apiFetch(url, { ...options, _retry: true });
     } catch (e) {
-      // Do not force a global redirect here. Let the calling page/hook handle it.
+      // Refresh failed, let the caller handle it (e.g. redirect to login)
       throw e;
     }
   }

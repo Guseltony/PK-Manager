@@ -2102,6 +2102,7 @@ export default function TaskDetailView({
       />
 
       <ReadingSessionModal
+        key={showReadingSession ? `reading-${task.id}` : "reading-closed"}
         task={task}
         linkedSourceTitle={linkedNotes[0]?.title || task.note?.title || task.title}
         isOpen={showReadingSession}
@@ -2136,6 +2137,7 @@ export default function TaskDetailView({
         isSubmitting={isLoggingReadingSession}
       />
       <FocusSessionModal
+        key={showFocusSession ? `focus-${task.id}` : "focus-closed"}
         task={task}
         requiredMinutes={executionMeta?.focusMinutesTarget || readiness.focusMinutesTarget}
         isOpen={showFocusSession}
@@ -2182,20 +2184,14 @@ function FocusSessionModal({
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [activeSeconds, setActiveSeconds] = useState(0);
   const [engagementCount, setEngagementCount] = useState(0);
-  const lastInteractionRef = useRef(Date.now());
+  const lastInteractionRef = useRef(0);
   const lastSignalRef = useRef(0);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setElapsedSeconds(0);
-    setActiveSeconds(0);
-    setEngagementCount(0);
-    lastInteractionRef.current = Date.now();
-    lastSignalRef.current = 0;
-  }, [isOpen]);
+
 
   useEffect(() => {
     if (!isOpen) return;
+    lastInteractionRef.current = Date.now();
 
     const registerSignal = () => {
       const now = Date.now();
@@ -2328,26 +2324,14 @@ function ReadingSessionModal({
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [activeSeconds, setActiveSeconds] = useState(0);
   const [engagementCount, setEngagementCount] = useState(0);
-  const lastInteractionRef = useRef(Date.now());
+  const lastInteractionRef = useRef(0);
   const lastSignalRef = useRef(0);
 
-  useEffect(() => {
-    if (!isOpen) return;
-    setSourceTitle(linkedSourceTitle);
-    setSourceUrl("");
-    setLastPage("");
-    setHighlight("");
-    setTakeaway("");
-    setNoteTitle(`${task.title} Reading Insight`);
-    setElapsedSeconds(0);
-    setActiveSeconds(0);
-    setEngagementCount(0);
-    lastInteractionRef.current = Date.now();
-    lastSignalRef.current = 0;
-  }, [isOpen, linkedSourceTitle, task.title]);
+
 
   useEffect(() => {
     if (!isOpen) return;
+    lastInteractionRef.current = Date.now();
 
     const registerSignal = () => {
       const now = Date.now();

@@ -124,8 +124,8 @@ export default function TasksPageContent() {
       <div className="flex flex-1 overflow-hidden relative">
         {/* Main Engine: Execution Layer */}
         <div className={`flex-1 flex flex-col relative ${selectedTaskId ? "hidden lg:flex" : "flex"}`}>
-          <div className="px-4 py-2 sm:px-8 sm:py-3 border-b border-white/5 space-y-2">
-            <div className="grid gap-1.5 grid-cols-3 xl:grid-cols-6 sm:gap-2">
+          <div className="px-3 py-2 sm:px-8 sm:py-3 border-b border-white/5 space-y-1 sm:space-y-2">
+            <div className="grid gap-1 grid-cols-3 xl:grid-cols-6 sm:gap-2">
               <TaskOverviewCard
                 label="Today"
                 value={String(dueTodayCount)}
@@ -163,8 +163,8 @@ export default function TasksPageContent() {
               />
             </div>
 
-            <div className="flex items-center justify-between gap-1 sm:gap-2">
-              <div className="flex items-center gap-0.5 sm:gap-1 rounded-xl border border-white/10 bg-white/5 p-0.5 overflow-x-auto custom-scrollbar max-w-[calc(100%-120px)] sm:max-w-none">
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-0.5 sm:gap-1 rounded-xl border border-white/10 bg-white/5 p-0.5 overflow-x-auto custom-scrollbar max-w-[calc(100%-80px)] sm:max-w-none">
                 {[
                   { id: "smart", label: "Smart" },
                   { id: "dream", label: "Dream" },
@@ -187,10 +187,10 @@ export default function TasksPageContent() {
                   </button>
                 ))}
               </div>
-              <div className="inline-flex items-center gap-1 sm:gap-1.5 rounded-xl border border-white/10 bg-black/20 px-2 sm:px-2.5 py-1 text-[7px] sm:text-[8px] font-black uppercase tracking-[0.1em] sm:tracking-[0.18em] text-text-main shrink-0">
+              <div className="inline-flex items-center gap-1 sm:gap-1.5 rounded-xl border border-white/10 bg-black/20 px-1.5 sm:px-2.5 py-1 text-[7px] sm:text-[8px] font-black uppercase tracking-[0.1em] sm:tracking-[0.18em] text-text-main shrink-0">
                 <FiLayers size={10} className="text-brand-primary" />
-                <span className="hidden xs:inline">Execution view</span>
-                <span className="xs:hidden">Exec</span>
+                <span className="hidden sm:inline">Execution view</span>
+                <span className="sm:hidden">Exec</span>
               </div>
             </div>
             <TaskQuickAdd />

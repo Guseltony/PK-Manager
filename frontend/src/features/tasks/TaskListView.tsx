@@ -164,7 +164,7 @@ export default function TaskListView({
 
   if (isLoading) {
     return (
-      <div className="flex-1 p-6 space-y-4 max-w-4xl mx-auto w-full">
+      <div className="flex-1 p-6 space-y-4 max-w-4xl w-full">
         {[1, 2, 3, 4, 5].map((i) => (
           <div key={i} className="h-16 w-full bg-white/5 animate-pulse rounded-2xl border border-white/5" />
         ))}
@@ -182,7 +182,7 @@ export default function TaskListView({
 
   if (tasks.length === 0) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center text-text-muted p-12">
+      <div className="flex-1 flex flex-col items-start text-text-muted p-12">
         <div className="w-20 h-20 rounded-3xl bg-surface-soft border border-white/5 flex items-center justify-center mb-6 shadow-xl">
             <FiInbox size={32} className="opacity-20" />
         </div>
@@ -193,7 +193,7 @@ export default function TaskListView({
   }
 
   return (
-    <div className="flex-1 px-2 py-4 sm:p-6 flex flex-col gap-2.5 max-w-4xl mx-auto w-full pb-20">
+    <div className="flex-1 px-2 py-4 sm:p-6 flex flex-col gap-2.5 max-w-4xl w-full pb-20">
       <div className="flex items-center justify-between mb-3 px-1 sm:px-0">
         <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted/50">
           {activeFilter.replace("-", " ")} Tasks ({tasks.length})
