@@ -6,7 +6,7 @@ type ApiOptions = RequestInit & {
 };
 
 const apiFetch = async (url: string, options: ApiOptions = {}) => {
-  const fullUrl = url.startsWith("http") ? url : (url.startsWith("/") ? `${BACKEND_URL}${url}` : `${BACKEND_URL}/${url}`);
+  let fullUrl = url.startsWith("http") ? url : (url.startsWith("/") ? `${BACKEND_URL}${url}` : `${BACKEND_URL}/${url}`);
 
   if (options.params) {
     const searchParams = new URLSearchParams();
