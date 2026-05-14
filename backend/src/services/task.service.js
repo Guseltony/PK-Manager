@@ -1,5 +1,6 @@
 import { prisma } from "../config/db.js";
 import { createTagLinks, syncTags, tagInclude } from "../utils/tagHelper.js";
+import { NotificationService } from "./notificationService.js";
 
 const normalizeTags = (tags = []) =>
   tags
@@ -257,7 +258,7 @@ export const taskCreation = async (data, userId) => {
 
   const resolvedDreamId = ownedProject?.dreamId ?? dreamId ?? null;
   
-  return await prisma.task.create({
+  const task = await prisma.task.create({
     data: {
       title,
       description,
@@ -286,6 +287,17 @@ export const taskCreation = async (data, userId) => {
     },
     include: taskInclude,
   });
+
+  // Trigger Notification
+  await NotificationService.sendNotification({
+    userId,
+    title: "New Task Created",
+    message: `"${task.title}" has been added to your backlog.`,
+    type: "INFO",
+    link: `/tasks/${task.id}`,
+  });
+
+  return task;
 };
 
 export const createManyTasks = async (tasks, userId, shared = {}) => {
@@ -612,6 +624,17 @@ export const updateTask = async (taskId, userId, data) => {
     },
     include: taskInclude,
   });
+
+  // Trigger Notification on Completion
+  if (status === "done") {
+    await NotificationService.sendNotification({
+      userId,
+      title: "Task Completed! 🚀",
+      message: `Great job! You finished "${task.title}".`,
+      type: "SUCCESS",
+      link: `/tasks/${task.id}`,
+    });
+  }
 
   return task;
 };
