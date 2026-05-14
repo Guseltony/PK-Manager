@@ -6,15 +6,7 @@ type ApiOptions = RequestInit & {
 };
 
 const apiFetch = async (url: string, options: ApiOptions = {}) => {
-  let fullUrl = "";
-  
-  if (typeof window !== "undefined") {
-    // In the browser, we use our local Next.js proxy to avoid cross-domain cookie issues
-    fullUrl = url.startsWith("/") ? `/api/backend${url}` : `/api/backend/${url}`;
-  } else {
-    // On the server, we can call the backend directly
-    fullUrl = url.startsWith("http") ? url : `${BACKEND_URL}${url}`;
-  }
+  const fullUrl = url.startsWith("http") ? url : (url.startsWith("/") ? `${BACKEND_URL}${url}` : `${BACKEND_URL}/${url}`);
 
   if (options.params) {
     const searchParams = new URLSearchParams();
