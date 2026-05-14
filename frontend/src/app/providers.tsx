@@ -51,9 +51,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
           if (csrfToken) {
             setManualCsrfToken(csrfToken);
           }
+
+          // If on home page and successfully refreshed, go to dashboard
+          if (window.location.pathname === "/") {
+            window.location.href = "/dashboard";
+          }
         }
       } catch (err) {
-        console.error("Auth bootstrap failed:", err);
+        // Silent fail on home page - user just stays logged out
+        console.log("No active session found.");
       }
     };
 

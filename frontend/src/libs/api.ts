@@ -72,7 +72,7 @@ const apiFetch = async (url: string, options: ApiOptions = {}) => {
 
       return apiFetch(url, { ...options, _retry: true });
     } catch (e) {
-      if (typeof window !== "undefined") window.location.href = "/sign-in";
+      // Do not force a global redirect here. Let the calling page/hook handle it.
       throw e;
     }
   }
