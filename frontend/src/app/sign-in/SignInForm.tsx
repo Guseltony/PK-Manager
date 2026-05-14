@@ -39,7 +39,22 @@ export default function SignInForm() {
 
     const result = await loginAction(formData);
     if (!result?.success && "redirectToGoogle" in result && result.redirectToGoogle) {
-      window.location.href = `/api/auth/google/start?mode=login&email=${encodeURIComponent(result.email || "")}`;
+      const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      const redirectUri = `${window.location.origin}/auth/callback`;
+      const state = Math.random().toString(36).substring(2);
+      localStorage.setItem("oauth_state", state);
+
+      const params = new URLSearchParams({
+        client_id: googleClientId || "",
+        redirect_uri: redirectUri,
+        response_type: "code",
+        scope: "openid email profile",
+        state: state,
+        prompt: "select_account",
+        login_hint: result.email || "",
+      });
+
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
       return;
     }
     if (!result?.success) {
@@ -59,7 +74,22 @@ export default function SignInForm() {
 
     const result = await registerAction(formData);
     if (!result?.success && "redirectToGoogle" in result && result.redirectToGoogle) {
-      window.location.href = `/api/auth/google/start?mode=signup&email=${encodeURIComponent(result.email || "")}`;
+      const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+      const redirectUri = `${window.location.origin}/auth/callback`;
+      const state = Math.random().toString(36).substring(2);
+      localStorage.setItem("oauth_state", state);
+
+      const params = new URLSearchParams({
+        client_id: googleClientId || "",
+        redirect_uri: redirectUri,
+        response_type: "code",
+        scope: "openid email profile",
+        state: state,
+        prompt: "select_account",
+        login_hint: result.email || "",
+      });
+
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
       return;
     }
     if (!result?.success) {

@@ -89,25 +89,28 @@ export type AuthResult =
 // }
 
 export async function auth(): Promise<AuthResult> {
-  const cookieStore = await cookies();
-  const cookieHeader = cookieStore.toString();
+  try {
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore.toString();
 
-  if (!cookieHeader)
-    return { user: null, authenticated: false, error: "No cookies" };
+    if (!cookieHeader)
+      return { user: null, authenticated: false, error: "No cookies" };
 
-  console.log("cookie-header", cookieHeader);
+    const res = await fetch(`${BACKEND_URL}/user/get`, {
+      headers: { Cookie: cookieHeader },
+      cache: "no-store",
+    });
 
-  const res = await fetch(`${BACKEND_URL}/user/get`, {
-    headers: { Cookie: cookieHeader },
-    cache: "no-store",
-  });
+    if (!res.ok)
+      return { user: null, authenticated: false, error: "Unauthorized" };
 
-  if (!res.ok)
-    return { user: null, authenticated: false, error: "Unauthorized" };
-
-  const result: UserApiResponse = await res.json();
-
-  return { user: result.data, authenticated: true };
+    const result: UserApiResponse = await res.json();
+    return { user: result.data, authenticated: true };
+  } catch (err) {
+    // During static export, cookies() will throw. We return unauthenticated state
+    // and let the client-side handle the redirect if necessary.
+    return { user: null, authenticated: false, error: "Static Build / Not Authenticated" };
+  }
 }
 
 // import { BACKEND_URL } from "@/src/constants/constants";

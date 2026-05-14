@@ -1,4 +1,6 @@
-"use server";
+// This file no longer uses "use server" because static exports (Android APK) don't support Server Actions.
+// These functions are now regular client-side functions that call the backend directly.
+
 
 import { AuthActionResult } from "@/src/type/type";
 import { loginSchema, registerSchema } from "./schema";
