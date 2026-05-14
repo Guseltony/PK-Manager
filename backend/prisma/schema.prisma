@@ -68,6 +68,8 @@ model User {
   constitution         Constitution?
   chaosLedger          ChaosTrigger[]
   scorecards           MonthlyScorecard[]
+  notifications        Notification[]
+  deviceTokens         String[] @default([])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -911,4 +913,30 @@ model MonthlyScorecard {
 
   @@unique([userId, month, year])
   @@index([userId])
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  TASK_REMINDER
+  DREAM_UPDATE
+  IDEA_INSIGHT
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      NotificationType @default(INFO)
+  isRead    Boolean          @default(false)
+  link      String?          // Optional link to navigate to (e.g. /tasks/uuid)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([userId, createdAt])
 }
