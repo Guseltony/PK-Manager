@@ -47,6 +47,7 @@ export const register = async (req, res) => {
         data: {
           ...user,
           role: "user",
+          csrfToken,
         },
       });
     }
@@ -96,6 +97,7 @@ export const gmailReg = async (req, res) => {
         data: {
           ...user,
           role: "user",
+          csrfToken,
         },
       });
     }

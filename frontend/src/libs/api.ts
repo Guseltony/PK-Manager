@@ -52,7 +52,7 @@ const apiFetch = async (url: string, options: ApiOptions = {}) => {
     headers,
   });
 
-  if (response.status === 401 && !options._retry) {
+  if ((response.status === 401 || response.status === 403) && !options._retry) {
     try {
       const refreshRes = await fetch("/api/refresh", {
         method: "POST",
@@ -110,6 +110,12 @@ const api = {
     }) as Promise<{ data: T }>,
   delete: <T>(url: string, config?: ApiOptions) =>
     apiFetch(url, { ...config, method: "DELETE" }) as Promise<{ data: T }>,
+  patch: <T>(url: string, data?: unknown, config?: ApiOptions) =>
+    apiFetch(url, {
+      ...config,
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }) as Promise<{ data: T }>,
   request: <T>(config: ApiOptions & { url: string }) =>
     apiFetch(config.url, config) as Promise<{ data: T }>,
 };
