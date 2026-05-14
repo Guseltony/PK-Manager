@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { useEffect, useState } from "react";
 import { setManualCsrfToken } from "../libs/api";
+import { SocketProvider } from "../components/providers/SocketProvider";
+import { PushNotificationProvider } from "../components/providers/PushNotificationProvider";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -60,7 +62,11 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+      <QueryClientProvider client={queryClient}>
+        <SocketProvider>
+          <PushNotificationProvider>{children}</PushNotificationProvider>
+        </SocketProvider>
+      </QueryClientProvider>
     </GoogleOAuthProvider>
   );
 }
