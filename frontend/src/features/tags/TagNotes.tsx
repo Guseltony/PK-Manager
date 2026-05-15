@@ -207,31 +207,31 @@ export default function TagNotes() {
               <span className="text-[10px] font-black uppercase tracking-widest text-text-muted">
                 Tag Color
               </span>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-nowrap overflow-x-auto no-scrollbar gap-1.5 pb-1">
                 {TAG_COLOR_OPTIONS.map((color) => (
                   <button
                     key={color}
                     type="button"
                     onClick={() => handleColorChange(color)}
                     disabled={usedColors.has(color) && tagDetail.color !== color}
-                    className={`h-7 w-7 rounded-full border-2 transition-all ${tagDetail.color === color ? "scale-110 border-white" : "border-white/10 hover:scale-105"} ${(usedColors.has(color) && tagDetail.color !== color) ? "cursor-not-allowed opacity-30" : ""}`}
+                    className={`h-6 w-6 shrink-0 rounded-full border-2 transition-all ${tagDetail.color === color ? "scale-110 border-white" : "border-white/10 hover:scale-105"} ${(usedColors.has(color) && tagDetail.color !== color) ? "cursor-not-allowed opacity-30" : ""}`}
                     style={{ backgroundColor: color }}
                     title={color}
                   />
                 ))}
-                <label className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-text-muted">
+                <label className="flex shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-text-muted">
                   Palette
                   <input
                     type="color"
                     value={tagDetail.color || "#6366f1"}
                     onChange={(e) => handleColorChange(e.target.value)}
-                    className="h-6 w-8 cursor-pointer rounded border border-white/10 bg-transparent"
+                    className="h-5 w-7 cursor-pointer rounded border border-white/10 bg-transparent"
                   />
                 </label>
                 <button
                   type="button"
                   onClick={() => handleColorChange(null)}
-                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-text-muted hover:bg-white/10"
+                  className="shrink-0 rounded-xl border border-white/10 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-text-muted hover:bg-white/10"
                 >
                   Clear
                 </button>

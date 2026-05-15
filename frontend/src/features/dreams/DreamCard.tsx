@@ -28,7 +28,7 @@ export default function DreamCard({ dream }: DreamCardProps) {
         : "stagnating";
 
   return (
-    <Link href={`/dreams/${dream.id}`}>
+    <Link href={`/dreams?dream=${dream.id}`}>
       <motion.div
         whileHover={{ y: -5 }}
         className={`glass group relative overflow-hidden rounded-xl border transition-all p-4 sm:p-5 flex flex-col h-[320px] cursor-pointer ${

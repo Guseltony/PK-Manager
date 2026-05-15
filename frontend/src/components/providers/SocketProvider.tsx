@@ -67,15 +67,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, [user?.id, addNotification]);
 
-  // Request browser notification permission
-  useEffect(() => {
-    if (
-      "Notification" in window &&
-      window.Notification.permission === "default"
-    ) {
-      window.Notification.requestPermission();
-    }
-  }, []);
+  // Notification permission is now handled via the NotificationDropdown UI
 
   return (
     <SocketContext.Provider value={{ socket }}>

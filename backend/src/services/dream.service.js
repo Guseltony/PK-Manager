@@ -33,7 +33,7 @@ export const dreamCreation = async (data, userId) => {
     title: "New Dream Seeded! 🌱",
     message: `Your dream "${dream.title}" has been added. Let's make it real.`,
     type: "DREAM_UPDATE",
-    link: `/dreams/${dream.id}`,
+    link: `/dreams?dream=${dream.id}`,
   });
 
   return dream;
@@ -152,7 +152,7 @@ export const toggleMilestone = async (milestoneId, dreamId, userId) => {
       title: "Milestone Reached! 🏆",
       message: `You've completed "${updated.title}" in your dream: ${dream.title}.`,
       type: "SUCCESS",
-      link: `/dreams/${dreamId}`,
+      link: `/dreams?dream=${dreamId}`,
     });
   }
 

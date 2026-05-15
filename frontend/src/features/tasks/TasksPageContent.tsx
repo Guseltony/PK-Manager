@@ -93,7 +93,7 @@ export default function TasksPageContent() {
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-surface-base relative">
       {/* Top Filter Tabs - Ledger Style */}
-      <div className="w-full bg-surface-soft border-b border-white/5 px-4 sm:px-8 py-2 shrink-0 overflow-x-auto custom-scrollbar">
+      <div className="w-full bg-surface-soft border-b border-white/5 px-4 md:px-8 py-2 shrink-0 overflow-x-auto custom-scrollbar">
         <div className="flex items-center gap-2 min-w-max">
           <div className="flex bg-white/5 p-1 rounded-lg border border-white/5">
             {filters.map((f) => (
@@ -123,48 +123,48 @@ export default function TasksPageContent() {
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Main Engine: Execution Layer */}
-        <div className={`flex-1 flex flex-col relative ${selectedTaskId ? "hidden lg:flex" : "flex"}`}>
-          <div className="px-3 py-2 sm:px-8 sm:py-3 border-b border-white/5 space-y-1 sm:space-y-2">
-            <div className="grid gap-1 grid-cols-3 xl:grid-cols-6 sm:gap-2">
+        <div className={`flex-1 flex flex-col relative ${selectedTaskId ? "hidden md:flex" : "flex"}`}>
+          <div className="px-3 py-2 md:px-8 md:py-3 border-b border-white/5 space-y-1 md:space-y-2">
+            <div className="grid gap-1 grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 md:gap-2">
               <TaskOverviewCard
                 label="Today"
                 value={String(dueTodayCount)}
-                icon={<FiClock size={10} className="sm:size-3" />}
+                icon={<FiClock size={10} className="md:size-3" />}
               />
               <TaskOverviewCard
                 label="Carryover"
                 value={String(carryoverCount)}
-                icon={<FiCornerDownRight size={10} className="sm:size-3" />}
+                icon={<FiCornerDownRight size={10} className="md:size-3" />}
                 tone="warm"
               />
               <TaskOverviewCard
                 label="Overdue"
                 value={String(overdueCount)}
-                icon={<FiAlertCircle size={10} className="sm:size-3" />}
+                icon={<FiAlertCircle size={10} className="md:size-3" />}
                 tone="danger"
               />
               <TaskOverviewCard
                 label="In Motion"
                 value={String(inProgressCount)}
-                icon={<FiTrendingUp size={10} className="sm:size-3" />}
+                icon={<FiTrendingUp size={10} className="md:size-3" />}
                 tone="warm"
               />
               <TaskOverviewCard
                 label="Blocked"
                 value={String(blockedCount)}
-                icon={<FiTarget size={10} className="sm:size-3" />}
+                icon={<FiTarget size={10} className="md:size-3" />}
                 tone="danger"
               />
               <TaskOverviewCard
                 label="Focus"
                 value={`${focusMinutesToday}m`}
-                icon={<FiZap size={10} className="sm:size-3" />}
+                icon={<FiZap size={10} className="md:size-3" />}
                 tone="brand"
               />
             </div>
 
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-0.5 sm:gap-1 rounded-xl border border-white/10 bg-white/5 p-0.5 overflow-x-auto custom-scrollbar max-w-[calc(100%-80px)] sm:max-w-none">
+              <div className="flex items-center gap-0.5 md:gap-1 rounded-xl border border-white/10 bg-white/5 p-0.5 overflow-x-auto custom-scrollbar max-w-[calc(100%-80px)] md:max-w-none">
                 {[
                   { id: "smart", label: "Smart" },
                   { id: "dream", label: "Dream" },
@@ -177,7 +177,7 @@ export default function TasksPageContent() {
                     onClick={() =>
                       setGroupBy(option.id as "smart" | "dream" | "priority" | "execution")
                     }
-                    className={`rounded-lg px-2 py-1 sm:px-2.5 text-[7px] sm:text-[8px] font-black uppercase tracking-[0.1em] sm:tracking-[0.18em] transition whitespace-nowrap ${
+                    className={`rounded-lg px-2 py-1 md:px-2.5 text-[7px] md:text-[8px] font-black uppercase tracking-[0.1em] md:tracking-[0.18em] transition whitespace-nowrap ${
                       groupBy === option.id
                         ? "bg-brand-primary text-white"
                         : "text-text-muted hover:text-text-main"
@@ -187,15 +187,15 @@ export default function TasksPageContent() {
                   </button>
                 ))}
               </div>
-              <div className="inline-flex items-center gap-1 sm:gap-1.5 rounded-xl border border-white/10 bg-black/20 px-1.5 sm:px-2.5 py-1 text-[7px] sm:text-[8px] font-black uppercase tracking-[0.1em] sm:tracking-[0.18em] text-text-main shrink-0">
+              <div className="inline-flex items-center gap-1 md:gap-1.5 rounded-xl border border-white/10 bg-black/20 px-1.5 md:px-2.5 py-1 text-[7px] md:text-[8px] font-black uppercase tracking-[0.1em] md:tracking-[0.18em] text-text-main shrink-0">
                 <FiLayers size={10} className="text-brand-primary" />
-                <span className="hidden sm:inline">Execution view</span>
-                <span className="sm:hidden">Exec</span>
+                <span className="hidden md:inline">Execution view</span>
+                <span className="md:hidden">Exec</span>
               </div>
             </div>
             <TaskQuickAdd />
           </div>
-          <div className="flex-1 overflow-y-auto custom-scrollbar px-4 sm:px-8 py-2">
+          <div className="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-8 py-2">
             <TaskListView
               activeFilter={filter}
               groupBy={groupBy}
@@ -238,15 +238,15 @@ function TaskOverviewCard({
           : "border-white/10 bg-white/5 text-text-main";
 
   return (
-    <div className="rounded-2xl border border-white/5 bg-surface-soft/70 px-2 py-1.5 sm:px-3 sm:py-2">
-      <div className="flex items-center justify-between gap-1.5 sm:gap-2">
+    <div className="rounded-2xl border border-white/5 bg-surface-soft/70 px-2 py-1.5 md:px-3 md:py-2">
+      <div className="flex items-center justify-between gap-1.5 md:gap-2">
         <div>
-          <p className="text-[7px] sm:text-[8px] font-black uppercase tracking-[0.1em] text-text-muted whitespace-nowrap">
+          <p className="text-[7px] md:text-[8px] font-black uppercase tracking-[0.1em] text-text-muted whitespace-nowrap">
             {label}
           </p>
-          <p className="text-sm sm:text-base font-black text-white">{value}</p>
+          <p className="text-sm md:text-base font-black text-white">{value}</p>
         </div>
-        <div className={`rounded-xl border p-1 sm:p-1.5 ${toneClass}`}>{icon}</div>
+        <div className={`rounded-xl border p-1 md:p-1.5 ${toneClass}`}>{icon}</div>
       </div>
     </div>
   );

@@ -294,7 +294,7 @@ export const taskCreation = async (data, userId) => {
     title: "New Task Created",
     message: `"${task.title}" has been added to your backlog.`,
     type: "INFO",
-    link: `/tasks/${task.id}`,
+    link: `/tasks?task=${task.id}`,
   });
 
   return task;
@@ -632,7 +632,7 @@ export const updateTask = async (taskId, userId, data) => {
       title: "Task Completed! 🚀",
       message: `Great job! You finished "${task.title}".`,
       type: "SUCCESS",
-      link: `/tasks/${task.id}`,
+      link: `/tasks?task=${task.id}`,
     });
   }
 

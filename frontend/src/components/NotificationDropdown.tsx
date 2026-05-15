@@ -107,6 +107,29 @@ const NotificationDropdown = () => {
               </div>
             </div>
 
+            {/* Permission Prompt */}
+            {typeof window !== "undefined" && "Notification" in window && window.Notification.permission === "default" && (
+              <div className="bg-brand-primary/10 border-b border-brand-primary/20 px-4 py-3 flex flex-col gap-2">
+                <p className="text-[10px] font-bold text-brand-primary uppercase tracking-widest">
+                  Enable Browser Notifications
+                </p>
+                <p className="text-xs text-text-muted leading-relaxed">
+                  Get real-time alerts for task completions and system insights even when the app is in the background.
+                </p>
+                <button
+                  onClick={async () => {
+                    const permission = await window.Notification.requestPermission();
+                    if (permission === "granted") {
+                      window.location.reload(); 
+                    }
+                  }}
+                  className="w-full py-1.5 bg-brand-primary text-white text-[10px] font-black uppercase tracking-widest rounded-lg hover:bg-brand-primary/90 transition-all"
+                >
+                  Enable Notifications
+                </button>
+              </div>
+            )}
+
             {/* List */}
             <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
               {notifications.length > 0 ? (
@@ -167,7 +190,7 @@ const NotificationDropdown = () => {
                   </div>
                   <p className="text-sm font-medium text-text-muted">No notifications yet</p>
                   <p className="text-xs text-text-muted/60 mt-1">
-                    We'll notify you when something important happens.
+                    We&apos;ll notify you when something important happens.
                   </p>
                 </div>
               )}

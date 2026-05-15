@@ -170,9 +170,6 @@ function NewNoteForm() {
   const { setIsCreating } = useNotesStore();
   const { createNote, isCreating: isSaving } = useNotes();
   const { tags: allTags } = useTags();
-  const { dreams } = useDreams();
-  const { tasks, updateTask: updateLinkedTask, createTaskAsync } = useTasks();
-  const { items: inboxItems } = useInbox();
 
   const [title, setTitle] = useState("");
   const [contentType, setContentType] = useState<NoteContentType>("markdown");
@@ -187,6 +184,94 @@ function NewNoteForm() {
   const richEditorRef = useRef<HTMLDivElement | null>(null);
   const richSelectionRef = useRef<Range | null>(null);
   const lastSetRichHtmlRef = useRef(richHtml);
+  const saveRichSelection = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    if (richEditorRef.current?.contains(range.commonAncestorContainer)) {
+      richSelectionRef.current = range.cloneRange();
+    }
+  };
+
+  const syncRichState = () => {
+    if (richEditorRef.current) {
+      normalizeRichEditorDirection(richEditorRef.current);
+      const newHtml = richEditorRef.current.innerHTML || DEFAULT_RICH_HTML;
+      lastSetRichHtmlRef.current = newHtml;
+      setRichHtml(newHtml);
+    }
+  };
+
+  const applyRichCommand = (command: string, value?: string) => {
+    richEditorRef.current?.focus();
+    document.execCommand("defaultParagraphSeparator", false, "p");
+    document.execCommand(command, false, value);
+    saveRichSelection();
+    syncRichState();
+  };
+
+  const handleMarkdownImageUpload = (image: { url: string }) => {
+    const textarea = markdownRef.current;
+    if (!textarea) {
+      setMarkdownContent(
+        (prev) => `${prev}\n![Uploaded Image](${image.url})\n`,
+      );
+      return;
+    }
+
+    const inserted = insertMarkdownAtCursor(
+      markdownContent,
+      textarea.selectionStart,
+      textarea.selectionEnd,
+      `![Uploaded Image](${image.url})\n`,
+    );
+
+    setMarkdownContent(inserted.value);
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(inserted.selectionStart, inserted.selectionEnd);
+    });
+  };
+
+  const handleRichImageUpload = (image: { url: string }) => {
+    const editor = richEditorRef.current;
+    if (!editor) return;
+
+    editor.focus();
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+
+    if (richSelectionRef.current) {
+      selection?.addRange(richSelectionRef.current);
+    }
+
+    const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+    if (!range) {
+      editor.insertAdjacentHTML(
+        "beforeend",
+        `<p dir="ltr"><img src="${image.url}" alt="Uploaded Image" /></p><p dir="ltr"></p>`,
+      );
+      syncRichState();
+      return;
+    }
+
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = `<p dir="ltr"><img src="${image.url}" alt="Uploaded Image" /></p><p dir="ltr"></p>`;
+    const fragment = document.createDocumentFragment();
+
+    while (wrapper.firstChild) {
+      fragment.appendChild(wrapper.firstChild);
+    }
+
+    range.deleteContents();
+    range.insertNode(fragment);
+    range.collapse(false);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    richSelectionRef.current = range.cloneRange();
+    syncRichState();
+  };
+
   const voiceCapture = useVoiceCapture((transcript) => {
     if (contentType === "markdown") {
       const textarea = markdownRef.current;
@@ -271,58 +356,6 @@ function NewNoteForm() {
     setIsAddingTag(false);
   };
 
-  const handleMarkdownImageUpload = (image: { url: string }) => {
-    const textarea = markdownRef.current;
-    if (!textarea) {
-      setMarkdownContent(
-        (prev) => `${prev}\n![Uploaded Image](${image.url})\n`,
-      );
-      return;
-    }
-
-    const inserted = insertMarkdownAtCursor(
-      markdownContent,
-      textarea.selectionStart,
-      textarea.selectionEnd,
-      `![Uploaded Image](${image.url})\n`,
-    );
-
-    setMarkdownContent(inserted.value);
-    requestAnimationFrame(() => {
-      textarea.focus();
-      textarea.setSelectionRange(
-        inserted.selectionStart,
-        inserted.selectionEnd,
-      );
-    });
-  };
-
-  const saveRichSelection = () => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-    const range = selection.getRangeAt(0);
-    if (richEditorRef.current?.contains(range.commonAncestorContainer)) {
-      richSelectionRef.current = range.cloneRange();
-    }
-  };
-
-  const syncRichState = () => {
-    if (richEditorRef.current) {
-      normalizeRichEditorDirection(richEditorRef.current);
-      const newHtml = richEditorRef.current.innerHTML || DEFAULT_RICH_HTML;
-      lastSetRichHtmlRef.current = newHtml;
-      setRichHtml(newHtml);
-    }
-  };
-
-  const applyRichCommand = (command: string, value?: string) => {
-    richEditorRef.current?.focus();
-    document.execCommand("defaultParagraphSeparator", false, "p");
-    document.execCommand(command, false, value);
-    saveRichSelection();
-    syncRichState();
-  };
-
   useEffect(() => {
     if (contentType !== "richtext" || !richEditorRef.current) return;
     normalizeRichEditorDirection(richEditorRef.current);
@@ -337,49 +370,10 @@ function NewNoteForm() {
     }
   }, [richHtml, contentType]);
 
-  const handleRichImageUpload = (image: { url: string }) => {
-    const editor = richEditorRef.current;
-    if (!editor) return;
-
-    editor.focus();
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-
-    if (richSelectionRef.current) {
-      selection?.addRange(richSelectionRef.current);
-    }
-
-    const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
-    if (!range) {
-      editor.insertAdjacentHTML(
-        "beforeend",
-        `<p dir="ltr"><img src="${image.url}" alt="Uploaded Image" /></p><p dir="ltr"></p>`,
-      );
-      syncRichState();
-      return;
-    }
-
-    const wrapper = document.createElement("div");
-    wrapper.innerHTML = `<p dir="ltr"><img src="${image.url}" alt="Uploaded Image" /></p><p dir="ltr"></p>`;
-    const fragment = document.createDocumentFragment();
-
-    while (wrapper.firstChild) {
-      fragment.appendChild(wrapper.firstChild);
-    }
-
-    range.deleteContents();
-    range.insertNode(fragment);
-    range.collapse(false);
-    selection?.removeAllRanges();
-    selection?.addRange(range);
-    richSelectionRef.current = range.cloneRange();
-    syncRichState();
-  };
-
   return (
     <div className="flex-1 flex min-h-0 flex-col h-full bg-surface-base overflow-y-auto md:overflow-hidden custom-scrollbar">
-      <div className="p-4 border-b border-white/5 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
+      <div className="p-3 md:p-4 border-b border-white/5 flex items-center justify-between gap-2 md:gap-4 sticky top-0 z-20 bg-surface-base/80 backdrop-blur-md">
+        <div className="flex items-center gap-1.5 md:gap-2">
           <button
             onClick={() => setIsCreating(false)}
             className="md:hidden flex items-center justify-center p-2 rounded-xl text-text-muted hover:bg-white/5 transition-all"
@@ -628,6 +622,7 @@ function NoteEditorContent({ note }: { note: Note }) {
   const [showHistory, setShowHistory] = useState(false);
   const [isReaderMode, setIsReaderMode] = useState(false);
   const [analysis, setAnalysis] = useState<AiNoteAnalysis | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [showKnowledgeMeta, setShowKnowledgeMeta] = useState(false);
   const [historyEntries, setHistoryEntries] = useState<NoteVersion[]>([]);
@@ -743,6 +738,109 @@ function NoteEditorContent({ note }: { note: Note }) {
     window.addEventListener("keydown", handleShortcut);
     return () => window.removeEventListener("keydown", handleShortcut);
   }, []);
+
+  const saveRichSelection = () => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) return;
+    const range = selection.getRangeAt(0);
+    if (richEditorRef.current?.contains(range.commonAncestorContainer)) {
+      richSelectionRef.current = range.cloneRange();
+    }
+  };
+
+  const syncRichState = () => {
+    if (richEditorRef.current) {
+      normalizeRichEditorDirection(richEditorRef.current);
+      const newHtml = richEditorRef.current.innerHTML || DEFAULT_RICH_HTML;
+      lastSetRichHtmlRef.current = newHtml;
+      setRichHtml(newHtml);
+    }
+  };
+
+  const applyRichCommand = (command: string, value?: string) => {
+    richEditorRef.current?.focus();
+    document.execCommand("defaultParagraphSeparator", false, "p");
+    document.execCommand(command, false, value);
+    saveRichSelection();
+    syncRichState();
+  };
+
+  useEffect(() => {
+    if (contentType !== "richtext" || !richEditorRef.current) return;
+    normalizeRichEditorDirection(richEditorRef.current);
+  }, [contentType, richHtml]);
+
+  useEffect(() => {
+    if (richEditorRef.current && contentType === "richtext") {
+      if (richHtml !== lastSetRichHtmlRef.current) {
+        richEditorRef.current.innerHTML = richHtml;
+        lastSetRichHtmlRef.current = richHtml;
+      }
+    }
+  }, [richHtml, contentType]);
+
+  const handleMarkdownImageUpload = (image: { url: string }) => {
+    const textarea = markdownRef.current;
+    if (!textarea) {
+      setMarkdownContent(
+        (prev) => `${prev}\n![Uploaded Image](${image.url})\n`,
+      );
+      return;
+    }
+
+    const inserted = insertMarkdownAtCursor(
+      markdownContent,
+      textarea.selectionStart,
+      textarea.selectionEnd,
+      `![Uploaded Image](${image.url})\n`,
+    );
+
+    setMarkdownContent(inserted.value);
+    requestAnimationFrame(() => {
+      textarea.focus();
+      textarea.setSelectionRange(inserted.selectionStart, inserted.selectionEnd);
+    });
+  };
+
+  const handleRichImageUpload = (image: { url: string }) => {
+    const editor = richEditorRef.current;
+    if (!editor) return;
+
+    editor.focus();
+    const selection = window.getSelection();
+    selection?.removeAllRanges();
+
+    if (richSelectionRef.current) {
+      selection?.addRange(richSelectionRef.current);
+    }
+
+    const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+    if (!range) {
+      editor.insertAdjacentHTML(
+        "beforeend",
+        `<p dir="ltr"><img src="${image.url}" alt="Uploaded Image" /></p><p dir="ltr"></p>`,
+      );
+      syncRichState();
+      return;
+    }
+
+    const wrapper = document.createElement("div");
+    wrapper.innerHTML = `<p dir="ltr"><img src="${image.url}" alt="Uploaded Image" /></p><p dir="ltr"></p>`;
+    const fragment = document.createDocumentFragment();
+
+    while (wrapper.firstChild) {
+      fragment.appendChild(wrapper.firstChild);
+    }
+
+    range.deleteContents();
+    range.insertNode(fragment);
+    range.collapse(false);
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+    richSelectionRef.current = range.cloneRange();
+    syncRichState();
+  };
+
   const voiceCapture = useVoiceCapture((transcript) => {
     if (contentType === "markdown") {
       const textarea = markdownRef.current;
@@ -951,108 +1049,6 @@ function NoteEditorContent({ note }: { note: Note }) {
     });
   };
 
-  const saveRichSelection = () => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-    const range = selection.getRangeAt(0);
-    if (richEditorRef.current?.contains(range.commonAncestorContainer)) {
-      richSelectionRef.current = range.cloneRange();
-    }
-  };
-
-  const syncRichState = () => {
-    if (richEditorRef.current) {
-      normalizeRichEditorDirection(richEditorRef.current);
-      const newHtml = richEditorRef.current.innerHTML || DEFAULT_RICH_HTML;
-      lastSetRichHtmlRef.current = newHtml;
-      setRichHtml(newHtml);
-    }
-  };
-
-  const applyRichCommand = (command: string, value?: string) => {
-    richEditorRef.current?.focus();
-    document.execCommand("defaultParagraphSeparator", false, "p");
-    document.execCommand(command, false, value);
-    saveRichSelection();
-    syncRichState();
-  };
-
-  useEffect(() => {
-    if (contentType !== "richtext" || !richEditorRef.current) return;
-    normalizeRichEditorDirection(richEditorRef.current);
-  }, [contentType, richHtml]);
-
-  useEffect(() => {
-    if (richEditorRef.current && contentType === "richtext") {
-      if (richHtml !== lastSetRichHtmlRef.current) {
-        richEditorRef.current.innerHTML = richHtml;
-        lastSetRichHtmlRef.current = richHtml;
-      }
-    }
-  }, [richHtml, contentType]);
-
-  const handleMarkdownImageUpload = (image: { url: string }) => {
-    const textarea = markdownRef.current;
-    if (!textarea) {
-      setMarkdownContent(
-        (prev) => `${prev}\n![Uploaded Image](${image.url})\n`,
-      );
-      return;
-    }
-
-    const inserted = insertMarkdownAtCursor(
-      markdownContent,
-      textarea.selectionStart,
-      textarea.selectionEnd,
-      `![Uploaded Image](${image.url})\n`,
-    );
-
-    setMarkdownContent(inserted.value);
-    requestAnimationFrame(() => {
-      textarea.focus();
-      textarea.setSelectionRange(
-        inserted.selectionStart,
-        inserted.selectionEnd,
-      );
-    });
-  };
-
-  const handleRichImageUpload = (image: { url: string }) => {
-    const editor = richEditorRef.current;
-    if (!editor) return;
-
-    editor.focus();
-    const selection = window.getSelection();
-    selection?.removeAllRanges();
-    if (richSelectionRef.current) {
-      selection?.addRange(richSelectionRef.current);
-    }
-
-    const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
-    if (!range) {
-      editor.insertAdjacentHTML(
-        "beforeend",
-        `<p dir="ltr"><img src="${image.url}" alt="Uploaded Image" /></p><p dir="ltr"></p>`,
-      );
-      syncRichState();
-      return;
-    }
-
-    const wrapper = document.createElement("div");
-    wrapper.innerHTML = `<p dir="ltr"><img src="${image.url}" alt="Uploaded Image" /></p><p dir="ltr"></p>`;
-    const fragment = document.createDocumentFragment();
-    while (wrapper.firstChild) {
-      fragment.appendChild(wrapper.firstChild);
-    }
-
-    range.deleteContents();
-    range.insertNode(fragment);
-    range.collapse(false);
-    selection?.removeAllRanges();
-    selection?.addRange(range);
-    richSelectionRef.current = range.cloneRange();
-    syncRichState();
-  };
 
   const previewTextSizeClass =
     previewFontSize <= 12
@@ -1077,26 +1073,33 @@ function NoteEditorContent({ note }: { note: Note }) {
   };
 
   return (
-    <div className="flex-1 flex min-h-0 flex-col h-full bg-surface-base overflow-y-auto md:overflow-hidden custom-scrollbar">
-      <div className="p-4 border-b border-white/5 flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+    <div 
+      onScroll={(e) => setIsScrolled(e.currentTarget.scrollTop > 50)}
+      className="flex-1 flex min-h-0 flex-col h-full bg-surface-base overflow-y-auto md:overflow-hidden custom-scrollbar"
+    >
+      <div className={`border-b border-white/5 flex flex-wrap items-center justify-between gap-2 md:gap-4 sticky top-0 z-20 bg-surface-base/80 backdrop-blur-md transition-all duration-300 ${isScrolled ? "p-1.5 md:p-2" : "p-3 md:p-4"}`}>
+        <div className="flex items-center gap-2">
           <button
             onClick={() => useNotesStore.getState().selectNote(null)}
-            className="-ml-2 md:hidden flex items-center justify-center p-2 rounded-xl text-text-muted hover:bg-white/5 transition-all"
+            className="-ml-1 md:hidden flex items-center justify-center p-2 rounded-xl text-text-muted hover:bg-white/5 transition-all"
           >
             <FiArrowLeft size={18} />
           </button>
-          <div
-            className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${isUpdating ? "bg-brand-secondary/20 text-brand-secondary" : "bg-green-500/20 text-green-400"}`}
-          >
-            {isUpdating ? "Saving..." : "Saved"}
-          </div>
-          <span className="hidden sm:inline text-[10px] text-text-muted/50 font-medium">
-            Edited {dayjs(note.updatedAt).format("MMM D, HH:mm")}
-          </span>
-          <span className="hidden md:inline text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted/60">
-            {contentType === "markdown" ? "Developer Note" : "Smart Note"}
-          </span>
+          {!isScrolled && (
+            <>
+              <div
+                className={`text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full ${isUpdating ? "bg-brand-secondary/20 text-brand-secondary" : "bg-green-500/20 text-green-400"}`}
+              >
+                {isUpdating ? "Saving..." : "Saved"}
+              </div>
+              <span className="hidden sm:inline text-[10px] text-text-muted/50 font-medium">
+                Edited {dayjs(note.updatedAt).format("MMM D, HH:mm")}
+              </span>
+              <span className="hidden md:inline text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted/60">
+                {contentType === "markdown" ? "Developer Note" : "Smart Note"}
+              </span>
+            </>
+          )}
         </div>
 
         <div className="flex flex-wrap items-center gap-1">
@@ -1214,7 +1217,7 @@ function NoteEditorContent({ note }: { note: Note }) {
 
       <div className="px-4 sm:px-6 lg:px-8 pt-3 sm:pt-4 flex flex-col gap-2 shrink-0">
         {viewMode === "preview" ? (
-          <h1 className="text-4xl sm:text-5xl font-black text-text-main tracking-tighter leading-[0.95] mb-2">
+          <h1 className="text-2xl sm:text-4xl md:text-5xl font-black text-text-main tracking-tighter leading-[0.95] mb-2">
             {title || "Untitled Note"}
           </h1>
         ) : (
@@ -1223,7 +1226,7 @@ function NoteEditorContent({ note }: { note: Note }) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Note Title"
-            className="text-4xl sm:text-5xl font-black bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/10 w-full tracking-tighter leading-[0.95] mb-2"
+            className="text-2xl sm:text-4xl md:text-5xl font-black bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/10 w-full tracking-tighter leading-[0.95] mb-2"
           />
         )}
 

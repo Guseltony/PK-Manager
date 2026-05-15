@@ -81,7 +81,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               <polyline points="17 8 12 3 7 8"></polyline>
               <line x1="12" y1="3" x2="12" y2="15"></line>
             </svg>
-            {!iconOnly && <span>Upload Image</span>}
+            {!iconOnly && <span className="hidden md:inline">Upload Image</span>}
           </>
         )}
       </button>

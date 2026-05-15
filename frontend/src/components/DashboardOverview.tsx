@@ -57,25 +57,25 @@ function StatCard({
   return (
     <NextLink
       href={href}
-      className={`block bg-surface-soft border rounded-xl p-4 sm:p-5 transition-all group relative overflow-hidden hover:border-white/10 hover:-translate-y-0.5 ${
+      className={`block bg-surface-soft border rounded-xl p-3 md:p-5 transition-all group relative overflow-hidden hover:border-white/10 hover:-translate-y-0.5 ${
         warning ? "border-amber-400/20 bg-amber-400/5" : "border-white/5"
       }`}
     >
-      <div className="flex items-center justify-between mb-3 sm:mb-4 relative z-10">
+      <div className="flex items-center justify-between mb-2 md:mb-4 relative z-10">
         <div
-          className={`w-9 h-9 sm:w-11 sm:h-11 rounded-xl ${bg} flex items-center justify-center`}
+          className={`w-8 h-8 md:w-11 md:h-11 rounded-xl ${bg} flex items-center justify-center`}
         >
-          <Icon className={`text-lg sm:text-xl ${color}`} />
+          <Icon className={`text-base md:text-xl ${color}`} />
         </div>
         {trend && (
-          <span className="text-[10px] sm:text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+          <span className="text-[9px] md:text-[11px] font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full">
             {trend}
           </span>
         )}
       </div>
       <div>
-        <p className="text-text-muted text-[11px] sm:text-sm font-medium mb-0.5 sm:mb-1 uppercase tracking-wider">{label}</p>
-        <h3 className="text-xl sm:text-2xl font-black text-text-main tabular-nums">{value}</h3>
+        <p className="text-text-muted text-[10px] md:text-sm font-medium mb-0 md:mb-1 uppercase tracking-wider">{label}</p>
+        <h3 className="text-lg md:text-2xl font-black text-text-main tabular-nums">{value}</h3>
       </div>
       <div className="mt-4 flex items-end gap-1 opacity-80">
         {sparkline.map((point, index) => (
@@ -260,9 +260,9 @@ export default function DashboardOverview() {
   ];
 
   return (
-    <div className="flex flex-col gap-6 lg:gap-8 max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 h-full overflow-y-auto custom-scrollbar">
+    <div className="flex flex-col gap-6 lg:gap-8 max-w-7xl mx-auto p-4 md:p-6 lg:p-8 h-full overflow-y-auto custom-scrollbar">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4">
+      <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-4">
         <div>
           <p className="text-brand-primary uppercase tracking-[0.2em] font-bold text-[10px] mb-1">
             {dayjs().format("dddd, MMMM D")}
@@ -277,13 +277,13 @@ export default function DashboardOverview() {
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <NextLink
             href="/journal"
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/5 text-text-muted font-bold px-4 py-2.5 rounded-xl transition-all active:scale-[0.98] text-sm"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/5 text-text-muted font-bold px-4 py-2.5 rounded-xl transition-all active:scale-[0.98] text-sm"
           >
             <FiBookOpen /> Write
           </NextLink>
           <NextLink
             href="/tasks"
-            className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primary/90 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-brand-primary/25 transition-all active:scale-[0.98] text-sm"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-brand-primary hover:bg-brand-primary/90 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-brand-primary/25 transition-all active:scale-[0.98] text-sm"
           >
             <FiPlus strokeWidth={3} /> New Task
           </NextLink>
@@ -300,7 +300,7 @@ export default function DashboardOverview() {
       </motion.div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {stats.map((stat, i) => (
           <motion.div
             key={stat.label}
@@ -315,7 +315,7 @@ export default function DashboardOverview() {
 
       {dashboardSummary ? (
         <div className="grid grid-cols-1 lg:grid-cols-[1.2fr_0.8fr] gap-4">
-          <div className="bg-surface-soft border border-brand-primary/20 rounded-2xl p-5 sm:p-6 max-sm:px-2">
+          <div className="bg-surface-soft border border-brand-primary/20 rounded-2xl p-5 md:p-6 max-sm:px-2">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary mb-3">
               AI Daily Brief
             </p>
@@ -326,7 +326,7 @@ export default function DashboardOverview() {
               {dashboardSummary.momentum}
             </p>
           </div>
-          <div className="bg-surface-soft border border-white/5 rounded-2xl p-5 sm:p-6 max-sm:px-2">
+          <div className="bg-surface-soft border border-white/5 rounded-2xl p-5 md:p-6 max-sm:px-2">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted mb-3">
               Priority Stack
             </p>
@@ -413,7 +413,7 @@ export default function DashboardOverview() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Left: Recent Notes & Goals */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 sm:p-6 max-sm:px-2">
+          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 md:p-6 max-sm:px-2">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-text-main flex items-center gap-3">
                 <FiClock className="text-brand-primary" />
@@ -427,7 +427,7 @@ export default function DashboardOverview() {
                 <FiChevronRight className="group-hover:translate-x-0.5 transition-transform" />
               </NextLink>
             </div>
-            <div className="-mx-4 flex flex-row sm:flex-col overflow-x-auto sm:overflow-x-visible gap-4 pb-4 sm:pb-0 custom-scrollbar px-4 sm:mx-0 sm:px-0">
+            <div className="-mx-4 flex flex-row md:flex-col overflow-x-auto md:overflow-x-visible gap-4 pb-4 md:pb-0 custom-scrollbar px-4 md:mx-0 md:px-0">
               {loadingNotes ? (
                 <p className="text-text-muted text-sm text-center py-4">
                   Loading notes...
@@ -448,7 +448,7 @@ export default function DashboardOverview() {
                   <NextLink
                     href={`/notes?note=${note.id}`}
                     key={note.id}
-                    className="p-4 rounded-xl bg-surface-base border border-white/5 hover:border-white/10 transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between group cursor-pointer min-w-60 sm:min-w-0 shrink-0"
+                    className="p-4 rounded-xl bg-surface-base border border-white/5 hover:border-white/10 transition-all flex flex-col md:flex-row items-start md:items-center justify-between group cursor-pointer min-w-60 md:min-w-0 shrink-0"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
@@ -481,7 +481,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Active Dreams */}
-          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 sm:p-6 max-sm:px-2">
+          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 md:p-6 max-sm:px-2">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-text-main flex items-center gap-3">
                 <FiActivity className="text-emerald-400" />
@@ -541,9 +541,9 @@ export default function DashboardOverview() {
           </div>
         </div>
 
-        {/* Right: Today's Tasks */}
+        {/* Today's Tasks */}
         <div className="flex flex-col gap-6">
-          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 sm:p-6 max-sm:px-2">
+          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 md:p-6 max-sm:px-2">
             <h2 className="text-lg font-bold text-text-main mb-6 flex items-center gap-3">
               <FiCheckSquare className="text-brand-secondary" />
               Due Today
@@ -590,7 +590,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Journal Quick Peek */}
-          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 sm:p-6 max-sm:px-2">
+          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 md:p-6 max-sm:px-2">
             <h2 className="text-lg font-bold text-text-main mb-4 flex items-center gap-3">
               <FiBookOpen className="text-amber-400" />
               Today&apos;s Journal

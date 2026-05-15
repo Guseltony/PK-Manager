@@ -74,6 +74,8 @@ export default function TaskItem({
     }
     
     // Subtask check
+
+    // Subtask check
     if (task.subtasks && task.subtasks.length > 0) {
       const incompleteSubtasks = task.subtasks.filter(s => s.status !== "done");
       if (incompleteSubtasks.length > 0) {
@@ -94,7 +96,7 @@ export default function TaskItem({
   return (
     <div
       onClick={onClick}
-      className={`group flex items-center gap-3 px-2 py-3 sm:gap-4 sm:p-4 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden ${
+      className={`group flex items-center gap-3 px-2 py-3 md:gap-4 md:p-4 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden ${
         isSelected
           ? "bg-brand-primary/5 border-brand-primary/30 shadow-xl shadow-brand-primary/5 scale-[1.02] z-10"
           : "bg-surface-soft/50 border-white/5 hover:border-white/10 hover:bg-white/5 active:scale-[0.99]"

@@ -193,15 +193,15 @@ export default function TaskListView({
   }
 
   return (
-    <div className="flex-1 px-2 py-4 sm:p-6 flex flex-col gap-2.5 max-w-4xl w-full pb-20">
-      <div className="flex items-center justify-between mb-3 px-1 sm:px-0">
+    <div className="flex-1 px-2 py-4 md:p-6 flex flex-col gap-2.5 max-w-4xl w-full pb-20">
+      <div className="flex items-center justify-between mb-3 px-1 md:px-0">
         <h2 className="text-sm font-bold uppercase tracking-widest text-text-muted/50">
           {activeFilter.replace("-", " ")} Tasks ({tasks.length})
         </h2>
         <div className="h-px flex-1 bg-white/5 mx-4" />
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-surface-soft/60 p-3 sm:p-4">
+      <div className="rounded-2xl border border-white/10 bg-surface-soft/60 p-3 md:p-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
@@ -215,7 +215,7 @@ export default function TaskListView({
             {selectedBulkIds.length} selected
           </span>
         </div>
-        <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-[1fr_1fr_0.9fr_0.9fr_0.9fr_auto]">
+        <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-[1fr_1fr_0.9fr_0.9fr_0.9fr_auto] overflow-x-auto pb-2 custom-scrollbar">
           <Select
             value={bulkDreamId || "none"}
             onValueChange={(value) => {
@@ -317,7 +317,7 @@ export default function TaskListView({
 
       {groupedTasks.map(([groupTitle, groupTasks]) => (
         <section key={groupTitle} className="space-y-3">
-          <div className="flex items-center gap-3 px-1 sm:px-0">
+          <div className="flex items-center gap-3 px-1 md:px-0">
             <div className="rounded-full border border-white/10 bg-black/20 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.18em] text-text-main">
               {groupBy === "execution" ? <FiTarget className="inline mr-1" size={8} /> : null}
               {groupBy === "smart" ? <FiLayers className="inline mr-1" size={8} /> : null}

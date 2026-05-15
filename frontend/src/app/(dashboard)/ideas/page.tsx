@@ -390,14 +390,14 @@ export default function IdeasPage() {
                 type="button"
                 onClick={handleVoiceCapture}
                 disabled={isListening}
-                className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition ${
+                className={`inline-flex items-center gap-1.5 md:gap-2 rounded-xl border px-2.5 py-2 md:px-3 text-[10px] font-black uppercase tracking-[0.18em] transition ${
                   isListening
                     ? "border-rose-400/20 bg-rose-500/10 text-rose-200"
                     : "border-white/10 bg-white/5 text-text-main hover:bg-white/10"
                 }`}
               >
                 <FiMic className={isListening ? "animate-pulse" : ""} />
-                {isListening ? "Listening..." : "Voice"}
+                <span className="hidden md:inline">{isListening ? "Listening..." : "Voice"}</span>
               </button>
               <span className="text-[10px] text-brand-primary/60 font-medium tracking-tighter items-center gap-1 hidden sm:flex">
                 <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 uppercase">
@@ -409,13 +409,14 @@ export default function IdeasPage() {
             <button
               onClick={handleSubmit}
               disabled={(!title.trim() && !description.trim()) || isCreating}
-              className="px-6 py-2 rounded-xl bg-brand-primary text-black font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 shadow-[0_0_20px_rgba(var(--brand-primary-rgb),0.3)] flex items-center gap-2"
+              className="px-3 md:px-6 py-2 rounded-xl bg-brand-primary text-black font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 shadow-[0_0_20px_rgba(var(--brand-primary-rgb),0.3)] flex items-center gap-1.5 md:gap-2"
             >
               {isCreating ? (
                 <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
               ) : (
                 <>
-                  <FiSend /> Capture
+                  <FiSend />
+                  <span className="hidden md:inline">Capture</span>
                 </>
               )}
             </button>

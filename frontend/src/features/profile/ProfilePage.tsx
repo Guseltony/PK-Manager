@@ -92,7 +92,7 @@ function ProfileIdentity({ user }: { user: User }) {
           Identity Layer
         </h2>
       </div>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:gap-4">
         <ProfileField label="Name" value={user.name} />
         <ProfileField label="Email" value={user.email} />
         <ProfileField label="Username" value={user.username || "Not set yet"} />
@@ -146,7 +146,7 @@ function SystemProfile({ user }: { user: User }) {
         This is the user-level behavior layer shaping how the platform routes,
         links, prioritizes, and surfaces work for you.
       </p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3">
         <SystemPill label="AI Strictness" value={user.settings?.aiStrictness || "Default"} />
         <SystemPill
           label="AI Proactiveness"
@@ -161,7 +161,7 @@ function SystemProfile({ user }: { user: User }) {
           value={`${user._count?.session || 0} saved`}
         />
       </div>
-      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+      <div className="mt-4 grid grid-cols-2 gap-2">
         {switches.map((item) => (
           <div
             key={item.label}
@@ -214,20 +214,24 @@ function ExecutionProfile({ stats }: { stats: UserStats }) {
           Execution Profile
         </h2>
       </div>
-      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+      <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3">
         {executionCards.map((item) => (
           <div
             key={item.label}
-            className="rounded-2xl border border-white/10 bg-black/20 p-4"
+            className="rounded-2xl border border-white/10 bg-black/20 p-3 sm:p-4"
           >
-            <div className="flex items-center gap-2 text-brand-primary">
+            <div className="flex items-center gap-1.5 text-brand-primary">
               {item.icon}
-              <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
+              <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
                 {item.label}
               </p>
             </div>
-            <p className="mt-3 text-2xl font-extrabold text-white">{item.value}</p>
-            <p className="mt-1 text-xs leading-5 text-text-muted">{item.detail}</p>
+            <p className="mt-2 text-xl sm:text-2xl font-extrabold text-white">
+              {item.value}
+            </p>
+            <p className="mt-0.5 text-[9px] sm:text-xs leading-4 sm:leading-5 text-text-muted">
+              {item.detail}
+            </p>
           </div>
         ))}
       </div>
