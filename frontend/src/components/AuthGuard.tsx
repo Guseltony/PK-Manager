@@ -10,6 +10,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const checkAuth = async () => {
+      // Small delay to ensure cookies set by the OAuth exchange
+      // have been registered in the browser before we call /user/get.
+      await new Promise((r) => setTimeout(r, 150));
       try {
         const res = await api.get("/user/get");
         if (!res.data) {
