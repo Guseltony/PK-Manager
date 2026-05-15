@@ -11,13 +11,19 @@ function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState("Starting authentication...");
 
   useEffect(() => {
     const code = searchParams.get("code");
     const state = searchParams.get("state");
 
+    console.log("[AUTH CALLBACK] code:", code ? "present" : "MISSING");
+    console.log("[AUTH CALLBACK] state:", state ? "present" : "MISSING");
+    console.log("[AUTH CALLBACK] NODE_ENV:", process.env.NODE_ENV);
+    console.log("[AUTH CALLBACK] BACKEND_URL:", BACKEND_URL);
+
     if (!code || !state) {
-      setError("Missing authorization code or state.");
+      setError("Missing authorization code or state. Google may have rejected the request.");
       return;
     }
 
@@ -26,10 +32,19 @@ function AuthCallbackContent() {
         const storedState = localStorage.getItem("oauth_state");
         localStorage.removeItem("oauth_state");
 
-        // Resolve proxy URL here, inside the effect, where window is always defined
-        const proxyUrl = process.env.NODE_ENV === "development" ? "/local-api" : BACKEND_URL;
+        console.log("[AUTH CALLBACK] storedState from localStorage:", storedState ? "present" : "MISSING/NULL");
+        console.log("[AUTH CALLBACK] state match:", state === storedState);
 
-        const res = await fetch(`${proxyUrl}/auth/google/exchange`, {
+        // Always use /local-api in dev — resolved inside the effect where window is defined
+        const isDev = process.env.NODE_ENV === "development";
+        const proxyUrl = isDev ? "/local-api" : BACKEND_URL;
+        const exchangeUrl = `${proxyUrl}/auth/google/exchange`;
+
+        console.log("[AUTH CALLBACK] isDev:", isDev);
+        console.log("[AUTH CALLBACK] Fetching:", exchangeUrl);
+        setStatus("Exchanging code with server...");
+
+        const res = await fetch(exchangeUrl, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
@@ -41,21 +56,29 @@ function AuthCallbackContent() {
           }),
         });
 
+        console.log("[AUTH CALLBACK] Exchange response status:", res.status);
+
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
-          throw new Error(data.message || data.error || "Failed to exchange code");
+          console.error("[AUTH CALLBACK] Exchange failed:", data);
+          throw new Error(data.message || data.error || `Server returned ${res.status}`);
         }
 
-        const { data } = await res.json();
-        if (data.csrfToken) {
+        const body = await res.json();
+        console.log("[AUTH CALLBACK] Exchange success. Keys:", Object.keys(body));
+        const { data } = body;
+
+        if (data?.csrfToken) {
           setManualCsrfToken(data.csrfToken);
+          console.log("[AUTH CALLBACK] CSRF token stored");
         }
 
-        // Successfully authenticated, go to dashboard
+        setStatus("Redirecting to dashboard...");
+        console.log("[AUTH CALLBACK] Navigating to /dashboard");
         router.push("/dashboard");
       } catch (err) {
-        console.error("Auth exchange error:", err);
-        setError(err instanceof Error ? err.message : "An error occurred during sign-in.");
+        console.error("[AUTH CALLBACK] Error:", err);
+        setError(err instanceof Error ? err.message : "An unexpected error occurred.");
       }
     };
 
@@ -72,7 +95,8 @@ function AuthCallbackContent() {
             </svg>
           </div>
           <h1 className="mb-2 text-2xl font-bold text-text-main">Authentication Failed</h1>
-          <p className="mb-8 text-text-muted">{error}</p>
+          <p className="mb-4 text-text-muted">{error}</p>
+          <p className="mb-8 text-xs text-text-muted/60">Open browser DevTools (F12 → Console) and share the [AUTH CALLBACK] logs for more details.</p>
           <button
             onClick={() => router.push("/sign-in")}
             className="w-full rounded-xl bg-brand-primary py-4 font-bold text-white shadow-lg shadow-brand-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
@@ -87,11 +111,8 @@ function AuthCallbackContent() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-surface-base">
       <div className="relative mb-8">
-        {/* Animated Rings */}
         <div className="absolute inset-0 -m-4 animate-ping rounded-full border-2 border-brand-primary/20 opacity-75" />
         <div className="absolute inset-0 -m-8 animate-pulse rounded-full border-2 border-brand-primary/10 opacity-50" />
-        
-        {/* Logo Container */}
         <div className="relative h-24 w-24 overflow-hidden rounded-2xl bg-surface-soft p-4 shadow-2xl ring-1 ring-white/10">
            <Image
             src="/icon.png"
@@ -110,7 +131,7 @@ function AuthCallbackContent() {
           <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand-primary [animation-delay:-0.15s]" />
           <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand-primary" />
         </div>
-        <p className="mt-4 text-sm font-medium text-text-muted">Securely connecting your account...</p>
+        <p className="mt-4 text-sm font-medium text-text-muted">{status}</p>
       </div>
     </div>
   );
