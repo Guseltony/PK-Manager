@@ -6,9 +6,7 @@ import { AuthActionResult } from "@/src/type/type";
 import { loginSchema, registerSchema } from "./schema";
 import { BACKEND_URL } from "@/src/constants/constants";
 
-const PROXY_URL = process.env.NODE_ENV === "development" && typeof window !== "undefined" 
-  ? "/local-api" 
-  : BACKEND_URL;
+
 
 export async function registerAction(
   formData: FormData,
@@ -35,7 +33,8 @@ export async function registerAction(
   }
 
   try {
-    const res = await fetch(`${PROXY_URL}/auth/register`, {
+    const proxyUrl = process.env.NODE_ENV === "development" ? "/local-api" : BACKEND_URL;
+    const res = await fetch(`${proxyUrl}/auth/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: `${firstName} ${lastName}`, email, password }),
@@ -79,7 +78,8 @@ export async function loginAction(
   }
 
   try {
-    const res = await fetch(`${PROXY_URL}/auth/login`, {
+    const proxyUrl = process.env.NODE_ENV === "development" ? "/local-api" : BACKEND_URL;
+    const res = await fetch(`${proxyUrl}/auth/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -103,7 +103,8 @@ export async function loginAction(
 
 export async function logOutAction(): Promise<AuthActionResult> {
   try {
-    const res = await fetch(`${PROXY_URL}/auth/logout`, {
+    const proxyUrl = process.env.NODE_ENV === "development" ? "/local-api" : BACKEND_URL;
+    const res = await fetch(`${proxyUrl}/auth/logout`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

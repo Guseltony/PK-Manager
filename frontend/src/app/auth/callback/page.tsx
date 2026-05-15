@@ -5,9 +5,6 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { BACKEND_URL } from "@/src/constants/constants";
 import { setManualCsrfToken } from "@/src/libs/api";
 
-const PROXY_URL = process.env.NODE_ENV === "development" && typeof window !== "undefined" 
-  ? "/local-api" 
-  : BACKEND_URL;
 import Image from "next/image";
 
 function AuthCallbackContent() {
@@ -29,7 +26,10 @@ function AuthCallbackContent() {
         const storedState = localStorage.getItem("oauth_state");
         localStorage.removeItem("oauth_state");
 
-        const res = await fetch(`${PROXY_URL}/auth/google/exchange`, {
+        // Resolve proxy URL here, inside the effect, where window is always defined
+        const proxyUrl = process.env.NODE_ENV === "development" ? "/local-api" : BACKEND_URL;
+
+        const res = await fetch(`${proxyUrl}/auth/google/exchange`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           credentials: "include",
