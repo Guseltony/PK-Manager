@@ -84,8 +84,9 @@ export async function proxy(req: NextRequest) {
     path !== "/" &&
     path !== "/sign-in" &&
     path !== "/onboarding" &&
+    !path.startsWith("/auth/") &&   // Allow /auth/callback and all OAuth routes
     !path.startsWith("/api/") &&
-    !path.includes(".") 
+    !path.includes(".")
   ) {
     return NextResponse.redirect(new URL("/sign-in", req.url));
   }
