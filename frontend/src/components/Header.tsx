@@ -19,6 +19,9 @@ const Header = ({ auth }: { auth: AuthResult }) => {
           <Image
             src="/pkmlogo.png"
             alt="PKM"
+            width={32}
+            height={32}
+            priority
             className="h-8 w-8 rounded-lg object-cover"
           />
         </Link>

@@ -145,7 +145,7 @@ export default function SignInForm() {
     <div className="w-full rounded-2xl border border-white/5 bg-surface-soft p-8 shadow-2xl shadow-black/40">
       {/* Brand Header */}
       <div className="mb-8 flex flex-col items-center gap-3">
-        <Image src="/pkmlogo.png" alt="PKM Logo" width={60} height={60} className="w-16 h-16 object-cover" />
+        <Image src="/pkmlogo.png" alt="PKM Logo" width={60} height={60} priority className="w-16 h-16 object-cover" />
         <div className="text-center">
           <h1 className="text-2xl font-display font-bold text-text-main">
             {isLogin ? "Welcome back" : "Create account"}

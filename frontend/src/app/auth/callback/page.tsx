@@ -119,6 +119,7 @@ function AuthCallbackContent() {
             alt="PKM Logo"
             width={96}
             height={96}
+            priority
             className="h-full w-full object-contain"
           />
         </div>
