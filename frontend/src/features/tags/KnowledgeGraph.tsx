@@ -89,7 +89,7 @@ export default function KnowledgeGraph({ tag }: KnowledgeGraphProps) {
   };
 
   return (
-    <div className="relative w-full h-[600px] bg-surface-soft/20 rounded-3xl border border-white/5 overflow-hidden backdrop-blur-sm group">
+    <div className="relative w-full h-[600px] bg-surface-soft/20 rounded-3xl border border-border overflow-hidden backdrop-blur-sm group">
       <div className="absolute top-6 left-6 z-10">
         <h3 className="text-xs font-black uppercase tracking-[0.2em] text-text-muted flex items-center gap-2">
            <FiActivity size={14} className="text-brand-primary" /> Neural Knowledge Map

@@ -95,7 +95,7 @@ export default function SettingsPage() {
     return (
       <div className="mx-auto max-w-7xl space-y-6 px-4 py-6 md:px-6">
         {Array.from({ length: 4 }).map((_, index) => (
-          <div key={index} className="h-40 animate-pulse rounded-[28px] border border-white/10 bg-surface-soft" />
+          <div key={index} className="h-40 animate-pulse rounded-[28px] border border-border bg-surface-soft" />
         ))}
       </div>
     );
@@ -103,7 +103,7 @@ export default function SettingsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 md:px-6">
-      <section className="overflow-hidden rounded-[32px] border border-white/10 bg-surface-soft shadow-2xl">
+      <section className="overflow-hidden rounded-[32px] border border-border bg-surface-soft shadow-2xl">
         <div className="bg-linear-to-r from-brand-primary/18 via-transparent to-emerald-400/15 px-6 py-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
@@ -352,7 +352,7 @@ export default function SettingsPage() {
         </SettingsCard>
       </div>
 
-      <section className="rounded-[28px] border border-white/10 bg-surface-soft p-6">
+      <section className="rounded-[28px] border border-border bg-surface-soft p-6">
         <div className="flex items-center gap-3">
           <div className="rounded-2xl bg-brand-primary/15 p-3 text-brand-primary">
             <FiSettings />
@@ -391,7 +391,7 @@ function SettingsCard({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-[28px] border border-white/10 bg-surface-soft p-6">
+    <section className="rounded-[28px] border border-border bg-surface-soft p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-primary">{eyebrow}</p>
@@ -419,19 +419,19 @@ function SelectField({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="block rounded-2xl border border-white/10 bg-black/20 p-4">
+    <div className="block rounded-2xl border border-border bg-surface-mutes/20 p-4">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">{label}</p>
       <div className="mt-3">
         <Select
           value={value}
           onValueChange={onChange}
         >
-          <SelectTrigger className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-6 text-sm text-white outline-none transition focus:border-brand-primary/30">
+          <SelectTrigger className="w-full rounded-2xl border border-border bg-surface-mutes/50 px-4 py-6 text-sm text-white outline-none transition focus:border-brand-primary/30">
             <SelectValue placeholder={`Select ${label}`} />
           </SelectTrigger>
-          <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
+          <SelectContent className="rounded-xl border border-border bg-surface-soft text-white">
             {options.map((option) => (
-              <SelectItem key={option} value={option} className="rounded-lg hover:bg-white/5 focus:bg-white/10">
+              <SelectItem key={option} value={option} className="rounded-lg hover:bg-surface-mutes/50 focus:bg-white/10">
                 {option.replaceAll("_", " ")}
               </SelectItem>
             ))}
@@ -455,7 +455,7 @@ function ToggleField({
     <button
       type="button"
       onClick={onToggle}
-      className="flex w-full items-center justify-between rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-left transition hover:border-brand-primary/20"
+      className="flex w-full items-center justify-between rounded-2xl border border-border bg-surface-mutes/20 px-4 py-4 text-left transition hover:border-brand-primary/20"
     >
       <div>
         <p className="text-sm font-bold text-white">{label}</p>
@@ -489,7 +489,7 @@ function ActionButton({
       className={`inline-flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-bold transition disabled:opacity-50 ${
         tone === "primary"
           ? "bg-brand-primary text-white hover:brightness-110"
-          : "border border-white/10 bg-black/20 text-white hover:bg-white/10"
+          : "border border-border bg-surface-mutes/20 text-white hover:bg-white/10"
       }`}
     >
       {disabled ? <FiLoader className="animate-spin" /> : <Icon />}
