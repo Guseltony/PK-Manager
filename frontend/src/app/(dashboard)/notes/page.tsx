@@ -23,7 +23,7 @@ export default function NotesPage() {
   const isEditing = !!selectedNoteId || isCreating;
 
   return (
-    <div className="flex h-[calc(100vh-64px)] min-h-0 overflow-hidden rounded-none md:rounded-3xl border-0 md:border border-white/5 bg-surface-base sm:shadow-2xl">
+    <div className="flex h-[calc(100vh-64px)] min-h-0 overflow-hidden rounded-none md:rounded-3xl border-0 md:border border-border bg-surface-base sm:shadow-2xl">
       <div className={`h-full min-h-0 w-full md:w-80 shrink-0 ${isEditing ? "hidden md:block" : "block"}`}>
         <NoteList />
       </div>

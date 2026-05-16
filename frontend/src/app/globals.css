@@ -227,14 +227,14 @@ textarea {
 /* --- Premium Markdown Preview (Prose) --- */
 @layer utilities {
   .prose {
-    --tw-prose-body: rgba(248, 250, 252, 0.8) !important;
-    --tw-prose-headings: #f8fafc !important;
-    --tw-prose-links: #6366f1 !important;
-    --tw-prose-bold: #f8fafc !important;
-    --tw-prose-bullets: #6366f1 !important;
-    --tw-prose-hr: rgba(255, 255, 255, 0.08) !important;
-    --tw-prose-quotes: #94a3b8 !important;
-    --tw-prose-quote-borders: #6366f1 !important;
+    --tw-prose-body: var(--text-muted) !important;
+    --tw-prose-headings: var(--text-main) !important;
+    --tw-prose-links: var(--color-brand-primary) !important;
+    --tw-prose-bold: var(--text-main) !important;
+    --tw-prose-bullets: var(--color-brand-primary) !important;
+    --tw-prose-hr: var(--border) !important;
+    --tw-prose-quotes: var(--text-muted) !important;
+    --tw-prose-quote-borders: var(--color-brand-primary) !important;
     max-width: none !important;
   }
 
@@ -244,7 +244,7 @@ textarea {
     margin-bottom: 1rem !important;
     font-weight: 800 !important;
     letter-spacing: -0.025em !important;
-    border-bottom: 2px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 2px solid var(--border);
     padding-bottom: 0.5rem;
   }
 
@@ -254,7 +254,7 @@ textarea {
     margin-bottom: 0.75rem !important;
     font-weight: 700 !important;
     padding-bottom: 0.25rem;
-    color: #f8fafc !important;
+    color: var(--text-main) !important;
   }
 
   .prose h3 {

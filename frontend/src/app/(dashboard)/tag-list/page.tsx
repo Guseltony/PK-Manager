@@ -8,7 +8,7 @@ export default function TagListPage() {
   const { selectedTagId } = useTagsStore();
 
   return (
-    <div className="flex h-[calc(100vh-64px)] overflow-hidden rounded-none md:rounded-3xl border-0 md:border border-white/5 bg-surface-base sm:shadow-2xl">
+    <div className="flex h-[calc(100vh-64px)] overflow-hidden rounded-none md:rounded-3xl border-0 md:border border-border bg-surface-base sm:shadow-2xl">
       <div className={`h-full w-full md:w-80 shrink-0 ${selectedTagId ? "hidden md:block" : "block"}`}>
         <TagList />
       </div>
