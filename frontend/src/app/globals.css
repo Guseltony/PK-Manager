@@ -13,15 +13,20 @@
   --color-brand-secondary: #8b5cf6;
   --color-brand-accent: #f43f5e;
 
-  --color-surface-base: #0f1115;
-  --color-surface-soft: #131720;
-  --color-surface-mutes: #1c212c;
+  --color-surface-base: var(--surface-base);
+  --color-surface-soft: var(--surface-soft);
+  --color-surface-mutes: var(--surface-mutes);
 
-  --color-text-main: #f8fafc;
-  --color-text-muted: #94a3b8;
+  --color-text-main: var(--text-main);
+  --color-text-muted: var(--text-muted);
 }
 
 :root {
+  --surface-base: #f8fafc;
+  --surface-soft: #f1f5f9;
+  --surface-mutes: #e2e8f0;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
   /* Font variables used by @theme and utilities. */
   --font-plus-jakarta: "Plus Jakarta Sans";
   --font-outfit: "Outfit";
@@ -98,27 +103,20 @@ textarea {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-mutes);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.2);
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.05) !important;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.3) !important;
+  background: var(--color-brand-primary);
+  opacity: 0.5;
 }
 
 .glass {
-  background: rgba(19, 23, 32, 0.7);
+  background: color-mix(in srgb, var(--surface-base) 70%, transparent);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border);
 }
 
 .card-hover {
@@ -127,8 +125,8 @@ textarea {
 
 .card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  border-color: rgba(99, 102, 241, 0.3);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+  border-color: color-mix(in srgb, var(--color-brand-primary) 30%, transparent);
 }
 
 @theme inline {
@@ -176,6 +174,11 @@ textarea {
 }
 
 .dark {
+  --surface-base: #0f1115;
+  --surface-soft: #131720;
+  --surface-mutes: #1c212c;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
