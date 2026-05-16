@@ -90,8 +90,10 @@ export default function TasksPageContent() {
   }).length;
   const focusMinutesToday = getTodayFocusMinutesForTasks(allTasks);
 
+  const mainContainerClass = `flex-1 flex flex-col relative  ${selectedTaskId ? "hidden md:flex" : "flex"}`;
+
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-surface-base relative pb-16 md:pb-0">
+    <div className="flex flex-col overflow-hidden bg-surface-base relative pb-16 md:pb-0">
       {/* Top Filter Tabs - Ledger Style */}
       <div className="w-full bg-surface-soft border-b border-white/5 px-4 md:px-8 py-2 shrink-0 overflow-x-auto custom-scrollbar">
         <div className="flex items-center gap-2 min-w-max">
@@ -126,121 +128,101 @@ export default function TasksPageContent() {
         </div>
       </div>
 
-      <div className="flex flex-1 overflow-hidden relative">
+      <div className="flex flex-1 flex-col overflow-hidden relative">
         {/* Main Engine: Execution Layer */}
-        <div
-          className={`flex-1 flex flex-col relative ${selectedTaskId ? "hidden md:flex" : "flex"}`}
-        >
-          <div className="px-3 py-2 md:px-8 md:py-3 border-b border-white/5 space-y-1 md:space-y-2 shrink-0 overflow-hidden">
-            <div className="relative group min-w-0">
-              <div className="flex items-center overflow-x-auto custom-scrollbar gap-2 pb-2 md:pb-0 md:grid md:grid-cols-3 xl:grid-cols-6 md:gap-2 scroll-smooth w-full shrink-0">
-                <div className="flex-none w-28 md:w-auto">
-                  <TaskOverviewCard
-                    label="Today"
-                    value={String(dueTodayCount)}
-                    icon={<FiClock size={10} className="md:size-3" />}
-                  />
-                </div>
-                <div className="flex-none w-28 md:w-auto">
-                  <TaskOverviewCard
-                    label="Carryover"
-                    value={String(carryoverCount)}
-                    icon={<FiCornerDownRight size={10} className="md:size-3" />}
-                    tone="warm"
-                  />
-                </div>
-                <div className="flex-none w-28 md:w-auto">
-                  <TaskOverviewCard
-                    label="Overdue"
-                    value={String(overdueCount)}
-                    icon={<FiAlertCircle size={10} className="md:size-3" />}
-                    tone="danger"
-                  />
-                </div>
-                <div className="flex-none w-28 md:w-auto">
-                  <TaskOverviewCard
-                    label="In Motion"
-                    value={String(inProgressCount)}
-                    icon={<FiTrendingUp size={10} className="md:size-3" />}
-                    tone="warm"
-                  />
-                </div>
-                <div className="flex-none w-28 md:w-auto">
-                  <TaskOverviewCard
-                    label="Blocked"
-                    value={String(blockedCount)}
-                    icon={<FiTarget size={10} className="md:size-3" />}
-                    tone="danger"
-                  />
-                </div>
-                <div className="flex-none w-28 md:w-auto">
-                  <TaskOverviewCard
-                    label="Focus"
-                    value={`${focusMinutesToday}m`}
-                    icon={<FiZap size={10} className="md:size-3" />}
-                    tone="brand"
-                  />
-                </div>
+        <div className={mainContainerClass}>
+          <div className="px-3 py-2 md:px-8 md:py-3 border-b border-white/5 space-y-1 md:space-y-2 shrink-0">
+            <div className="relative group">
+              <div className="grid grid-cols-3 md:grid-cols-3 xl:grid-cols-6 gap-2">
+                <TaskOverviewCard
+                  label="Today"
+                  value={String(dueTodayCount)}
+                  icon={<FiClock size={10} className="md:size-3" />}
+                />
+                <TaskOverviewCard
+                  label="Carryover"
+                  value={String(carryoverCount)}
+                  icon={<FiCornerDownRight size={10} className="md:size-3" />}
+                  tone="warm"
+                />
+                <TaskOverviewCard
+                  label="Overdue"
+                  value={String(overdueCount)}
+                  icon={<FiAlertCircle size={10} className="md:size-3" />}
+                  tone="danger"
+                />
+                <TaskOverviewCard
+                  label="In Motion"
+                  value={String(inProgressCount)}
+                  icon={<FiTrendingUp size={10} className="md:size-3" />}
+                  tone="warm"
+                />
+                <TaskOverviewCard
+                  label="Blocked"
+                  value={String(blockedCount)}
+                  icon={<FiTarget size={10} className="md:size-3" />}
+                  tone="danger"
+                />
+                <TaskOverviewCard
+                  label="Focus"
+                  value={`${focusMinutesToday}m`}
+                  icon={<FiZap size={10} className="md:size-3" />}
+                  tone="brand"
+                />
               </div>
-              {/* Horizontal scroll shadow indicator */}
-              <div className="md:hidden absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-surface-base to-transparent pointer-events-none" />
             </div>
+          </div>
 
-            <div className="flex items-center md:justify-between gap-2">
-              <div className="flex items-center gap-0.5 md:gap-1 rounded-xl border border-white/10 bg-white/5 p-0.5 overflow-x-auto custom-scrollbar max-w-[calc(100%-80px)] md:max-w-none">
-                {[
-                  { id: "smart", label: "Smart" },
-                  { id: "dream", label: "Dream" },
-                  { id: "priority", label: "Priority" },
-                  { id: "execution", label: "Execution" },
-                ].map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() =>
-                      setGroupBy(
-                        option.id as
-                          | "smart"
-                          | "dream"
-                          | "priority"
-                          | "execution",
-                      )
-                    }
-                    className={`rounded-lg px-2 py-1 md:px-2.5 text-[7px] md:text-[8px] font-black uppercase tracking-widest md:tracking-[0.18em] transition whitespace-nowrap ${
-                      groupBy === option.id
-                        ? "bg-brand-primary text-white"
-                        : "text-text-muted hover:text-text-main"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-              <div className="inline-flex items-center gap-1 md:gap-1.5 rounded-xl border border-white/10 bg-black/20 px-1.5 md:px-2.5 py-1 text-[7px] md:text-[8px] font-black uppercase tracking-widest md:tracking-[0.18em] text-text-main shrink-0">
-                <FiLayers size={10} className="text-brand-primary" />
-                <span>Execution view</span>
-              </div>
+          <div className="flex items-center md:justify-between gap-2 px-4 md:px-8 ">
+            <div className="flex items-center gap-0.5 md:gap-1 rounded-xl border border-white/10 bg-white/5 p-0.5 overflow-x-auto custom-scrollbar max-w-[calc(100%-80px)] md:max-w-none">
+              {[
+                { id: "smart", label: "Smart" },
+                { id: "dream", label: "Dream" },
+                { id: "priority", label: "Priority" },
+                { id: "execution", label: "Execution" },
+              ].map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() =>
+                    setGroupBy(
+                      option.id as "smart" | "dream" | "priority" | "execution",
+                    )
+                  }
+                  className={`rounded-lg px-2 py-1 md:px-2.5 text-[7px] md:text-[8px] font-black uppercase tracking-widest md:tracking-[0.18em] transition whitespace-nowrap ${
+                    groupBy === option.id
+                      ? "bg-brand-primary text-white"
+                      : "text-text-muted hover:text-text-main"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
-            <TaskQuickAdd />
+            <div className="inline-flex items-center gap-1 md:gap-1.5 rounded-xl border border-white/10 bg-black/20 px-1.5 md:px-2.5 py-1 text-[7px] md:text-[8px] font-black uppercase tracking-widest md:tracking-[0.18em] text-text-main shrink-0">
+              <FiLayers size={10} className="text-brand-primary" />
+              <span>Execution view</span>
+            </div>
           </div>
-          <div className="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-8 py-2">
-            <TaskListView
-              activeFilter={filter}
-              groupBy={groupBy}
-              selectedTaskId={selectedTaskId}
-              onTaskSelect={setSelectedTaskId}
-            />
-          </div>
+          <TaskQuickAdd />
         </div>
-
-        {/* Right Layer: Deep Context & Analytics */}
-        {selectedTaskId && (
-          <TaskDetailView
-            taskId={selectedTaskId}
-            onClose={() => setSelectedTaskId(null)}
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-8 py-2">
+          <TaskListView
+            activeFilter={filter}
+            groupBy={groupBy}
+            selectedTaskId={selectedTaskId}
+            onTaskSelect={setSelectedTaskId}
           />
-        )}
+        </div>
       </div>
+
+      {/* Right Layer: Deep Context & Analytics */}
+      {selectedTaskId && (
+        <TaskDetailView
+          taskId={selectedTaskId}
+          onClose={() => setSelectedTaskId(null)}
+        />
+      )}
     </div>
   );
 }
