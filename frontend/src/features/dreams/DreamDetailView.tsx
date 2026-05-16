@@ -571,7 +571,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                 <span className="px-3 py-1 rounded-xl border border-brand-primary/30 bg-brand-primary/5 text-brand-primary text-[10px] font-black uppercase tracking-widest">
                   {dream.category || "Inception"}
                 </span>
-                <span className="px-3 py-1 rounded-xl border border-white/10 bg-white/5 text-text-muted text-[10px] font-black uppercase tracking-widest">
+                <span className="px-3 py-1 rounded-xl border border-border bg-surface-mutes/50 text-text-muted text-[10px] font-black uppercase tracking-widest">
                   {dream.priority} PRIORITY
                 </span>
                 <div className="flex gap-2">
@@ -625,7 +625,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
           </div>
 
           {/* Progress Orbital Card */}
-          <div className="glass p-6 sm:p-8 rounded-[3rem] border border-white/5 flex flex-col items-center justify-center text-center relative overflow-hidden group">
+          <div className="glass p-6 sm:p-8 rounded-[3rem] border border-border flex flex-col items-center justify-center text-center relative overflow-hidden group">
             <div className="absolute inset-0 bg-brand-primary/5 blur-3xl rounded-full scale-150 group-hover:bg-brand-primary/10 transition-colors" />
             <div className="relative z-10">
               <div className="mb-6 relative inline-block">
@@ -679,7 +679,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
 
         {/* Dynamic Navigation */}
         {/* Dynamic Navigation */}
-        <div className="flex items-center gap-2 mb-8 bg-white/5 p-1.5 rounded-xl w-full sm:w-fit border border-white/5 overflow-x-auto custom-scrollbar">
+        <div className="flex items-center gap-2 mb-8 bg-surface-mutes/50 p-1.5 rounded-xl w-full sm:w-fit border border-border overflow-x-auto custom-scrollbar">
           <TabButton
             id="execution"
             label="Execution"
@@ -777,7 +777,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                               })
                             }
                             disabled={isCreatingSuggestedTasks}
-                            className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+                            className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-text-main transition hover:bg-surface-mutes/30 disabled:opacity-50"
                           >
                             {isCreatingSuggestedTasks
                               ? "Saving..."
@@ -785,7 +785,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                           </button>
                         ) : null}
                       </div>
-                      <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                      <div className="mt-4 rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3">
                         <p className="text-[10px] font-black uppercase tracking-[0.18em] text-amber-200">
                           Execution rule
                         </p>
@@ -798,7 +798,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                           {intelligence.suggestedTasks.map((task, index) => (
                             <div
                               key={`${task.title}-${index}`}
-                              className="rounded-xl border border-white/10 bg-black/20 px-4 py-3"
+                              className="rounded-xl border border-border bg-surface-mutes/20 px-4 py-3"
                             >
                               <p className="text-sm font-bold text-text-main">
                                 {task.title}
@@ -831,7 +831,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                           <button
                             onClick={handleCreateSuggestedMilestones}
                             disabled={isAddingMilestone}
-                            className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+                            className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-text-main transition hover:bg-surface-mutes/30 disabled:opacity-50"
                           >
                             {isAddingMilestone
                               ? "Saving..."
@@ -845,7 +845,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                             (milestone, index) => (
                               <div
                                 key={`${milestone.title}-${index}`}
-                                className="rounded-xl border border-white/10 bg-black/20 px-4 py-3"
+                                className="rounded-xl border border-border bg-surface-mutes/20 px-4 py-3"
                               >
                                 <p className="text-sm font-bold text-text-main">
                                   {milestone.title}
@@ -872,13 +872,13 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                     {dream.tasks.map((task) => (
                       <div
                         key={task.id}
-                        className="relative flex items-center gap-3 overflow-hidden rounded-xl border border-white/5 bg-white/5 p-3.5 sm:gap-4 sm:p-5 hover:border-white/10 transition-all group"
+                        className="relative flex items-center gap-3 overflow-hidden rounded-xl border border-border bg-surface-mutes/50 p-3.5 sm:gap-4 sm:p-5 hover:border-border transition-all group"
                       >
                         <div
                           className={`absolute top-0 left-0 bottom-0 w-1 transition-all ${task.status === "done" ? "bg-emerald-500" : "bg-amber-500"}`}
                         />
                         <div
-                          className={`rounded-xl bg-white/5 p-1.5 sm:p-2 ${task.status === "done" ? "text-emerald-500" : "text-amber-500"}`}
+                          className={`rounded-xl bg-surface-mutes/50 p-1.5 sm:p-2 ${task.status === "done" ? "text-emerald-500" : "text-amber-500"}`}
                         >
                           {task.status === "done" ? (
                             <FiCheckCircle />
@@ -906,7 +906,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                                 </span>
                               ))
                             ) : (
-                              <span className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-text-muted sm:text-[10px]">
+                              <span className="rounded-full border border-border bg-surface-mutes/20 px-2 py-1 text-[9px] font-black uppercase tracking-[0.14em] text-text-muted sm:text-[10px]">
                                 Unmapped execution
                               </span>
                             )}
@@ -929,7 +929,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                             setSelectedTaskConversionId(task.id);
                             setShowTaskConversionPrompt(true);
                           }}
-                          className="rounded-xl border border-white/10 bg-black/20 px-2 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] text-text-main transition hover:bg-black/30 sm:px-2.5 sm:py-2 sm:text-[10px]"
+                          className="rounded-xl border border-border bg-surface-mutes/20 px-2 py-1.5 text-[9px] font-black uppercase tracking-[0.16em] text-text-main transition hover:bg-surface-mutes/30 sm:px-2.5 sm:py-2 sm:text-[10px]"
                         >
                           To milestone
                         </button>
@@ -937,7 +937,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                     ))}
                   </div>
                 ) : (
-                  <div className="py-20 text-center glass rounded-xl border border-dashed border-white/10">
+                  <div className="py-20 text-center glass rounded-xl border border-dashed border-border">
                     <p className="text-text-muted text-sm italic">
                       No tasks currently linked to this mission orbit.
                     </p>
@@ -948,7 +948,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
 
             {activeTab === "milestones" && (
               <div className="space-y-6">
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-4 sm:p-5">
+                <div className="rounded-3xl border border-border bg-surface-mutes/50 p-4 sm:p-5">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary">
                     Milestone rule
                   </p>
@@ -968,7 +968,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                   isDeleting={isDeletingMilestone}
                 />
                 {(dream.milestones || []).length ? (
-                  <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                  <div className="rounded-3xl border border-border bg-surface-mutes/50 p-5">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary">
                       Safe Conversion
                     </p>
@@ -980,7 +980,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                       {(dream.milestones || []).map((milestone) => (
                         <div
                           key={milestone.id}
-                          className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
+                          className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3"
                         >
                           <div>
                             <p className="text-sm font-bold text-text-main">
@@ -998,7 +998,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                               setSelectedMilestoneConversionId(milestone.id);
                               setShowMilestoneConversionPrompt(true);
                             }}
-                            className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
+                            className="rounded-xl border border-border bg-surface-mutes/50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
                           >
                             To task
                           </button>
@@ -1015,7 +1015,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                 <h3 className="text-xl font-bold text-text-main px-1">
                   Linked Knowledge Nodes
                 </h3>
-                <div className="rounded-3xl border border-white/10 bg-white/5 p-4 sm:p-5">
+                <div className="rounded-3xl border border-border bg-surface-mutes/50 p-4 sm:p-5">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary">
                     Knowledge rule
                   </p>
@@ -1029,7 +1029,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                       <Link
                         key={note.id}
                         href={`/notes/${note.id}`}
-                        className="rounded-3xl bg-white/5 border border-white/5 p-4 sm:p-6 hover:border-brand-primary/20 transition-all group"
+                        className="rounded-3xl bg-surface-mutes/50 border border-border p-4 sm:p-6 hover:border-brand-primary/20 transition-all group"
                       >
                         <FiBook className="text-brand-primary mb-3 sm:mb-4" size={22} />
                         <h4 className="mb-2 line-clamp-2 text-sm font-bold text-text-main sm:text-base">
@@ -1050,7 +1050,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                               </span>
                             ))
                           ) : (
-                            <span className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
+                            <span className="rounded-full border border-border bg-surface-mutes/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
                               General knowledge
                             </span>
                           )}
@@ -1059,7 +1059,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                     ))}
                   </div>
                 ) : (
-                  <div className="py-20 text-center glass rounded-[2.5rem] border border-dashed border-white/10">
+                  <div className="py-20 text-center glass rounded-[2.5rem] border border-dashed border-border">
                     <p className="text-text-muted text-sm italic">
                       No knowledge nodes linked to this goal yet.
                     </p>
@@ -1084,14 +1084,14 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                             ? "Hide phase guide"
                             : "Show phase guide"
                         }
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/20 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 sm:h-auto sm:w-auto sm:px-3 sm:py-2"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-surface-mutes/20 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-surface-mutes/30 sm:h-auto sm:w-auto sm:px-3 sm:py-2"
                       >
                         <FiInfo />
                         <span className="sr-only sm:not-sr-only sm:ml-1">
                           {showPhaseGuide ? "Hide guide" : "Phase guide"}
                         </span>
                       </button>
-                      <div className="inline-flex rounded-xl border border-white/10 bg-white/5 p-1">
+                      <div className="inline-flex rounded-xl border border-border bg-surface-mutes/50 p-1">
                         <button
                           type="button"
                           onClick={() => setRoadmapView("canvas")}
@@ -1119,7 +1119,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                         type="button"
                         onClick={() => setShowRoadmapNodePrompt(true)}
                         aria-label="Add node"
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/20 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 sm:h-auto sm:w-auto sm:px-3 sm:py-2"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-surface-mutes/20 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-surface-mutes/30 sm:h-auto sm:w-auto sm:px-3 sm:py-2"
                       >
                         <FiPlus />
                         <span className="sr-only sm:not-sr-only sm:ml-1">
@@ -1130,7 +1130,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                         type="button"
                         onClick={() => setIsRoadmapFullscreen(true)}
                         aria-label="Open fullscreen roadmap"
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-black/20 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 sm:h-auto sm:w-auto sm:px-3 sm:py-2"
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-surface-mutes/20 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-surface-mutes/30 sm:h-auto sm:w-auto sm:px-3 sm:py-2"
                       >
                         <FiMaximize2 />
                         <span className="sr-only sm:not-sr-only sm:ml-1">
@@ -1189,7 +1189,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                   )}
                 </div>
                 <div className="space-y-4">
-                  <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                  <div className="rounded-3xl border border-border bg-surface-mutes/50 p-5">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary">
                       Origin Trace
                     </p>
@@ -1220,7 +1220,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                       />
                     </div>
                   </div>
-                  <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+                  <div className="rounded-3xl border border-border bg-surface-mutes/50 p-5">
                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary">
                       Phase Progress
                     </p>
@@ -1231,7 +1231,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                             <span>{phase.title}</span>
                             <span>{phase.progress}%</span>
                           </div>
-                          <div className="mt-2 h-2 overflow-hidden rounded-full bg-white/5">
+                          <div className="mt-2 h-2 overflow-hidden rounded-full bg-surface-mutes/50">
                             <div
                               className={`h-full rounded-full ${getPhaseBarTone(phase.id)}`}
                               style={{ width: `${phase.progress}%` }}
@@ -1266,7 +1266,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                         const result = await dreamAi.mutateAsync(dream.id);
                         setIntelligence(result);
                       }}
-                      className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
+                      className="rounded-2xl border border-border bg-surface-mutes/50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
                     >
                       {dreamAi.isPending ? "Refreshing..." : "Refresh AI"}
                     </button>
@@ -1286,14 +1286,14 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                         />
                       ))
                     ) : (
-                      <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 px-5 py-6 text-sm text-text-muted">
+                      <div className="rounded-2xl border border-dashed border-border bg-surface-mutes/50 px-5 py-6 text-sm text-text-muted">
                         Run AI refresh to generate dream-specific insights and
                         next moves.
                       </div>
                     )}
                   </div>
                   {intelligence?.suggestedTasks?.length ? (
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                    <div className="rounded-2xl border border-border bg-surface-mutes/50 p-5">
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary">
                           Suggested Tasks
@@ -1306,7 +1306,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                             })
                           }
                           disabled={isCreatingSuggestedTasks}
-                          className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+                          className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-text-main transition hover:bg-surface-mutes/30 disabled:opacity-50"
                         >
                           {isCreatingSuggestedTasks
                             ? "Saving..."
@@ -1317,7 +1317,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                         {intelligence.suggestedTasks.map((task, index) => (
                           <div
                             key={`${task.title}-${index}`}
-                            className="rounded-xl border border-white/10 bg-black/20 px-3 py-3"
+                            className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-3"
                           >
                             <p className="text-sm font-bold text-text-main">
                               {task.title}
@@ -1346,7 +1346,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                         </p>
                         <button
                           onClick={handleCreateSuggestedMilestones}
-                          className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-text-main transition hover:bg-black/30"
+                          className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-text-main transition hover:bg-surface-mutes/30"
                         >
                           Create all
                         </button>
@@ -1356,7 +1356,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                           (milestone, index) => (
                             <div
                               key={`${milestone.title}-${index}`}
-                              className="rounded-xl border border-white/10 bg-black/20 px-4 py-3"
+                              className="rounded-xl border border-border bg-surface-mutes/20 px-4 py-3"
                             >
                               <p className="text-sm font-bold text-text-main">
                                 {milestone.title}
@@ -1447,7 +1447,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
             className="fixed inset-0 z-[110] bg-surface-base"
           >
             <div className="flex h-full flex-col">
-              <div className="flex items-center justify-between gap-3 overflow-x-auto border-b border-white/10 px-3 py-3 sm:px-6 sm:py-4 custom-scrollbar">
+              <div className="flex items-center justify-between gap-3 overflow-x-auto border-b border-border px-3 py-3 sm:px-6 sm:py-4 custom-scrollbar">
                 <div className="min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary">
                     Fullscreen Roadmap
@@ -1461,7 +1461,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                     type="button"
                     onClick={() => setShowRoadmapNodePrompt(true)}
                     aria-label="Add node"
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10 md:h-auto md:w-auto md:px-4 md:py-3"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-surface-mutes/50 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10 md:h-auto md:w-auto md:px-4 md:py-3"
                   >
                     <FiPlus />
                     <span className="sr-only md:not-sr-only md:ml-1">
@@ -1472,7 +1472,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                     type="button"
                     onClick={() => setIsRoadmapFullscreen(false)}
                     aria-label="Exit fullscreen"
-                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10 md:h-auto md:w-auto md:px-4 md:py-3"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-border bg-surface-mutes/50 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10 md:h-auto md:w-auto md:px-4 md:py-3"
                   >
                     <FiMinimize2 />
                     <span className="sr-only md:not-sr-only md:ml-1">
@@ -1560,7 +1560,7 @@ function TabButton({ id, label, icon: Icon, active, onClick }: TabButtonProps) {
       className={`flex items-center gap-2 px-6 py-3 rounded-xl transition-all font-bold text-[10px] uppercase tracking-widest ${
         isActive
           ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
-          : "text-text-muted hover:text-text-main hover:bg-white/5"
+          : "text-text-muted hover:text-text-main hover:bg-surface-mutes/50"
       }`}
     >
       <Icon size={14} /> {label}
@@ -1583,7 +1583,7 @@ function IntelligenceBadge({
 }: IntelligenceBadgeProps) {
   return (
     <div
-      className={`flex items-center gap-3 px-5 py-3 rounded-2xl border border-white/5 ${color} transition-all`}
+      className={`flex items-center gap-3 px-5 py-3 rounded-2xl border border-border ${color} transition-all`}
     >
       <Icon size={16} />
       <div className="flex flex-col">
@@ -1614,7 +1614,7 @@ function InsightCard({ type, message }: InsightCardProps) {
     <div
       className={`p-5 rounded-2xl border ${colors[type]} flex items-start gap-4 transition-all hover:scale-[1.01]`}
     >
-      <div className={`mt-0.5 p-2 rounded-lg bg-white/5`}>
+      <div className={`mt-0.5 p-2 rounded-lg bg-surface-mutes/50`}>
         {type === "prediction" ? (
           <FiZap />
         ) : type === "warning" ? (
@@ -1649,7 +1649,7 @@ function RoadmapBoard({
       {phases.map((phase) => (
         <div
           key={phase.id}
-          className="rounded-3xl border border-white/10 bg-white/5 p-5"
+          className="rounded-3xl border border-border bg-surface-mutes/50 p-5"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
@@ -1658,7 +1658,7 @@ function RoadmapBoard({
               </p>
               <p className="mt-2 text-sm text-text-muted">{phase.summary}</p>
             </div>
-            <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+            <span className="rounded-full border border-border bg-surface-mutes/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
               {phase.progress}% complete
             </span>
           </div>
@@ -1670,7 +1670,7 @@ function RoadmapBoard({
                   className={`rounded-2xl border px-4 py-3 ${
                     milestone.completed
                       ? "border-emerald-400/20 bg-emerald-400/10"
-                      : "border-white/10 bg-black/20"
+                      : "border-border bg-surface-mutes/20"
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -1692,7 +1692,7 @@ function RoadmapBoard({
                 </div>
               ))
             ) : (
-              <div className="rounded-2xl border border-dashed border-white/10 px-4 py-5 text-sm text-text-muted">
+              <div className="rounded-2xl border border-dashed border-border px-4 py-5 text-sm text-text-muted">
                 No milestones mapped to this phase yet.
               </div>
             )}
@@ -1705,7 +1705,7 @@ function RoadmapBoard({
 
 function OriginMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+    <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3">
       <span className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
         {label}
       </span>
@@ -1803,7 +1803,7 @@ function RoadmapNodeComposerModal({
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             placeholder="e.g. Cold outreach system"
-            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-main outline-none focus:ring-2 focus:ring-brand-primary/40"
+            className="mt-2 w-full rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm text-text-main outline-none focus:ring-2 focus:ring-brand-primary/40"
           />
         </div>
         <div>
@@ -1815,14 +1815,14 @@ function RoadmapNodeComposerModal({
             value={details}
             onChange={(event) => setDetails(event.target.value)}
             placeholder="e.g. 20 Instagram accounts, 10 X accounts, warm leads tracker, email copy variations..."
-            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-main outline-none focus:ring-2 focus:ring-brand-primary/40"
+            className="mt-2 w-full rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm text-text-main outline-none focus:ring-2 focus:ring-brand-primary/40"
           />
         </div>
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 rounded-2xl px-4 py-3 text-sm font-bold text-text-muted transition hover:bg-white/5"
+            className="flex-1 rounded-2xl px-4 py-3 text-sm font-bold text-text-muted transition hover:bg-surface-mutes/50"
           >
             Cancel
           </button>
@@ -1879,11 +1879,11 @@ function RoadmapNodeInspector({
 }) {
   if (!selectedRoadmapNode) {
     return (
-      <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+      <div className="rounded-3xl border border-border bg-surface-mutes/50 p-5">
         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary">
           Node Inspector
         </p>
-        <div className="mt-4 rounded-2xl border border-dashed border-white/10 p-4 text-sm text-text-muted">
+        <div className="mt-4 rounded-2xl border border-dashed border-border p-4 text-sm text-text-muted">
           Select a roadmap node to inspect it, edit the notes, or promote it.
         </div>
       </div>
@@ -1900,7 +1900,7 @@ function RoadmapNodeInspector({
   ).length;
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
+    <div className="rounded-3xl border border-border bg-surface-mutes/50 p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary">
@@ -1914,7 +1914,7 @@ function RoadmapNodeInspector({
                 : "This node is part of the dream structure and can also participate in manual planning links."}
           </p>
         </div>
-        <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+        <span className="rounded-full border border-border bg-surface-mutes/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
           {selectedRoadmapNode.type}
         </span>
       </div>
@@ -1933,7 +1933,7 @@ function RoadmapNodeInspector({
               })
             }
             disabled={isDreamRoot}
-            className="mt-2 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-text-main outline-none focus:ring-2 focus:ring-brand-primary/40"
+            className="mt-2 w-full rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-sm text-text-main outline-none focus:ring-2 focus:ring-brand-primary/40"
           />
         </div>
 
@@ -1950,7 +1950,7 @@ function RoadmapNodeInspector({
             }
             disabled={isDreamRoot}
           >
-            <SelectTrigger className="mt-2 w-full rounded-2xl border-white/10 bg-black/20 px-4 py-3 h-auto text-sm text-text-main text-left">
+            <SelectTrigger className="mt-2 w-full rounded-2xl border-border bg-surface-mutes/20 px-4 py-3 h-auto text-sm text-text-main text-left">
               <SelectValue placeholder="Select phase" />
             </SelectTrigger>
             <SelectContent>
@@ -1975,12 +1975,12 @@ function RoadmapNodeInspector({
             }
             placeholder="Add breakdowns, account counts, channel notes, assets, or execution instructions."
             disabled={isDreamRoot}
-            className="mt-2 w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-text-main outline-none focus:ring-2 focus:ring-brand-primary/40"
+            className="mt-2 w-full rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-sm text-text-main outline-none focus:ring-2 focus:ring-brand-primary/40"
           />
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+          <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3">
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
               Structural links
             </p>
@@ -1988,7 +1988,7 @@ function RoadmapNodeInspector({
               {systemEdgeCount}
             </p>
           </div>
-          <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+          <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3">
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
               Manual links
             </p>
@@ -2017,7 +2017,7 @@ function RoadmapNodeInspector({
           </button>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-4">
+        <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-4">
           <div className="flex items-center justify-between gap-3">
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
               Connections
@@ -2032,7 +2032,7 @@ function RoadmapNodeInspector({
               relatedRoadmapEdges.slice(0, 4).map((edge) => (
                 <div
                   key={edge.id}
-                  className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main"
+                  className="rounded-xl border border-border bg-surface-mutes/50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main"
                 >
                   {edge.from === selectedRoadmapNode.id ? "Outgoing" : "Incoming"}{" "}
                   | {edge.relationType} | {edge.origin === "system" ? "structural" : "manual"}
@@ -2046,7 +2046,7 @@ function RoadmapNodeInspector({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-4">
+        <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-4">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
             Connect node
           </p>
@@ -2054,7 +2054,7 @@ function RoadmapNodeInspector({
             value={connectionTargetId}
             onValueChange={(value) => onChangeConnectionTarget(value)}
           >
-            <SelectTrigger className="mt-3 w-full rounded-xl border-white/10 bg-white/5 px-3 py-3 h-auto text-sm text-text-main text-left">
+            <SelectTrigger className="mt-3 w-full rounded-xl border-border bg-surface-mutes/50 px-3 py-3 h-auto text-sm text-text-main text-left">
               <SelectValue placeholder="Select target node" />
             </SelectTrigger>
             <SelectContent>
@@ -2072,7 +2072,7 @@ function RoadmapNodeInspector({
               type="button"
               onClick={onConnectSelectedNode}
               disabled={!connectionTargetId}
-              className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10 disabled:opacity-50"
+              className="rounded-xl border border-border bg-surface-mutes/50 px-3 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10 disabled:opacity-50"
             >
               <FiLink2 className="mr-1 inline" />
               Connect
@@ -2084,7 +2084,7 @@ function RoadmapNodeInspector({
               className={`rounded-xl border px-3 py-3 text-[10px] font-black uppercase tracking-[0.18em] ${
                 connectFromNodeId === selectedRoadmapNode.id
                   ? "border-sky-300/40 bg-sky-400/15 text-sky-100"
-                  : "border-white/10 bg-white/5 text-text-main"
+                  : "border-border bg-surface-mutes/50 text-text-main"
               }`}
             >
               {connectFromNodeId === selectedRoadmapNode.id
@@ -2095,7 +2095,7 @@ function RoadmapNodeInspector({
         </div>
 
         {selectedRoadmapEdge ? (
-          <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-4">
+          <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-4">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
@@ -2309,24 +2309,24 @@ function DreamRoadmapCanvas({
   }
 
   return (
-    <div className={`min-w-0 max-w-full overflow-hidden flex flex-col rounded-[32px] border border-white/10 bg-[radial-gradient(ellipse_at_top_left,rgba(99,102,241,0.06),transparent_50%),rgba(0,0,0,0.22)] ${fullscreen ? "h-full" : "h-[700px] lg:h-[920px]"}`}>
+    <div className={`min-w-0 max-w-full overflow-hidden flex flex-col rounded-[32px] border border-border bg-[radial-gradient(ellipse_at_top_left,rgba(99,102,241,0.06),transparent_50%),rgba(0,0,0,0.22)] ${fullscreen ? "h-full" : "h-[700px] lg:h-[920px]"}`}>
 
       {/* ── Toolbar ── */}
-      <div className="flex shrink-0 overflow-x-auto border-b border-white/5 px-4 py-2.5 custom-scrollbar">
+      <div className="flex shrink-0 overflow-x-auto border-b border-border px-4 py-2.5 custom-scrollbar">
         <div className="flex min-w-max items-center gap-3 whitespace-nowrap pr-2">
 
         {/* Auto / Manual toggle */}
         <button
           type="button"
           onClick={() => setAutoLayout((v) => !v)}
-          className={`rounded-lg px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.18em] transition-all ${autoLayout ? "bg-brand-primary/20 text-brand-primary border border-brand-primary/30" : "border border-white/10 bg-white/5 text-text-muted hover:bg-white/10"}`}
+          className={`rounded-lg px-3 py-1.5 text-[9px] font-black uppercase tracking-[0.18em] transition-all ${autoLayout ? "bg-brand-primary/20 text-brand-primary border border-brand-primary/30" : "border border-border bg-surface-mutes/50 text-text-muted hover:bg-white/10"}`}
         >
           {autoLayout ? "⚡ Auto Layout" : "✦ Manual"}
         </button>
 
         {/* Layout mode toggle */}
         {autoLayout && (
-          <div className="inline-flex rounded-lg border border-white/10 bg-black/20 p-0.5">
+          <div className="inline-flex rounded-lg border border-border bg-surface-mutes/20 p-0.5">
             <button
               type="button"
               onClick={() => setLayoutMode("horizontal")}
@@ -2351,7 +2351,7 @@ function DreamRoadmapCanvas({
           <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-full bg-amber-400" />Task</span>
           <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-full bg-sky-400" />Note</span>
           <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-2 rounded-full bg-fuchsia-400" />Custom</span>
-          <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-6 rounded-full bg-white/50" />Structural</span>
+          <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-6 rounded-full bg-surface-mutes/500" />Structural</span>
           <span className="flex items-center gap-1.5"><span className="inline-block h-2 w-6 rounded-full border border-sky-300/70 border-dashed" />Manual</span>
         </div>
         </div>
@@ -2513,8 +2513,8 @@ function DreamRoadmapCanvas({
                     : isConnectSrc
                       ? "border-brand-primary z-30 ring-2 ring-brand-primary/50"
                         : isConnecting
-                        ? "border-white/5 z-10"
-                        : "border-white/15 hover:border-white/30 z-20",
+                        ? "border-border z-10"
+                        : "border-border hover:border-white/30 z-20",
                 getRoadmapNodeTone(node.type),
                 getRoadmapNodeSurface(node.type, node.phaseId),
               ].join(" ")}
@@ -2564,7 +2564,7 @@ function DreamRoadmapCanvas({
                     aria-label="Inspect node"
                     onMouseDown={(e) => e.stopPropagation()}
                     onClick={(e) => { e.stopPropagation(); onInspectNode(node.id); }}
-                    className={`flex ${isCompactCanvas ? "h-4.5 w-4.5" : "h-5 w-5"} items-center justify-center rounded-full border border-white/15 bg-black/25 text-white/60 transition hover:bg-black/50 hover:text-white`}
+                    className={`flex ${isCompactCanvas ? "h-4.5 w-4.5" : "h-5 w-5"} items-center justify-center rounded-full border border-border bg-black/25 text-white/60 transition hover:bg-black/50 hover:text-white`}
                   >
                     <FiInfo size={isCompactCanvas ? 8 : 9} />
                   </button>
@@ -2580,7 +2580,7 @@ function DreamRoadmapCanvas({
                         ? "border-brand-primary bg-brand-primary/30 text-white"
                         : node.type === "custom"
                           ? "border-white/8 bg-black/15 text-white/20 cursor-not-allowed"
-                          : "border-white/15 bg-black/25 text-white/50 hover:border-brand-primary/70 hover:text-white"
+                          : "border-border bg-black/25 text-white/50 hover:border-brand-primary/70 hover:text-white"
                     }`}
                     title={isRootNode ? "Dream root is structural only" : node.type === "custom" ? "Custom nodes cannot be connection sources" : "Start connection from this node"}
                   >
@@ -2614,7 +2614,7 @@ function DreamRoadmapCanvas({
               Click a valid node to connect
             </div>
           ) : (
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-text-muted">
+            <div className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-mutes/20 px-3 py-2 text-[9px] font-black uppercase tracking-[0.18em] text-text-muted">
               <FiLink2 size={10} />
               {autoLayout ? "Use link icon · Switch layout above" : "Drag nodes freely"}
             </div>
@@ -3169,7 +3169,7 @@ function getPhaseTone(phaseId: string) {
     case "launch":
       return "border-emerald-400/20 bg-emerald-400/10 text-emerald-200";
     default:
-      return "border-white/10 bg-white/5 text-text-muted";
+      return "border-border bg-surface-mutes/50 text-text-muted";
   }
 }
 
@@ -3210,7 +3210,7 @@ function LoadingState() {
     <div className="flex-1 p-8 flex items-center justify-center bg-surface-base">
       <div className="flex flex-col items-center gap-4">
         <div className="relative w-16 h-16">
-          <div className="absolute inset-0 rounded-full border-4 border-white/5 border-t-brand-primary animate-spin" />
+          <div className="absolute inset-0 rounded-full border-4 border-border border-t-brand-primary animate-spin" />
           <FiStar className="absolute inset-0 m-auto text-brand-primary opacity-50" size={20} />
         </div>
         <p className="text-text-muted text-xs uppercase font-black tracking-widest animate-pulse">Syncing Mission Data...</p>

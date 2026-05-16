@@ -90,7 +90,7 @@ export default function DreamDashboard() {
         {/* Dreams Grid */}
         {dreams.length === 0 ? (
           <div className="py-20 flex flex-col items-center justify-center text-center">
-            <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-6">
+            <div className="w-24 h-24 rounded-full bg-surface-mutes/50 border border-border flex items-center justify-center mb-6">
               <FiStar size={40} className="text-text-muted/20" />
             </div>
             <h3 className="text-xl font-bold text-text-main mb-2">The Canvas is Empty</h3>
@@ -131,7 +131,7 @@ interface MetricCardProps {
 
 function MetricCard({ label, value, icon: Icon, color }: MetricCardProps) {
   return (
-    <div className="glass p-3 sm:p-4 rounded-xl border border-white/5 flex items-center justify-between group hover:border-white/10 transition-all">
+    <div className="glass p-3 sm:p-4 rounded-xl border border-border flex items-center justify-between group hover:border-border transition-all">
       <div>
         <p className="text-[9px] font-black text-text-muted uppercase tracking-[0.2em] mb-1">
           {label}
@@ -140,7 +140,7 @@ function MetricCard({ label, value, icon: Icon, color }: MetricCardProps) {
           {value}
         </p>
       </div>
-      <div className={`p-2 rounded-lg bg-white/5 ${color}`}>
+      <div className={`p-2 rounded-lg bg-surface-mutes/50 ${color}`}>
         <Icon size={16} />
       </div>
     </div>
@@ -186,9 +186,9 @@ function CreateDreamModal({ onClose }: CreateDreamModalProps) {
         initial={{ opacity: 0, scale: 0.95, y: 20 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-xl bg-surface-soft border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+        className="relative w-full max-w-xl bg-surface-soft border border-border rounded-xl shadow-2xl overflow-hidden"
       >
-        <div className="p-6 border-b border-white/10 flex items-center justify-between">
+        <div className="p-6 border-b border-border flex items-center justify-between">
           <h2 className="text-xl font-display font-bold text-text-main flex items-center gap-3">
              <div className="w-8 h-8 rounded-lg bg-brand-primary/20 flex items-center justify-center text-brand-primary">
                <FiPlus />
@@ -213,7 +213,7 @@ function CreateDreamModal({ onClose }: CreateDreamModalProps) {
                 setFormData({ ...formData, title: e.target.value })
               }
               placeholder="e.g. Master Spatial Computing"
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-4 px-5 text-lg text-text-main font-bold outline-none focus:border-brand-primary transition-all placeholder:text-text-muted/20"
+              className="w-full bg-surface-mutes/50 border border-border rounded-xl py-4 px-5 text-lg text-text-main font-bold outline-none focus:border-brand-primary transition-all placeholder:text-text-muted/20"
             />
           </div>
 
@@ -228,7 +228,7 @@ function CreateDreamModal({ onClose }: CreateDreamModalProps) {
               }
               placeholder="Define the scope and desired outcome..."
               rows={3}
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm text-text-muted outline-none focus:border-brand-primary/40 transition-all resize-none"
+              className="w-full bg-surface-mutes/50 border border-border rounded-xl py-3 px-4 text-sm text-text-muted outline-none focus:border-brand-primary/40 transition-all resize-none"
             />
           </div>
 
@@ -237,7 +237,7 @@ function CreateDreamModal({ onClose }: CreateDreamModalProps) {
               <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] px-1">
                 Priority Level
               </label>
-              <div className="flex bg-white/5 p-1 rounded-xl border border-white/5">
+              <div className="flex bg-surface-mutes/50 p-1 rounded-xl border border-border">
                 {[
                   { id: 'low', label: 'Low', color: 'bg-blue-500/20 text-blue-400' },
                   { id: 'medium', label: 'Med', color: 'bg-emerald-500/20 text-emerald-400' },
@@ -251,13 +251,13 @@ function CreateDreamModal({ onClose }: CreateDreamModalProps) {
                     className={`flex-1 py-2.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all relative overflow-hidden group ${
                       formData.priority === opt.id 
                         ? `${opt.color} shadow-lg shadow-black/20 scale-[1.02] z-10` 
-                        : 'text-text-muted hover:text-text-main hover:bg-white/5'
+                        : 'text-text-muted hover:text-text-main hover:bg-surface-mutes/50'
                     }`}
                   >
                     {formData.priority === opt.id && (
                       <motion.div 
                         layoutId="active-priority"
-                        className="absolute inset-0 border border-white/10 rounded-xl"
+                        className="absolute inset-0 border border-border rounded-xl"
                         transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                       />
                     )}
@@ -276,7 +276,7 @@ function CreateDreamModal({ onClose }: CreateDreamModalProps) {
                   setFormData({ ...formData, category: e.target.value })
                 }
                 placeholder="Career, Health..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm text-text-main outline-none focus:border-brand-primary/40 transition-all"
+                className="w-full bg-surface-mutes/50 border border-border rounded-xl py-3 px-4 text-sm text-text-main outline-none focus:border-brand-primary/40 transition-all"
               />
             </div>
           </div>
@@ -291,7 +291,7 @@ function CreateDreamModal({ onClose }: CreateDreamModalProps) {
               onChange={(e) =>
                 setFormData({ ...formData, targetDate: e.target.value })
               }
-              className="w-full bg-white/5 border border-white/10 rounded-xl py-3 px-4 text-sm text-text-main outline-none focus:border-brand-primary/40 transition-all"
+              className="w-full bg-surface-mutes/50 border border-border rounded-xl py-3 px-4 text-sm text-text-main outline-none focus:border-brand-primary/40 transition-all"
             />
           </div>
 
