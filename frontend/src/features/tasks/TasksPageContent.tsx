@@ -91,7 +91,7 @@ export default function TasksPageContent() {
   const focusMinutesToday = getTodayFocusMinutesForTasks(allTasks);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-64px)] overflow-hidden bg-surface-base relative">
+    <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-surface-base relative pb-16 md:pb-0">
       {/* Top Filter Tabs - Ledger Style */}
       <div className="w-full bg-surface-soft border-b border-white/5 px-4 md:px-8 py-2 shrink-0 overflow-x-auto custom-scrollbar">
         <div className="flex items-center gap-2 min-w-max">
@@ -131,43 +131,59 @@ export default function TasksPageContent() {
         <div
           className={`flex-1 flex flex-col relative ${selectedTaskId ? "hidden md:flex" : "flex"}`}
         >
-          <div className="px-3 py-2 md:px-8 md:py-3 border-b border-white/5 space-y-1 md:space-y-2">
-            <div className="grid gap-1 grid-cols-3 xl:grid-cols-6 md:gap-2">
-              <TaskOverviewCard
-                label="Today"
-                value={String(dueTodayCount)}
-                icon={<FiClock size={10} className="md:size-3" />}
-              />
-              <TaskOverviewCard
-                label="Carryover"
-                value={String(carryoverCount)}
-                icon={<FiCornerDownRight size={10} className="md:size-3" />}
-                tone="warm"
-              />
-              <TaskOverviewCard
-                label="Overdue"
-                value={String(overdueCount)}
-                icon={<FiAlertCircle size={10} className="md:size-3" />}
-                tone="danger"
-              />
-              <TaskOverviewCard
-                label="In Motion"
-                value={String(inProgressCount)}
-                icon={<FiTrendingUp size={10} className="md:size-3" />}
-                tone="warm"
-              />
-              <TaskOverviewCard
-                label="Blocked"
-                value={String(blockedCount)}
-                icon={<FiTarget size={10} className="md:size-3" />}
-                tone="danger"
-              />
-              <TaskOverviewCard
-                label="Focus"
-                value={`${focusMinutesToday}m`}
-                icon={<FiZap size={10} className="md:size-3" />}
-                tone="brand"
-              />
+          <div className="px-3 py-2 md:px-8 md:py-3 border-b border-white/5 space-y-1 md:space-y-2 shrink-0 overflow-hidden">
+            <div className="relative group min-w-0">
+              <div className="flex items-center overflow-x-auto custom-scrollbar gap-2 pb-2 md:pb-0 md:grid md:grid-cols-3 xl:grid-cols-6 md:gap-2 scroll-smooth w-full shrink-0">
+                <div className="flex-none w-28 md:w-auto">
+                  <TaskOverviewCard
+                    label="Today"
+                    value={String(dueTodayCount)}
+                    icon={<FiClock size={10} className="md:size-3" />}
+                  />
+                </div>
+                <div className="flex-none w-28 md:w-auto">
+                  <TaskOverviewCard
+                    label="Carryover"
+                    value={String(carryoverCount)}
+                    icon={<FiCornerDownRight size={10} className="md:size-3" />}
+                    tone="warm"
+                  />
+                </div>
+                <div className="flex-none w-28 md:w-auto">
+                  <TaskOverviewCard
+                    label="Overdue"
+                    value={String(overdueCount)}
+                    icon={<FiAlertCircle size={10} className="md:size-3" />}
+                    tone="danger"
+                  />
+                </div>
+                <div className="flex-none w-28 md:w-auto">
+                  <TaskOverviewCard
+                    label="In Motion"
+                    value={String(inProgressCount)}
+                    icon={<FiTrendingUp size={10} className="md:size-3" />}
+                    tone="warm"
+                  />
+                </div>
+                <div className="flex-none w-28 md:w-auto">
+                  <TaskOverviewCard
+                    label="Blocked"
+                    value={String(blockedCount)}
+                    icon={<FiTarget size={10} className="md:size-3" />}
+                    tone="danger"
+                  />
+                </div>
+                <div className="flex-none w-28 md:w-auto">
+                  <TaskOverviewCard
+                    label="Focus"
+                    value={`${focusMinutesToday}m`}
+                    icon={<FiZap size={10} className="md:size-3" />}
+                    tone="brand"
+                  />
+                </div>
+              </div>
+              {/* Horizontal scroll shadow indicator */}
+              <div className="md:hidden absolute right-0 top-0 bottom-2 w-8 bg-gradient-to-l from-surface-base to-transparent pointer-events-none" />
             </div>
 
             <div className="flex items-center md:justify-between gap-2">
