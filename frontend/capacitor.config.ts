@@ -14,6 +14,13 @@ const config: CapacitorConfig = {
         },
       }
     : {}),
+  plugins: {
+    SocialLogin: {
+      google: {
+        webClientId: '1069048826472-1c3nmurr51nv8cq6di0smp99vs3gq6gg.apps.googleusercontent.com',
+      },
+    },
+  },
 };
 
 export default config;
