@@ -264,7 +264,7 @@ export default function UniversalCaptureComposer({
               className={`inline-flex min-w-fit items-center gap-2 rounded-2xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition ${
                 active
                   ? "border-brand-primary/30 bg-brand-primary/15 text-brand-primary"
-                  : "border-white/10 bg-black/20 text-text-main hover:bg-black/30"
+                  : "border-border bg-surface-mutes/20 text-text-main hover:bg-surface-mutes/30"
               }`}
             >
               <Icon />
@@ -274,7 +274,7 @@ export default function UniversalCaptureComposer({
         })}
       </div>
 
-      <div className="rounded-[24px] border border-white/10 bg-black/20 p-4 sm:p-5">
+      <div className="rounded-[24px] border border-border bg-surface-mutes/20 p-4 sm:p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
@@ -288,7 +288,7 @@ export default function UniversalCaptureComposer({
             <button
               type="button"
               onClick={onOpenInbox}
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-mutes/50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
             >
               <FiInbox />
               Inbox
@@ -301,7 +301,7 @@ export default function UniversalCaptureComposer({
             value={rawInput}
             onChange={(event) => setRawInput(event.target.value)}
             placeholder={getPrimaryPlaceholder(mode)}
-            className="mt-4 min-h-28 w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-text-main outline-none placeholder:text-text-muted/40"
+            className="mt-4 min-h-28 w-full resize-none rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm leading-6 text-text-main outline-none placeholder:text-text-muted/40"
           />
         ) : null}
 
@@ -314,7 +314,7 @@ export default function UniversalCaptureComposer({
               className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-xs font-black uppercase tracking-[0.18em] transition ${
                 isListening
                   ? "border-rose-400/20 bg-rose-500/10 text-rose-200"
-                  : "border-white/10 bg-white/5 text-text-main hover:bg-white/10"
+                  : "border-border bg-surface-mutes/50 text-text-main hover:bg-white/10"
               }`}
             >
               <FiMic className={isListening ? "animate-pulse" : ""} />
@@ -333,7 +333,7 @@ export default function UniversalCaptureComposer({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-xs font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
             >
               <FiUpload />
               {mode === "image" ? "Choose image" : "Choose files"}
@@ -352,7 +352,7 @@ export default function UniversalCaptureComposer({
                 {attachments.map((attachment) => (
                   <div
                     key={attachment.name}
-                    className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2"
+                    className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface-mutes/50 px-3 py-2"
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-bold text-white">
@@ -368,7 +368,7 @@ export default function UniversalCaptureComposer({
                     <button
                       type="button"
                       onClick={() => removeAttachment(attachment.name)}
-                      className="rounded-xl border border-white/10 bg-black/20 p-2 text-text-muted transition hover:bg-black/30 hover:text-white"
+                      className="rounded-xl border border-border bg-surface-mutes/20 p-2 text-text-muted transition hover:bg-surface-mutes/30 hover:text-white"
                     >
                       <FiX />
                     </button>
@@ -385,11 +385,11 @@ export default function UniversalCaptureComposer({
                   ? "Add what the image means or what should be extracted..."
                   : "Add just enough context so the AI knows why these files matter..."
               }
-              className="min-h-24 w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-text-main outline-none placeholder:text-text-muted/40"
+              className="min-h-24 w-full resize-none rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm leading-6 text-text-main outline-none placeholder:text-text-muted/40"
             />
 
             {extractedText ? (
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+              <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3">
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                   Extracted Text Preview
                 </p>
@@ -407,27 +407,27 @@ export default function UniversalCaptureComposer({
               value={videoUrl}
               onChange={(event) => setVideoUrl(event.target.value)}
               placeholder="Paste YouTube or video URL..."
-              className="w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-main outline-none placeholder:text-text-muted/40"
+              className="w-full rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm text-text-main outline-none placeholder:text-text-muted/40"
             />
             <textarea
               value={context}
               onChange={(event) => setContext(event.target.value)}
               placeholder="What should be extracted: summary, tasks, notes, strategy, insights..."
-              className="min-h-24 w-full resize-none rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-text-main outline-none placeholder:text-text-muted/40"
+              className="min-h-24 w-full resize-none rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm leading-6 text-text-main outline-none placeholder:text-text-muted/40"
             />
           </div>
         ) : null}
 
-        <div className="mt-4 flex flex-col gap-3 border-t border-white/5 pt-4">
+        <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4">
           <div className="flex flex-wrap items-center gap-2">
             {attachments.length ? (
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-mutes/50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
                 <FiPaperclip />
                 {attachments.length} attached
               </span>
             ) : null}
             {previewLine ? (
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-mutes/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                 {mode} capture
               </span>
             ) : null}
@@ -451,7 +451,7 @@ export default function UniversalCaptureComposer({
             <button
               type="button"
               onClick={reset}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-xs font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
             >
               <FiRotateCcw />
               Reset

@@ -67,7 +67,7 @@ export default function InboxPage() {
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 md:px-6">
       <section className="grid gap-6 xl:grid-cols-[1.35fr_0.9fr]">
-        <div className="rounded-[28px] border border-white/10 bg-surface-soft p-6 max-sm:px-2 shadow-2xl">
+        <div className="rounded-[28px] border border-border bg-surface-soft p-6 max-sm:px-2 shadow-2xl">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.22em] text-brand-primary">
@@ -82,7 +82,7 @@ export default function InboxPage() {
                 them into your PKM system.
               </p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-right">
+            <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-right">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                 Queue Health
               </p>
@@ -106,7 +106,7 @@ export default function InboxPage() {
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-white/10 bg-surface-soft p-6 max-sm:px-2">
+        <div className="rounded-[28px] border border-border bg-surface-soft p-6 max-sm:px-2">
           <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-primary">
             Capture Overview
           </p>
@@ -134,7 +134,7 @@ export default function InboxPage() {
           </div>
 
           {selectedItem ? (
-            <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4">
+            <div className="mt-5 rounded-2xl border border-border bg-surface-mutes/20 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <p className="text-sm font-bold text-white">
@@ -148,7 +148,7 @@ export default function InboxPage() {
                 <span
                   className={`rounded-full border px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] ${
                     typeColorMap[selectedItem.type || ""] ||
-                    "border-white/10 bg-white/5 text-text-muted"
+                    "border-border bg-surface-mutes/50 text-text-muted"
                   }`}
                 >
                   {selectedItem.type || selectedItem.status}
@@ -170,7 +170,7 @@ export default function InboxPage() {
                 {(selectedItem.tags || []).map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main"
+                    className="rounded-full border border-border bg-surface-mutes/50 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main"
                   >
                     #{tag}
                   </span>
@@ -183,7 +183,7 @@ export default function InboxPage() {
                     selectedItem.routedEntityType,
                     selectedItem.routedEntityId,
                   )}
-                  className="mt-4 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-bold text-text-main transition hover:bg-white/10"
+                  className="mt-4 inline-flex items-center gap-2 rounded-xl border border-border bg-surface-mutes/50 px-3 py-2 text-xs font-bold text-text-main transition hover:bg-white/10"
                 >
                   Open routed item
                   <FiArrowRight />
@@ -191,7 +191,7 @@ export default function InboxPage() {
               ) : null}
             </div>
           ) : (
-            <div className="mt-5 rounded-2xl border border-dashed border-white/10 bg-black/20 p-6 text-sm text-text-muted">
+            <div className="mt-5 rounded-2xl border border-dashed border-border bg-surface-mutes/20 p-6 text-sm text-text-muted">
               Capture your first entry to inspect the route explanation and
               linked entities.
             </div>
@@ -200,7 +200,7 @@ export default function InboxPage() {
       </section>
 
       <section className="grid gap-6 xl:grid-cols-[1.02fr_1.25fr]">
-        <div className="rounded-[28px] border border-white/10 bg-surface-soft p-6 max-sm:px-2">
+        <div className="rounded-[28px] border border-border bg-surface-soft p-6 max-sm:px-2">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-primary">
@@ -210,7 +210,7 @@ export default function InboxPage() {
                 Failed and in-flight captures stay here until routing succeeds.
               </p>
             </div>
-            <span className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+            <span className="rounded-full border border-border px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
               {queue.length} items
             </span>
           </div>
@@ -231,7 +231,7 @@ export default function InboxPage() {
               Array.from({ length: 3 }).map((_, index) => (
                 <div
                   key={index}
-                  className="h-28 animate-pulse rounded-2xl border border-white/10 bg-black/20"
+                  className="h-28 animate-pulse rounded-2xl border border-border bg-surface-mutes/20"
                 />
               ))
             ) : queue.length > 0 ? (
@@ -253,7 +253,7 @@ export default function InboxPage() {
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-white/10 bg-surface-soft p-6 max-sm:px-2">
+        <div className="rounded-[28px] border border-border bg-surface-soft p-6 max-sm:px-2">
           <div className="flex items-center justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-primary">
@@ -264,7 +264,7 @@ export default function InboxPage() {
                 controls.
               </p>
             </div>
-            <span className="rounded-full border border-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+            <span className="rounded-full border border-border px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
               {history.length} routed
             </span>
           </div>
@@ -274,7 +274,7 @@ export default function InboxPage() {
               ? Array.from({ length: 4 }).map((_, index) => (
                   <div
                     key={index}
-                    className="h-32 animate-pulse rounded-2xl border border-white/10 bg-black/20"
+                    className="h-32 animate-pulse rounded-2xl border border-border bg-surface-mutes/20"
                   />
                 ))
               : history.map((item, index) => (
@@ -287,7 +287,7 @@ export default function InboxPage() {
                     className={`w-full rounded-2xl border p-4 text-left transition ${
                       selectedItem?.id === item.id
                         ? "border-brand-primary/30 bg-brand-primary/10"
-                        : "border-white/10 bg-black/20 hover:border-white/20"
+                        : "border-border bg-surface-mutes/20 hover:border-white/20"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -321,7 +321,7 @@ export default function InboxPage() {
                     ) : null}
 
                     {item.processedPayload?.extracted_tasks?.length ? (
-                      <div className="mt-3 rounded-2xl border border-white/10 bg-white/5 p-3">
+                      <div className="mt-3 rounded-2xl border border-border bg-surface-mutes/50 p-3">
                         <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                           Extracted Tasks
                         </p>
@@ -329,7 +329,7 @@ export default function InboxPage() {
                           {item.processedPayload.extracted_tasks.slice(0, 3).map((task) => (
                             <div
                               key={`${item.id}-${task.title}`}
-                              className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-text-main"
+                              className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-2 text-sm text-text-main"
                             >
                               {task.title}
                             </div>
@@ -342,7 +342,7 @@ export default function InboxPage() {
                       <Link
                         href={getEntityHref(item.routedEntityType, item.routedEntityId)}
                         onClick={(event) => event.stopPropagation()}
-                        className="mt-3 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
+                        className="mt-3 inline-flex items-center gap-2 rounded-xl border border-border bg-surface-mutes/50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
                       >
                         Go to routed item
                         <FiArrowRight />
@@ -367,7 +367,7 @@ export default function InboxPage() {
                               className={`rounded-xl border px-2 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] transition ${
                                 item.routedEntityType?.toLowerCase() === targetType
                                   ? "border-brand-primary/30 bg-brand-primary/10 text-brand-primary"
-                                  : "border-white/10 bg-black/20 text-text-main hover:bg-black/30 disabled:opacity-50"
+                                  : "border-border bg-surface-mutes/20 text-text-main hover:bg-surface-mutes/30 disabled:opacity-50"
                               }`}
                             >
                               {targetType}
@@ -395,7 +395,7 @@ function MetricCard({
   tone: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+    <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
         {label}
       </p>
@@ -424,7 +424,7 @@ function InboxQueueCard({
       className={`w-full rounded-2xl border p-4 text-left transition ${
         selected
           ? "border-brand-primary/30 bg-brand-primary/10"
-          : "border-white/10 bg-black/20 hover:border-white/20"
+          : "border-border bg-surface-mutes/20 hover:border-white/20"
       }`}
     >
       <div className="flex items-start justify-between gap-3">
@@ -436,7 +436,7 @@ function InboxQueueCard({
             {item.rawInput}
           </p>
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+        <span className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-mutes/50 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
           <FiClock />
           {item.status}
         </span>
@@ -457,7 +457,7 @@ function InboxQueueCard({
             event.stopPropagation();
             onRetry();
           }}
-          className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
+          className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-mutes/50 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
         >
           <FiRefreshCw />
           Retry
@@ -484,12 +484,12 @@ function renderCaptureBadges(item: InboxItem) {
 
   return (
     <>
-      <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+      <span className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-mutes/50 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
         <Icon />
         {captureMethod}
       </span>
       {item.processedPayload?.attachments?.length ? (
-        <span className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+        <span className="rounded-full border border-border bg-surface-mutes/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
           {item.processedPayload.attachments.length} attachment
           {item.processedPayload.attachments.length === 1 ? "" : "s"}
         </span>
