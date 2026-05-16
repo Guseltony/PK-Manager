@@ -34,7 +34,7 @@ export default function TaskSidebar({ activeFilter, onFilterChange }: TaskSideba
   return (
     <>
       {/* Mobile Horizontal Tabs */}
-      <div className="flex md:hidden w-full overflow-x-auto custom-scrollbar bg-surface-soft border-b border-white/5 px-4 py-3 gap-2 shrink-0">
+      <div className="flex md:hidden w-full overflow-x-auto custom-scrollbar bg-surface-soft border-b border-border px-4 py-3 gap-2 shrink-0">
         {allFilters.map((f) => (
           <button
             key={f.id}
@@ -42,7 +42,7 @@ export default function TaskSidebar({ activeFilter, onFilterChange }: TaskSideba
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap border ${
               activeFilter === f.id
                 ? "bg-brand-primary/10 border-brand-primary/30 text-brand-primary"
-                : "bg-white/5 border-transparent text-text-muted"
+                : "bg-surface-mutes/50 border-transparent text-text-muted"
             }`}
           >
             <f.icon className={activeFilter === f.id ? "text-brand-primary" : f.color || ""} size={14} />
@@ -52,7 +52,7 @@ export default function TaskSidebar({ activeFilter, onFilterChange }: TaskSideba
       </div>
 
       {/* Desktop Vertical Sidebar */}
-      <div className="hidden md:flex flex-col w-56 lg:w-64 p-4 bg-surface-soft border-r border-white/5 shrink-0">
+      <div className="hidden md:flex flex-col w-56 lg:w-64 p-4 bg-surface-soft border-r border-border shrink-0">
         <div className="mb-8">
           <h3 className="text-[10px] font-bold uppercase tracking-[0.15em] text-text-muted/50 px-2 mb-3">
             Status Filters
@@ -65,7 +65,7 @@ export default function TaskSidebar({ activeFilter, onFilterChange }: TaskSideba
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
                   activeFilter === f.id
                     ? "bg-brand-primary/10 text-brand-primary"
-                    : "text-text-muted hover:bg-white/5 hover:text-text-main"
+                    : "text-text-muted hover:bg-surface-mutes/50 hover:text-text-main"
                 }`}
               >
                 <f.icon className={`transition-transform duration-200 group-hover:scale-110 ${activeFilter === f.id ? "text-brand-primary" : f.color || ""}`} size={16} />
@@ -87,7 +87,7 @@ export default function TaskSidebar({ activeFilter, onFilterChange }: TaskSideba
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group ${
                   activeFilter === s.id
                     ? "bg-brand-primary/10 text-brand-primary"
-                    : "text-text-muted hover:bg-white/5 hover:text-text-main"
+                    : "text-text-muted hover:bg-surface-mutes/50 hover:text-text-main"
                 }`}
               >
                 <s.icon className={`transition-transform duration-200 group-hover:scale-110 ${activeFilter === s.id ? "text-brand-primary" : s.color || ""}`} size={16} />

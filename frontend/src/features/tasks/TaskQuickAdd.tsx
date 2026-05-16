@@ -95,7 +95,7 @@ export default function TaskQuickAdd() {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Type task title..."
-                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-lg text-text-main placeholder:text-text-muted/50 focus:ring-2 focus:ring-brand-primary/30 outline-none transition-all text-center"
+                    className="w-full bg-surface-mutes/50 border border-border rounded-2xl p-5 text-lg text-text-main placeholder:text-text-muted/50 focus:ring-2 focus:ring-brand-primary/30 outline-none transition-all text-center"
                   />
                 </div>
 
@@ -106,7 +106,7 @@ export default function TaskQuickAdd() {
                       setShowPlanner(true);
                       setIsExpanded(false);
                     }}
-                    className="flex items-center justify-center gap-2 px-4 py-4 rounded-2xl border border-white/10 bg-white/5 text-text-main font-bold hover:bg-white/10 transition-colors"
+                    className="flex items-center justify-center gap-2 px-4 py-4 rounded-2xl border border-border bg-surface-mutes/50 text-text-main font-bold hover:bg-white/10 transition-colors"
                   >
                     <FiCpu className="text-brand-primary" /> 
                     <span className="uppercase text-[10px] tracking-widest">AI Plan</span>
@@ -125,7 +125,7 @@ export default function TaskQuickAdd() {
       </AnimatePresence>
 
       {/* Desktop Sticky Bar */}
-      <div className="hidden sm:block space-y-2 bg-surface-base sticky top-0 z-10 border-b border-white/5">
+      <div className="hidden sm:block space-y-2 bg-surface-base sticky top-0 z-10 border-b border-border">
         <form
           onSubmit={handleSubmit}
           className="relative group max-w-4xl mx-auto flex flex-col sm:block gap-3"
@@ -139,7 +139,7 @@ export default function TaskQuickAdd() {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="What needs to be done? Enter task title..."
-              className="w-full bg-surface-soft border border-white/5 rounded-2xl py-3 sm:py-2 pl-11 pr-4 sm:pr-28 text-sm text-text-main placeholder:text-text-muted transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 shadow-inner"
+              className="w-full bg-surface-soft border border-border rounded-2xl py-3 sm:py-2 pl-11 pr-4 sm:pr-28 text-sm text-text-main placeholder:text-text-muted transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary/40 shadow-inner"
             />
             {/* Action buttons - Desktop absolute, Mobile flex row */}
             <div className="sm:absolute sm:inset-y-0 sm:right-3 flex items-center gap-2 mt-2 sm:mt-0 px-1 sm:px-0">
@@ -149,7 +149,7 @@ export default function TaskQuickAdd() {
                 className={`flex items-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-lg border transition-all ${
                   showPlanner
                     ? "bg-brand-primary/15 border-brand-primary/30 text-brand-primary"
-                    : "bg-surface-base border-white/5 text-text-muted hover:text-text-main"
+                    : "bg-surface-base border-border text-text-muted hover:text-text-main"
                 }`}
               >
                 <FiCpu size={12} />
@@ -157,7 +157,7 @@ export default function TaskQuickAdd() {
                   AI Plan
                 </span>
               </button>
-              <div className="flex items-center gap-1.5 px-2.5 sm:px-2 py-1.5 sm:py-1 rounded-lg bg-surface-base border border-white/5">
+              <div className="flex items-center gap-1.5 px-2.5 sm:px-2 py-1.5 sm:py-1 rounded-lg bg-surface-base border border-border">
                 <FiZap size={12} className="text-amber-400 animate-pulse" />
                 <span className="text-[10px] font-bold text-text-muted uppercase tracking-tighter">
                   Smart Add
@@ -176,7 +176,7 @@ export default function TaskQuickAdd() {
       </div>
 
       {showPlanner && (
-        <div className="max-w-4xl mx-auto rounded-3xl border border-white/10 bg-surface-soft/80 p-4 sm:p-5">
+        <div className="max-w-4xl mx-auto rounded-3xl border border-border bg-surface-soft/80 p-4 sm:p-5">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-400">
@@ -200,7 +200,7 @@ export default function TaskQuickAdd() {
             value={plannerInput}
             onChange={(e) => setPlannerInput(e.target.value)}
             placeholder="Example: launch the focus mode update, fix the dashboard polish, and prepare a short demo flow for tomorrow"
-            className="mt-4 min-h-[96px] w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-text-main outline-none transition focus:border-brand-primary/30 focus:ring-2 focus:ring-brand-primary/20"
+            className="mt-4 min-h-[96px] w-full rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-sm text-text-main outline-none transition focus:border-brand-primary/30 focus:ring-2 focus:ring-brand-primary/20"
           />
 
           <div className="mt-4 flex items-center gap-3">
@@ -222,7 +222,7 @@ export default function TaskQuickAdd() {
                 type="button"
                 onClick={handleCreateAll}
                 disabled={isCreatingSuggestedTasks}
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-text-main transition hover:bg-white/10 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-2xl border border-border bg-surface-mutes/50 px-4 py-2 text-sm font-bold text-text-main transition hover:bg-white/10 disabled:opacity-50"
               >
                 {isCreatingSuggestedTasks ? (
                   <FiLoader className="animate-spin" size={14} />
@@ -242,10 +242,10 @@ export default function TaskQuickAdd() {
               {plan.tasks.map((task, index) => (
                 <div
                   key={`${task.title}-${index}`}
-                  className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
+                  className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3"
                 >
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                    <span className="rounded-full border border-border bg-surface-mutes/50 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                       {task.priority}
                     </span>
                     {task.estimatedTime ? (
