@@ -34,7 +34,7 @@ export default function DreamCard({ dream }: DreamCardProps) {
         className={`glass group relative overflow-hidden rounded-xl border transition-all p-4 sm:p-5 flex flex-col h-[320px] cursor-pointer ${
           dream.healthScore < 45
             ? "border-rose-400/20 bg-rose-400/5"
-            : "border-white/5 hover:border-white/10"
+            : "border-border hover:border-border"
         }`}
       >
         {/* Background Accent */}
@@ -109,7 +109,7 @@ export default function DreamCard({ dream }: DreamCardProps) {
             </span>
           </div>
           
-          <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+          <div className="h-1.5 w-full bg-surface-mutes/50 rounded-full overflow-hidden">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${dream.progress}%` }}
@@ -125,7 +125,7 @@ export default function DreamCard({ dream }: DreamCardProps) {
 
         {/* Desktop Arrow - always visible on mobile, hover on desktop */}
         <div 
-          className="absolute bottom-6 right-6 p-3 rounded-xl bg-white/5 text-text-muted group-hover:bg-brand-primary group-hover:text-white transition-all transform sm:translate-y-4 sm:opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
+          className="absolute bottom-6 right-6 p-3 rounded-xl bg-surface-mutes/50 text-text-muted group-hover:bg-brand-primary group-hover:text-white transition-all transform sm:translate-y-4 sm:opacity-0 group-hover:translate-y-0 group-hover:opacity-100"
         >
           <FiChevronRight size={18} />
         </div>

@@ -85,7 +85,7 @@ export default function ChaosLedgerPage() {
                     value={form.trigger}
                     onChange={e => setForm({ ...form, trigger: e.target.value })}
                     placeholder="e.g. Stayed up scrolling until 3 AM and missed morning routine"
-                    className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-rose-400 focus:outline-none"
+                    className="w-full rounded-xl border border-border bg-surface-mutes/20 p-3 text-sm text-white focus:border-rose-400 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -95,7 +95,7 @@ export default function ChaosLedgerPage() {
                     value={form.context}
                     onChange={e => setForm({ ...form, context: e.target.value })}
                     placeholder="e.g. Was stressed about a deadline, started as 'just 5 minutes'..."
-                    className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-rose-400 focus:outline-none"
+                    className="w-full rounded-xl border border-border bg-surface-mutes/20 p-3 text-sm text-white focus:border-rose-400 focus:outline-none"
                   />
                 </div>
                 <div>
@@ -105,7 +105,7 @@ export default function ChaosLedgerPage() {
                     value={form.resolution}
                     onChange={e => setForm({ ...form, resolution: e.target.value })}
                     placeholder="e.g. Phone goes to grayscale at 10 PM. No exceptions."
-                    className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-emerald-400 focus:outline-none"
+                    className="w-full rounded-xl border border-border bg-surface-mutes/20 p-3 text-sm text-white focus:border-emerald-400 focus:outline-none"
                   />
                 </div>
 
@@ -115,7 +115,7 @@ export default function ChaosLedgerPage() {
                     <select
                       value={form.category}
                       onChange={e => setForm({ ...form, category: e.target.value })}
-                      className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-rose-400 focus:outline-none"
+                      className="w-full rounded-xl border border-border bg-surface-mutes/20 p-3 text-sm text-white focus:border-rose-400 focus:outline-none"
                     >
                       {CHAOS_CATEGORIES.map(c => (
                         <option key={c.value} value={c.value}>{c.label}</option>
@@ -140,7 +140,7 @@ export default function ChaosLedgerPage() {
               </div>
 
               <div className="mt-6 flex justify-end gap-3">
-                <button onClick={() => setIsCreating(false)} className="rounded-xl px-4 py-2 text-sm text-text-muted hover:bg-white/5">Cancel</button>
+                <button onClick={() => setIsCreating(false)} className="rounded-xl px-4 py-2 text-sm text-text-muted hover:bg-surface-mutes/50">Cancel</button>
                 <button
                   onClick={handleSubmit}
                   disabled={!form.trigger || !form.resolution || createEntry.isPending}
@@ -160,7 +160,7 @@ export default function ChaosLedgerPage() {
               key={entry.id}
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              className="group overflow-hidden rounded-2xl border border-white/10 bg-surface-soft"
+              className="group overflow-hidden rounded-2xl border border-border bg-surface-soft"
             >
               <div
                 className="flex cursor-pointer items-center gap-4 p-4 sm:p-5"
@@ -176,7 +176,7 @@ export default function ChaosLedgerPage() {
                     <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase tracking-wider ${SEVERITY_BG[entry.severity]} ${SEVERITY_COLORS[entry.severity]}`}>
                       {SEVERITY_LABELS[entry.severity]}
                     </span>
-                    <span className="rounded-md bg-white/5 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                    <span className="rounded-md bg-surface-mutes/50 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-text-muted">
                       {CHAOS_CATEGORIES.find(c => c.value === entry.category)?.label ?? entry.category}
                     </span>
                     <span className="text-[11px] text-text-muted">{dayjs(entry.createdAt).fromNow()}</span>
@@ -200,7 +200,7 @@ export default function ChaosLedgerPage() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="border-t border-white/5 overflow-hidden"
+                    className="border-t border-border overflow-hidden"
                   >
                     <div className="grid gap-4 p-4 sm:grid-cols-2 sm:p-5">
                       {entry.context && (
@@ -223,8 +223,8 @@ export default function ChaosLedgerPage() {
           ))}
 
           {entries.length === 0 && !isCreating && (
-            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-12 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white/40">
+            <div className="rounded-[2rem] border border-border bg-surface-mutes/50 p-12 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-border bg-surface-mutes/20 text-white/40">
                 <FiAlertTriangle size={28} />
               </div>
               <h3 className="mt-4 text-xl font-bold text-white">No triggers logged</h3>

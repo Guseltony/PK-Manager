@@ -37,11 +37,11 @@ export default function ConstitutionPage() {
   if (isEditing && editForm) {
     return (
       <div className="w-full space-y-8 px-4 py-8 sm:px-6 md:px-8">
-        <div className="mx-auto max-w-4xl space-y-8 rounded-[2rem] border border-white/10 bg-surface-soft p-8">
+        <div className="mx-auto max-w-4xl space-y-8 rounded-[2rem] border border-border bg-surface-soft p-8">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-bold text-white">Edit Constitution</h2>
             <div className="flex gap-3">
-              <button onClick={() => setIsEditing(false)} className="rounded-xl border border-white/10 px-4 py-2 text-sm text-text-muted hover:bg-white/5">Cancel</button>
+              <button onClick={() => setIsEditing(false)} className="rounded-xl border border-border px-4 py-2 text-sm text-text-muted hover:bg-surface-mutes/50">Cancel</button>
               <button onClick={handleSave} className="flex items-center gap-2 rounded-xl bg-brand-primary px-4 py-2 text-sm font-bold text-white hover:brightness-110">
                 <FiCheck /> Save
               </button>
@@ -51,23 +51,23 @@ export default function ConstitutionPage() {
           <div className="space-y-4">
             <div>
               <label className="text-xs font-bold text-text-muted">Title</label>
-              <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full mt-1 rounded-xl border border-white/10 bg-black/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
+              <input type="text" value={editForm.title} onChange={e => setEditForm({...editForm, title: e.target.value})} className="w-full mt-1 rounded-xl border border-border bg-surface-mutes/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
             </div>
             <div>
               <label className="text-xs font-bold text-text-muted">Phase</label>
-              <input type="text" value={editForm.phase} onChange={e => setEditForm({...editForm, phase: e.target.value})} className="w-full mt-1 rounded-xl border border-white/10 bg-black/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
+              <input type="text" value={editForm.phase} onChange={e => setEditForm({...editForm, phase: e.target.value})} className="w-full mt-1 rounded-xl border border-border bg-surface-mutes/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
             </div>
             <div>
               <label className="text-xs font-bold text-text-muted">Mission</label>
-              <textarea rows={3} value={editForm.mission} onChange={e => setEditForm({...editForm, mission: e.target.value})} className="w-full mt-1 rounded-xl border border-white/10 bg-black/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
+              <textarea rows={3} value={editForm.mission} onChange={e => setEditForm({...editForm, mission: e.target.value})} className="w-full mt-1 rounded-xl border border-border bg-surface-mutes/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
             </div>
             <div>
               <label className="text-xs font-bold text-text-muted">Vision (Legacy)</label>
-              <textarea rows={3} value={editForm.vision} onChange={e => setEditForm({...editForm, vision: e.target.value})} className="w-full mt-1 rounded-xl border border-white/10 bg-black/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
+              <textarea rows={3} value={editForm.vision} onChange={e => setEditForm({...editForm, vision: e.target.value})} className="w-full mt-1 rounded-xl border border-border bg-surface-mutes/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
             </div>
             <div>
               <label className="text-xs font-bold text-text-muted mb-1 block">Non-Negotiables (One per line)</label>
-              <textarea rows={5} value={editForm.nonNegotiables.join('\n')} onChange={e => setEditForm({...editForm, nonNegotiables: e.target.value.split('\n').filter(Boolean)})} className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
+              <textarea rows={5} value={editForm.nonNegotiables.join('\n')} onChange={e => setEditForm({...editForm, nonNegotiables: e.target.value.split('\n').filter(Boolean)})} className="w-full rounded-xl border border-border bg-surface-mutes/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
             </div>
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function ConstitutionPage() {
   return (
     <div className="w-full space-y-8 px-4 py-8 sm:px-6 md:px-8">
       <div className="mx-auto max-w-4xl space-y-12 relative">
-        <button onClick={handleEdit} className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/5 text-text-muted hover:bg-white/10 hover:text-white transition">
+        <button onClick={handleEdit} className="absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-surface-mutes/50 text-text-muted hover:bg-white/10 hover:text-white transition">
           <FiEdit3 />
         </button>
 
@@ -86,7 +86,7 @@ export default function ConstitutionPage() {
         <motion.section 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-[2rem] border border-white/10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-primary/20 via-black/40 to-black/80 p-8 text-center sm:p-12 shadow-2xl"
+          className="rounded-[2rem] border border-border bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-brand-primary/20 via-black/40 to-black/80 p-8 text-center sm:p-12 shadow-2xl"
         >
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-brand-primary/20 text-brand-primary mb-6 shadow-[0_0_30px_rgba(99,102,241,0.3)]">
             <FiBook size={32} />
@@ -152,7 +152,7 @@ export default function ConstitutionPage() {
                 return (
                   <div 
                     key={index} 
-                    className="group relative overflow-hidden rounded-[2rem] border border-white/10 bg-surface-soft p-6 transition hover:border-white/20 hover:bg-white/5"
+                    className="group relative overflow-hidden rounded-[2rem] border border-border bg-surface-soft p-6 transition hover:border-white/20 hover:bg-surface-mutes/50"
                   >
                     <div className={`mb-4 inline-flex rounded-xl bg-black/40 p-3 ${pillar.color}`}>
                       <IconComponent size={20} />
@@ -168,7 +168,7 @@ export default function ConstitutionPage() {
                       if (linkedHabits.length === 0) return null;
                       
                       return (
-                        <div className="mt-4 pt-4 border-t border-white/5 space-y-2">
+                        <div className="mt-4 pt-4 border-t border-border space-y-2">
                           <h4 className="text-[10px] font-black uppercase tracking-widest text-text-muted">Execution Anchor</h4>
                           {linkedHabits.map(habit => {
                             const today = dayjs().startOf('day');
@@ -177,12 +177,12 @@ export default function ConstitutionPage() {
                             const progress = (completedCount / 7) * 100;
                             
                             return (
-                              <div key={habit.id} className="bg-black/20 rounded-xl p-3">
+                              <div key={habit.id} className="bg-surface-mutes/20 rounded-xl p-3">
                                 <div className="flex justify-between items-center mb-2">
                                   <span className="text-xs font-bold text-white/90">{habit.title}</span>
                                   <span className="text-[10px] text-text-muted">{completedCount}/7 Days</span>
                                 </div>
-                                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-1.5 w-full bg-surface-mutes/50 rounded-full overflow-hidden">
                                   <div 
                                     className={`h-full ${pillar.color.replace('text-', 'bg-')} transition-all`} 
                                     style={{ width: `${progress}%` }} 
