@@ -187,7 +187,7 @@ export default function SignInForm() {
   };
 
   return (
-    <div className="w-full rounded-2xl border border-white/5 bg-surface-soft p-8 shadow-2xl shadow-black/40">
+    <div className="w-full rounded-2xl border border-border bg-surface-soft p-8 shadow-2xl shadow-black/40">
       {/* Brand Header */}
       <div className="mb-8 flex flex-col items-center gap-3">
         <Image src="/pkmlogo.png" alt="PKM Logo" width={60} height={60} priority className="w-16 h-16 object-cover" />
@@ -204,7 +204,7 @@ export default function SignInForm() {
       </div>
 
       {/* Mode Tabs */}
-      <div className="mb-6 flex rounded-xl border border-white/5 bg-surface-base p-1">
+      <div className="mb-6 flex rounded-xl border border-border bg-surface-base p-1">
         {(["Sign In", "Register"] as const).map((tab) => {
           const active = tab === "Sign In" ? isLogin : !isLogin;
           return (
@@ -249,7 +249,7 @@ export default function SignInForm() {
                   placeholder="John"
                   {...registerForm.register("firstName")}
                   className={`w-full cursor-text rounded-xl border bg-surface-base py-3 pl-10 pr-3 text-sm text-text-main placeholder:text-text-muted/60 transition-all outline-none focus:ring-2 ${
-                    errors && "firstName" in errors ? "border-red-500/50 focus:ring-red-500/20" : "border-white/5 focus:border-brand-primary/50 focus:ring-brand-primary/20"
+                    errors && "firstName" in errors ? "border-red-500/50 focus:ring-red-500/20" : "border-border focus:border-brand-primary/50 focus:ring-brand-primary/20"
                   }`}
                 />
               </div>
@@ -269,7 +269,7 @@ export default function SignInForm() {
                   placeholder="Doe"
                   {...registerForm.register("lastName")}
                   className={`w-full cursor-text rounded-xl border bg-surface-base py-3 pl-10 pr-3 text-sm text-text-main placeholder:text-text-muted/60 transition-all outline-none focus:ring-2 ${
-                    errors && "lastName" in errors ? "border-red-500/50 focus:ring-red-500/20" : "border-white/5 focus:border-brand-primary/50 focus:ring-brand-primary/20"
+                    errors && "lastName" in errors ? "border-red-500/50 focus:ring-red-500/20" : "border-border focus:border-brand-primary/50 focus:ring-brand-primary/20"
                   }`}
                 />
               </div>
@@ -293,7 +293,7 @@ export default function SignInForm() {
               placeholder="you@example.com"
               {...(isLogin ? loginForm.register("email") : registerForm.register("email"))}
               className={`w-full cursor-text rounded-xl border bg-surface-base py-3 pl-10 pr-3 text-sm text-text-main placeholder:text-text-muted/60 transition-all outline-none focus:ring-2 ${
-                errors.email ? "border-red-500/50 focus:ring-red-500/20" : "border-white/5 focus:border-brand-primary/50 focus:ring-brand-primary/20"
+                errors.email ? "border-red-500/50 focus:ring-red-500/20" : "border-border focus:border-brand-primary/50 focus:ring-brand-primary/20"
               }`}
             />
           </div>
@@ -320,7 +320,7 @@ export default function SignInForm() {
               placeholder={isLogin ? "Enter your password" : "Min. 8 characters"}
               {...(isLogin ? loginForm.register("password") : registerForm.register("password"))}
               className={`w-full cursor-text rounded-xl border bg-surface-base py-3 pl-10 pr-10 text-sm text-text-main placeholder:text-text-muted/60 transition-all outline-none focus:ring-2 ${
-                errors.password ? "border-red-500/50 focus:ring-red-500/20" : "border-white/5 focus:border-brand-primary/50 focus:ring-brand-primary/20"
+                errors.password ? "border-red-500/50 focus:ring-red-500/20" : "border-border focus:border-brand-primary/50 focus:ring-brand-primary/20"
               }`}
             />
             <button
@@ -372,16 +372,16 @@ export default function SignInForm() {
 
       {/* Divider */}
       <div className="my-5 flex items-center gap-3">
-        <div className="flex-1 border-t border-white/5" />
+        <div className="flex-1 border-t border-border" />
         <span className="text-xs font-medium uppercase tracking-widest text-text-muted/50">or</span>
-        <div className="flex-1 border-t border-white/5" />
+        <div className="flex-1 border-t border-border" />
       </div>
 
       {/* Google OAuth */}
       <button
         type="button"
         onClick={handleGoogleAuth}
-        className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-white/10 bg-white/5 py-3 text-sm font-semibold text-text-main transition-all hover:border-white/20 hover:bg-white/10 active:scale-[0.98]"
+        className="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl border border-border bg-surface-mutes/50 py-3 text-sm font-semibold text-text-main transition-all hover:border-white/20 hover:bg-white/10 active:scale-[0.98]"
       >
         <FcGoogle size={20} />
         {isLogin ? "Continue with Google" : "Sign up with Google"}

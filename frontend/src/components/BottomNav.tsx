@@ -27,7 +27,7 @@ export default function BottomNav() {
   if (pathname === "/sign-in" || pathname === "/onboarding" || pathname === "/") return null;
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-soft/90 backdrop-blur-md border-t border-white/5 pb-safe pb-env-[safe-area-inset-bottom]">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface-soft/90 backdrop-blur-md border-t border-border pb-safe pb-env-[safe-area-inset-bottom]">
       <nav className="flex items-center justify-around h-16 px-2">
         {navItems.map((item) => {
           const isActive = pathname === item.href;
