@@ -64,7 +64,7 @@ export default function LedgerDashboard() {
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden bg-surface-base">
-      <div className="border-b border-white/5 px-4 pb-4 pt-4 sm:px-6 lg:px-8">
+      <div className="border-b border-border px-4 pb-4 pt-4 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
           <div>
             <h1 className="mb-2 text-4xl font-display font-black tracking-tight text-text-main">
@@ -78,29 +78,29 @@ export default function LedgerDashboard() {
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="flex w-full overflow-x-auto rounded-2xl border border-white/5 bg-white/5 p-1 md:w-auto">
+            <div className="flex w-full overflow-x-auto rounded-2xl border border-border bg-surface-mutes/50 p-1 md:w-auto">
               <button
                 onClick={() => setView("table")}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${view === "table" ? "bg-brand-primary text-white shadow-lg" : "text-text-muted hover:bg-white/5 hover:text-text-main"}`}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${view === "table" ? "bg-brand-primary text-white shadow-lg" : "text-text-muted hover:bg-surface-mutes/50 hover:text-text-main"}`}
               >
                 <FiList /> Table
               </button>
               <button
                 onClick={() => setView("heatmap")}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${view === "heatmap" ? "bg-amber-500 text-amber-950 shadow-lg" : "text-text-muted hover:bg-white/5 hover:text-text-main"}`}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${view === "heatmap" ? "bg-amber-500 text-amber-950 shadow-lg" : "text-text-muted hover:bg-surface-mutes/50 hover:text-text-main"}`}
               >
                 <FiActivity /> Heatmap
               </button>
               <button
                 onClick={() => setView("replay")}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${view === "replay" ? "bg-emerald-500 text-emerald-950 shadow-lg" : "text-text-muted hover:bg-white/5 hover:text-text-main"}`}
+                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all ${view === "replay" ? "bg-emerald-500 text-emerald-950 shadow-lg" : "text-text-muted hover:bg-surface-mutes/50 hover:text-text-main"}`}
               >
                 <FiClock /> Replay
               </button>
             </div>
             <button
               type="button"
-              className="flex items-center justify-center rounded-2xl border border-white/5 bg-white/5 p-3 text-text-muted transition-colors hover:bg-white/10 hover:text-text-main"
+              className="flex items-center justify-center rounded-2xl border border-border bg-surface-mutes/50 p-3 text-text-muted transition-colors hover:bg-white/10 hover:text-text-main"
               title="Export coming soon"
             >
               <FiDownload size={18} />
@@ -165,7 +165,7 @@ export default function LedgerDashboard() {
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6">
+            <div className="rounded-[2rem] border border-border bg-surface-mutes/50 p-6">
               <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-300">
                 Strongest Themes
               </p>
@@ -174,7 +174,7 @@ export default function LedgerDashboard() {
                   insights.strongestTags.map((tag) => (
                     <span
                       key={tag}
-                      className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main"
+                      className="rounded-full border border-border bg-surface-mutes/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main"
                     >
                       #{tag}
                     </span>
@@ -205,10 +205,10 @@ export default function LedgerDashboard() {
         ) : null}
 
         {view === "table" ? (
-          <div className="glass overflow-hidden rounded-[2rem] border border-white/5">
+          <div className="glass overflow-hidden rounded-[2rem] border border-border">
             <div className="overflow-x-auto">
               <table className="w-full border-collapse text-left">
-                <thead className="bg-white/5 text-[10px] font-black uppercase tracking-widest text-text-muted">
+                <thead className="bg-surface-mutes/50 text-[10px] font-black uppercase tracking-widest text-text-muted">
                   <tr>
                     <th className="p-4 pl-6">Completed Time</th>
                     <th className="p-4">Task Title</th>
@@ -275,7 +275,7 @@ export default function LedgerDashboard() {
                             log.tags.map((tag) => (
                               <span
                                 key={`${log.id}-${tag}`}
-                                className="rounded-md bg-white/5 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-text-muted"
+                                className="rounded-md bg-surface-mutes/50 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-text-muted"
                               >
                                 #{tag}
                               </span>
@@ -306,7 +306,7 @@ export default function LedgerDashboard() {
         ) : null}
 
         {view === "heatmap" ? (
-          <div className="glass flex min-h-[24rem] flex-col rounded-[2rem] border border-white/5 p-6">
+          <div className="glass flex min-h-[24rem] flex-col rounded-[2rem] border border-border p-6">
             <div className="mb-6 flex items-start justify-between gap-4">
               <div>
                 <h2 className="text-xl font-bold font-display text-text-main">
@@ -324,14 +324,14 @@ export default function LedgerDashboard() {
                 <div key={sum.id || sum.date} className="flex flex-col items-center gap-2">
                   <div
                     title={`${dayjs(sum.date).format("MMM D")}: ${sum.completedTasks} tasks / Score ${sum.productivityScore || 0}`}
-                    className={`h-12 w-12 rounded-xl border border-white/5 transition-transform hover:scale-110 ${
+                    className={`h-12 w-12 rounded-xl border border-border transition-transform hover:scale-110 ${
                       (sum.productivityScore || 0) > 80
                         ? "bg-amber-500 shadow-lg shadow-amber-500/20"
                         : (sum.productivityScore || 0) > 50
                           ? "bg-emerald-500/70"
                           : (sum.productivityScore || 0) > 20
                             ? "bg-emerald-500/35"
-                            : "bg-white/5"
+                            : "bg-surface-mutes/50"
                     }`}
                   />
                   <span className="text-[10px] font-bold uppercase tracking-widest text-text-muted">
@@ -349,7 +349,7 @@ export default function LedgerDashboard() {
               replayGroups.map(([date, dayLogs]) => (
                 <div
                   key={date}
-                  className="rounded-[2rem] border border-white/10 bg-white/5 p-6"
+                  className="rounded-[2rem] border border-border bg-surface-mutes/50 p-6"
                 >
                   <div className="mb-4 flex items-center justify-between gap-4">
                     <div>
@@ -360,7 +360,7 @@ export default function LedgerDashboard() {
                         {dayjs(date).format("dddd, MMMM D")}
                       </h2>
                     </div>
-                    <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+                    <span className="rounded-full border border-border bg-surface-mutes/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
                       {dayLogs.length} completion{dayLogs.length === 1 ? "" : "s"}
                     </span>
                   </div>
@@ -369,7 +369,7 @@ export default function LedgerDashboard() {
                     {dayLogs.map((log) => (
                       <div
                         key={log.id}
-                        className="flex flex-col gap-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 md:flex-row md:items-center md:justify-between"
+                        className="flex flex-col gap-2 rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 md:flex-row md:items-center md:justify-between"
                       >
                         <div>
                           <p className="font-semibold text-text-main">{log.title}</p>
@@ -387,7 +387,7 @@ export default function LedgerDashboard() {
                 </div>
               ))
             ) : (
-              <div className="glass flex min-h-[20rem] flex-col items-center justify-center rounded-[2rem] border border-white/5 p-8 text-center">
+              <div className="glass flex min-h-[20rem] flex-col items-center justify-center rounded-[2rem] border border-border p-8 text-center">
                 <FiAlertCircle className="text-text-muted" size={28} />
                 <h2 className="mt-4 text-xl font-bold text-text-main">
                   Replay needs more history
@@ -417,7 +417,7 @@ function MetricCard({
   icon: ReactNode;
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-white/10 bg-white/5 p-4">
+    <div className="rounded-[1.5rem] border border-border bg-surface-mutes/50 p-4">
       <div className="flex items-center justify-between gap-3">
         <span className="text-[11px] font-black uppercase tracking-[0.2em] text-text-muted">
           {label}
@@ -440,7 +440,7 @@ function InsightStat({
   icon: ReactNode;
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-white/10 bg-black/20 p-4">
+    <div className="rounded-[1.5rem] border border-border bg-surface-mutes/20 p-4">
       <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-text-muted">
         <span className="text-brand-primary">{icon}</span>
         <span>{label}</span>
@@ -482,7 +482,7 @@ function InsightList({
             </div>
           ))
         ) : (
-          <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-text-muted">
+          <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-sm text-text-muted">
             {emptyLabel}
           </div>
         )}

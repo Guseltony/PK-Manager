@@ -80,7 +80,7 @@ export default function KnowledgePage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 md:px-6 overflow-x-hidden">
-      <section className="rounded-2xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-4 sm:p-6 shadow-2xl">
+      <section className="rounded-2xl sm:rounded-[28px] border border-border bg-surface-soft p-4 sm:p-6 shadow-2xl">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.22em] text-brand-primary">
@@ -107,7 +107,7 @@ export default function KnowledgePage() {
         </div>
       </section>
 
-      <section className="rounded-2xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-4 sm:p-6">
+      <section className="rounded-2xl sm:rounded-[28px] border border-border bg-surface-soft p-4 sm:p-6">
         <div className="flex flex-col gap-3">
           <div className="flex flex-wrap gap-1.5 sm:gap-2">
             {filterOptions.map((option) => (
@@ -118,7 +118,7 @@ export default function KnowledgePage() {
                 className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition sm:px-4 sm:py-3 sm:text-xs ${
                   activeType === option.id
                     ? "border-brand-primary/30 bg-brand-primary text-black"
-                    : "border-white/10 bg-black/20 text-text-muted hover:text-text-main"
+                    : "border-border bg-surface-mutes/20 text-text-muted hover:text-text-main"
                 }`}
               >
                 {option.label}
@@ -134,7 +134,7 @@ export default function KnowledgePage() {
                 className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition sm:px-4 sm:py-3 sm:text-xs ${
                   timeFilter === option.id
                     ? "border-sky-400/30 bg-sky-400/15 text-sky-100"
-                    : "border-white/10 bg-black/20 text-text-muted hover:text-text-main"
+                    : "border-border bg-surface-mutes/20 text-text-muted hover:text-text-main"
                 }`}
               >
                 {option.label}
@@ -143,9 +143,9 @@ export default function KnowledgePage() {
           </div>
         </div>
 
-        <div className="mt-6 rounded-[28px] border border-white/10 bg-black/20 p-0 overflow-hidden">
+        <div className="mt-6 rounded-[28px] border border-border bg-surface-mutes/20 p-0 overflow-hidden">
           {isLoading ? (
-            <div className="h-[560px] animate-pulse rounded-[22px] border border-white/10 bg-white/5" />
+            <div className="h-[560px] animate-pulse rounded-[22px] border border-border bg-surface-mutes/50" />
           ) : (
             <GraphCanvas
               graph={graphLayout}
@@ -156,7 +156,7 @@ export default function KnowledgePage() {
         </div>
 
         {focusedNode ? (
-          <div className="mt-4 rounded-[24px] border border-white/10 bg-black/20 p-4">
+          <div className="mt-4 rounded-[24px] border border-border bg-surface-mutes/20 p-4">
             <div className="flex flex-wrap items-center gap-3">
               <span className={`rounded-full border px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] ${typePalette[focusedNode.type]}`}>
                 {focusedNode.type}
@@ -169,7 +169,7 @@ export default function KnowledgePage() {
             <p className="mt-3 text-sm leading-6 text-text-muted">
               {focusedNode.summary || "No extended preview is available for this node yet, but it is part of the current relationship map."}
             </p>
-            <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="mt-4 rounded-2xl border border-border bg-surface-mutes/50 p-4">
               <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
                 <FiLink2 />
                 Manual Link
@@ -179,15 +179,15 @@ export default function KnowledgePage() {
                   value={targetNodeId}
                   onValueChange={setTargetNodeId}
                 >
-                  <SelectTrigger className="rounded-xl border border-white/10 bg-black/20 px-3 py-6 text-sm text-text-main outline-none">
+                  <SelectTrigger className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-6 text-sm text-text-main outline-none">
                     <SelectValue placeholder="Select a node to connect" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-xl border border-white/10 bg-surface-soft text-white">
+                  <SelectContent className="rounded-xl border border-border bg-surface-soft text-white">
                     {targetOptions.map((node) => (
                       <SelectItem 
                         key={`${node.type}-${node.id}`} 
                         value={node.id}
-                        className="rounded-lg hover:bg-white/5 focus:bg-white/10 transition-colors"
+                        className="rounded-lg hover:bg-surface-mutes/50 focus:bg-white/10 transition-colors"
                       >
                         {node.title} ({node.type})
                       </SelectItem>
@@ -198,13 +198,13 @@ export default function KnowledgePage() {
                   value={relationType}
                   onChange={(event) => setRelationType(event.target.value)}
                   placeholder="supports"
-                  className="rounded-xl border border-white/10 bg-black/20 px-3 py-3 text-sm text-text-main outline-none placeholder:text-text-muted"
+                  className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-3 text-sm text-text-main outline-none placeholder:text-text-muted"
                 />
                 <button
                   type="button"
                   onClick={handleCreateFocusedLink}
                   disabled={!targetNodeId || createKnowledgeEdge.isPending}
-                  className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+                  className="rounded-xl border border-border bg-surface-mutes/20 px-4 py-3 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-surface-mutes/30 disabled:opacity-50"
                 >
                   {createKnowledgeEdge.isPending ? "Linking..." : "Create link"}
                 </button>
@@ -224,13 +224,13 @@ export default function KnowledgePage() {
             {data?.clusters.map((cluster) => (
               <div
                 key={cluster.name}
-                className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 sm:p-4 overflow-hidden min-w-0 w-full shadow-lg"
+                className="rounded-2xl border border-border bg-surface-mutes/20 px-3 py-2 sm:p-4 overflow-hidden min-w-0 w-full shadow-lg"
               >
                 <div className="flex items-center justify-between gap-3 overflow-hidden min-w-0 w-full">
                   <p className="text-xs sm:text-sm font-bold text-white break-all">
                     {cluster.name}
                   </p>
-                  <span className="shrink-0 rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-text-main">
+                  <span className="shrink-0 rounded-full border border-border bg-surface-mutes/50 px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-text-main">
                     {cluster.size} nodes
                   </span>
                 </div>
@@ -248,7 +248,7 @@ export default function KnowledgePage() {
             {data?.orphans.map((node) => (
               <div
                 key={`${node.type}-${node.id}`}
-                className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 sm:p-4 overflow-hidden min-w-0 w-full shadow-lg"
+                className="rounded-2xl border border-border bg-surface-mutes/20 px-3 py-2 sm:p-4 overflow-hidden min-w-0 w-full shadow-lg"
               >
                 <div
                   className={`inline-flex rounded-full border px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] ${typePalette[node.type]}`}
@@ -282,7 +282,7 @@ export default function KnowledgePage() {
             {data?.suggestedConnections.map((connection) => (
               <div
                 key={`${connection.from.id}-${connection.to.id}-${connection.relationType}`}
-                className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 sm:p-4 overflow-hidden min-w-0 w-full shadow-lg"
+                className="rounded-2xl border border-border bg-surface-mutes/20 px-3 py-2 sm:p-4 overflow-hidden min-w-0 w-full shadow-lg"
               >
                 <p className="text-xs sm:text-sm font-bold text-white break-all">
                   {connection.from.title} → {connection.to.title}
@@ -327,7 +327,7 @@ export default function KnowledgePage() {
 
 function MetricCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 sm:p-4">
+    <div className="rounded-2xl border border-border bg-surface-mutes/20 px-3 py-2 sm:p-4">
       <p className="text-[9px] font-black uppercase tracking-[0.18em] text-text-muted">
         {label}
       </p>
@@ -348,7 +348,7 @@ function Panel({
   children: ReactNode;
 }) {
   return (
-    <section className="rounded-2xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-4 sm:p-6 w-full min-w-0 overflow-hidden shadow-xl">
+    <section className="rounded-2xl sm:rounded-[28px] border border-border bg-surface-soft p-4 sm:p-6 w-full min-w-0 overflow-hidden shadow-xl">
       <div className="flex items-start gap-3 w-full overflow-hidden">
         <div className="mt-1 shrink-0">{icon}</div>
         <div className="min-w-0 flex-1">
@@ -373,7 +373,7 @@ function GraphCanvas({
   onFocusNode: (nodeId: string) => void;
 }) {
   return (
-    <div className="relative h-[480px] sm:h-[560px] overflow-hidden rounded-[22px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.07),transparent_45%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(0,0,0,0.15))]">
+    <div className="relative h-[480px] sm:h-[560px] overflow-hidden rounded-[22px] border border-border bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.07),transparent_45%),linear-gradient(180deg,rgba(255,255,255,0.03),rgba(0,0,0,0.15))]">
       <svg
         className="absolute inset-0 h-full w-full"
         viewBox="0 0 100 100"
@@ -423,7 +423,7 @@ function GraphCanvas({
         </motion.div>
       ))}
 
-      <div className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-full border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+      <div className="absolute bottom-4 right-4 inline-flex items-center gap-2 rounded-full border border-border bg-surface-mutes/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
         <FiShare2 />
         Relationship map
       </div>
