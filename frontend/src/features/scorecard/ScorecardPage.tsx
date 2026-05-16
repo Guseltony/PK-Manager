@@ -36,7 +36,7 @@ function ReflectionEditor({ card, onSave }: { card: Scorecard; onSave: (updates:
   });
 
   return (
-    <div className="mt-6 space-y-4 border-t border-white/5 pt-6">
+    <div className="mt-6 space-y-4 border-t border-border pt-6">
       <h4 className="text-xs font-black uppercase tracking-widest text-text-muted">Monthly Reflection</h4>
       {[
         { key: "winOfMonth", label: "🏆 Biggest Win", placeholder: "What went really well this month?", color: "emerald" },
@@ -51,7 +51,7 @@ function ReflectionEditor({ card, onSave }: { card: Scorecard; onSave: (updates:
             value={(form as Record<string, string>)[key]}
             onChange={e => setForm({ ...form, [key]: e.target.value })}
             placeholder={placeholder}
-            className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-sm text-white focus:border-brand-primary focus:outline-none"
+            className="w-full rounded-xl border border-border bg-surface-mutes/20 p-3 text-sm text-white focus:border-brand-primary focus:outline-none"
           />
         </div>
       ))}
@@ -73,7 +73,7 @@ function ScorecardCard({ card, onUpdate }: { card: Scorecard; onUpdate: (updates
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="overflow-hidden rounded-[2rem] border border-white/10 bg-surface-soft"
+      className="overflow-hidden rounded-[2rem] border border-border bg-surface-soft"
     >
       {/* Header */}
       <div
@@ -90,7 +90,7 @@ function ScorecardCard({ card, onUpdate }: { card: Scorecard; onUpdate: (updates
           <h3 className="text-lg font-bold text-white">{MONTH_NAMES[card.month]} {card.year}</h3>
           <p className="mt-0.5 text-xs text-text-muted">{card.pillarScores.length} Pillars tracked</p>
           {/* Mini bar */}
-          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-white/5">
+          <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-surface-mutes/50">
             <div
               className={`h-full ${SCORE_BG(card.overallScore)} transition-all`}
               style={{ width: `${card.overallScore}%` }}
@@ -108,7 +108,7 @@ function ScorecardCard({ card, onUpdate }: { card: Scorecard; onUpdate: (updates
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-white/5"
+            className="overflow-hidden border-t border-border"
           >
             <div className="p-5 sm:p-6 space-y-4">
               {/* Pillar breakdown */}
@@ -120,7 +120,7 @@ function ScorecardCard({ card, onUpdate }: { card: Scorecard; onUpdate: (updates
                       <span className="text-sm font-bold text-white/90">{ps.pillarName}</span>
                       <span className={`text-xs font-black ${SCORE_COLOR(ps.score)}`}>{ps.score}% · {ps.completed}/{ps.total} days</span>
                     </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-white/5">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-surface-mutes/50">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${ps.score}%` }}
@@ -208,7 +208,7 @@ export default function ScorecardPage() {
               <select
                 value={genMonth}
                 onChange={e => setGenMonth(Number(e.target.value))}
-                className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none"
+                className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none"
               >
                 {MONTH_NAMES.slice(1).map((m, i) => (
                   <option key={m} value={i + 1}>{m}</option>
@@ -220,7 +220,7 @@ export default function ScorecardPage() {
               <select
                 value={genYear}
                 onChange={e => setGenYear(Number(e.target.value))}
-                className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none"
+                className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-2 text-sm text-white focus:border-amber-400 focus:outline-none"
               >
                 {[now.year() - 1, now.year(), now.year() + 1].map(y => (
                   <option key={y} value={y}>{y}</option>
@@ -250,8 +250,8 @@ export default function ScorecardPage() {
           ))}
 
           {scorecards.length === 0 && (
-            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-12 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white/40">
+            <div className="rounded-[2rem] border border-border bg-surface-mutes/50 p-12 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-border bg-surface-mutes/20 text-white/40">
                 <FiBarChart2 size={28} />
               </div>
               <h3 className="mt-4 text-xl font-bold text-white">No scorecards yet</h3>

@@ -37,7 +37,7 @@ const projectStatuses: ProjectStatus[] = [
 ];
 
 const statusTone: Record<ProjectStatus, string> = {
-  not_started: "border-white/10 bg-white/5 text-text-muted",
+  not_started: "border-border bg-surface-mutes/50 text-text-muted",
   in_progress: "border-amber-400/30 bg-amber-400/10 text-amber-200",
   completed: "border-emerald-400/30 bg-emerald-400/10 text-emerald-200",
   paused: "border-sky-400/30 bg-sky-400/10 text-sky-200",
@@ -121,7 +121,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 md:px-6">
-      <section className="overflow-hidden rounded-2xl sm:rounded-[32px] border border-white/10 bg-surface-soft shadow-2xl">
+      <section className="overflow-hidden rounded-2xl sm:rounded-[32px] border border-border bg-surface-soft shadow-2xl">
         <div className="bg-linear-to-r from-brand-primary/18 via-white/0 to-brand-accent/15 px-4 sm:px-6 py-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
@@ -169,7 +169,7 @@ export default function ProjectsPage() {
           {showCreateForm ? (
             <form
               onSubmit={handleCreateProject}
-              className="flex-1 rounded-2xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-4 sm:p-6 animate-in fade-in slide-in-from-top-4"
+              className="flex-1 rounded-2xl sm:rounded-[28px] border border-border bg-surface-soft p-4 sm:p-6 animate-in fade-in slide-in-from-top-4"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -201,7 +201,7 @@ export default function ProjectsPage() {
                     }))
                   }
                   placeholder="Example: Build portfolio API"
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-primary/30"
+                  className="w-full rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-primary/30"
                 />
                 <textarea
                   value={draft.description}
@@ -213,7 +213,7 @@ export default function ProjectsPage() {
                   }
                   placeholder="Scope, outcome, etc."
                   rows={2}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-primary/30"
+                  className="w-full rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-sm text-white outline-none transition focus:border-brand-primary/30"
                 />
                 <Select
                   value={draft.dreamId}
@@ -224,15 +224,15 @@ export default function ProjectsPage() {
                     }))
                   }
                 >
-                  <SelectTrigger className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-sm text-white outline-none transition focus:border-brand-primary/30">
+                  <SelectTrigger className="w-full rounded-2xl border border-border bg-surface-mutes/20 px-4 py-4 text-sm text-white outline-none transition focus:border-brand-primary/30">
                     <SelectValue placeholder="Select parent dream" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl border border-white/10 bg-surface-soft text-white">
+                  <SelectContent className="rounded-2xl border border-border bg-surface-soft text-white">
                     {dreams.map((dream) => (
                       <SelectItem 
                         key={dream.id} 
                         value={dream.id}
-                        className="rounded-xl hover:bg-white/5 focus:bg-white/10 transition-colors"
+                        className="rounded-xl hover:bg-surface-mutes/50 focus:bg-white/10 transition-colors"
                       >
                         {dream.title}
                       </SelectItem>
@@ -257,7 +257,7 @@ export default function ProjectsPage() {
           ) : (
             <button
               onClick={() => setShowCreateForm(true)}
-              className="flex-1 w-full rounded-2xl sm:rounded-[28px] border border-dashed border-white/15 bg-surface-soft p-6 flex flex-col items-center justify-center text-center hover:bg-white/5 transition"
+              className="flex-1 w-full rounded-2xl sm:rounded-[28px] border border-dashed border-border bg-surface-soft p-6 flex flex-col items-center justify-center text-center hover:bg-surface-mutes/50 transition"
             >
               <div className="rounded-full bg-brand-primary/10 p-4 text-brand-primary mb-4">
                 <FiPlus size={24} />
@@ -270,7 +270,7 @@ export default function ProjectsPage() {
           )}
         </div>
 
-        <div className="flex flex-col rounded-2xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-4 sm:p-6">
+        <div className="flex flex-col rounded-2xl sm:rounded-[28px] border border-border bg-surface-soft p-4 sm:p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-primary">
@@ -293,15 +293,15 @@ export default function ProjectsPage() {
               value={selectedDreamId !== "all" ? selectedDreamId : ""}
               onValueChange={(val) => val && generateProjectsAsync({ dreamId: val, persist: true })}
             >
-              <SelectTrigger className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-sm text-white outline-none transition focus:border-brand-primary/30">
+              <SelectTrigger className="w-full rounded-2xl border border-border bg-surface-mutes/20 px-4 py-4 text-sm text-white outline-none transition focus:border-brand-primary/30">
                 <SelectValue placeholder="Select a dream to analyze..." />
               </SelectTrigger>
-              <SelectContent className="rounded-2xl border border-white/10 bg-surface-soft text-white">
+              <SelectContent className="rounded-2xl border border-border bg-surface-soft text-white">
                 {dreams.map((dream) => (
                   <SelectItem 
                     key={dream.id} 
                     value={dream.id}
-                    className="rounded-xl hover:bg-white/5 focus:bg-white/10"
+                    className="rounded-xl hover:bg-surface-mutes/50 focus:bg-white/10"
                   >
                     {dream.title}
                   </SelectItem>
@@ -337,7 +337,7 @@ export default function ProjectsPage() {
         </div>
       </section>
 
-      <section className="rounded-[32px] border border-white/10 bg-surface-soft p-4 sm:p-6">
+      <section className="rounded-[32px] border border-border bg-surface-soft p-4 sm:p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.2em] text-brand-primary">
@@ -352,16 +352,16 @@ export default function ProjectsPage() {
               value={selectedDreamId}
               onValueChange={setSelectedDreamId}
             >
-              <SelectTrigger className="w-full md:w-[220px] rounded-2xl border border-white/10 bg-black/20 px-4 py-6 text-sm text-white outline-none transition focus:border-brand-primary/30">
+              <SelectTrigger className="w-full md:w-[220px] rounded-2xl border border-border bg-surface-mutes/20 px-4 py-6 text-sm text-white outline-none transition focus:border-brand-primary/30">
                 <SelectValue placeholder="Filter by dream" />
               </SelectTrigger>
-              <SelectContent className="rounded-2xl border border-white/10 bg-surface-soft text-white">
-                <SelectItem value="all" className="rounded-xl hover:bg-white/5 focus:bg-white/10">All dreams</SelectItem>
+              <SelectContent className="rounded-2xl border border-border bg-surface-soft text-white">
+                <SelectItem value="all" className="rounded-xl hover:bg-surface-mutes/50 focus:bg-white/10">All dreams</SelectItem>
                 {dreams.map((dream) => (
                   <SelectItem 
                     key={dream.id} 
                     value={dream.id}
-                    className="rounded-xl hover:bg-white/5 focus:bg-white/10"
+                    className="rounded-xl hover:bg-surface-mutes/50 focus:bg-white/10"
                   >
                     {dream.title}
                   </SelectItem>
@@ -375,7 +375,7 @@ export default function ProjectsPage() {
               ? Array.from({ length: 4 }).map((_, index) => (
                   <div
                     key={index}
-                    className="h-48 animate-pulse rounded-[26px] border border-white/10 bg-black/20"
+                    className="h-48 animate-pulse rounded-[26px] border border-border bg-surface-mutes/20"
                   />
                 ))
               : filteredProjects.map((project, index) => (
@@ -384,7 +384,7 @@ export default function ProjectsPage() {
                     initial={{ opacity: 0, y: 18 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.04 }}
-                    className="rounded-2xl border border-white/10 bg-black/20 p-4 sm:p-6 flex flex-col"
+                    className="rounded-2xl border border-border bg-surface-mutes/20 p-4 sm:p-6 flex flex-col"
                   >
                     <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
                       <div className="max-w-3xl">
@@ -394,7 +394,7 @@ export default function ProjectsPage() {
                           >
                             {project.status.replace("_", " ")}
                           </span>
-                          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                          <span className="rounded-full border border-border bg-surface-mutes/50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                             {project.dream.title}
                           </span>
                           {project.health.flags.map((flag) => (
@@ -430,7 +430,7 @@ export default function ProjectsPage() {
                             className={`rounded-2xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] transition ${
                               project.status === status
                                 ? "border-brand-primary/30 bg-brand-primary/15 text-brand-primary"
-                                : "border-white/10 bg-white/5 text-text-muted hover:text-white"
+                                : "border-border bg-surface-mutes/50 text-text-muted hover:text-white"
                             }`}
                           >
                             {status.replace("_", " ")}
@@ -440,7 +440,7 @@ export default function ProjectsPage() {
                     </div>
 
                     <div className="mt-5 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-                      <div className="rounded-[22px] border border-white/10 bg-white/5 p-4 flex flex-col justify-center">
+                      <div className="rounded-[22px] border border-border bg-surface-mutes/50 p-4 flex flex-col justify-center">
                         <div className="flex items-center justify-between">
                           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                             Progress
@@ -487,12 +487,12 @@ export default function ProjectsPage() {
 
                     <div className="mt-auto pt-5">
                       {project.tasks.length ? (
-                        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between">
+                        <div className="rounded-2xl border border-border bg-surface-mutes/50 p-4 flex items-center justify-between">
                             <span className="text-sm font-bold text-white">{project.tasks.length} active tasks inside</span>
                             <button className="text-xs text-brand-primary font-bold hover:underline">View All</button>
                         </div>
                       ) : (
-                        <div className="rounded-2xl border border-dashed border-white/15 bg-white/5 px-4 py-4 text-center text-sm text-text-muted">
+                        <div className="rounded-2xl border border-dashed border-border bg-surface-mutes/50 px-4 py-4 text-center text-sm text-text-muted">
                           No tasks linked yet.
                         </div>
                       )}
@@ -501,7 +501,7 @@ export default function ProjectsPage() {
                 ))}
 
             {!isLoading && filteredProjects.length === 0 ? (
-              <div className="col-span-full rounded-[26px] border border-dashed border-white/15 bg-black/20 px-6 py-12 text-center">
+              <div className="col-span-full rounded-[26px] border border-dashed border-border bg-surface-mutes/20 px-6 py-12 text-center">
                 <p className="text-lg font-black text-white">No projects yet</p>
                 <p className="mt-2 text-sm text-text-muted">
                   Create one manually or generate structure from a dream to
@@ -525,7 +525,7 @@ function StatCard({
   icon: ComponentType<{ className?: string }>;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+    <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
       <div className="flex items-center justify-between gap-3">
         <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
           {label}
@@ -545,7 +545,7 @@ function MiniMetric({
   value: string | number;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-3">
+    <div className="rounded-2xl border border-border bg-surface-mutes/20 px-3 py-3">
       <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
         {label}
       </p>
@@ -564,7 +564,7 @@ function SignalCard({
   value: string | number;
 }) {
   return (
-    <div className="rounded-[22px] border border-white/10 bg-white/5 p-4">
+    <div className="rounded-[22px] border border-border bg-surface-mutes/50 p-4">
       <div className="flex items-center justify-between">
         <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
           {label}
