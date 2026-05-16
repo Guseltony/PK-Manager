@@ -39,7 +39,7 @@ export default function GlobalInboxCapture() {
           }}
         />
 
-        <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
+        <div className="mt-4 flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3">
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
               Inbox Access
@@ -54,7 +54,7 @@ export default function GlobalInboxCapture() {
               setCaptureModalOpen(false);
               router.push("/inbox");
             }}
-            className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30"
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-mutes/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-surface-mutes/30"
           >
             <FiInbox />
             Open inbox

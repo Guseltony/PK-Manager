@@ -66,16 +66,16 @@ export default function HabitsPage() {
 
         {/* Create Form */}
         {isCreating && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-white/10 bg-surface-soft p-6">
+          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="rounded-3xl border border-border bg-surface-soft p-6">
             <h3 className="mb-4 text-lg font-bold text-white">New Foundation Habit</h3>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <label className="mb-1 block text-xs font-bold text-text-muted">Habit Name</label>
-                <input autoFocus type="text" value={newHabit.title} onChange={e => setNewHabit({...newHabit, title: e.target.value})} placeholder="e.g. Code for 3 hours" className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
+                <input autoFocus type="text" value={newHabit.title} onChange={e => setNewHabit({...newHabit, title: e.target.value})} placeholder="e.g. Code for 3 hours" className="w-full rounded-xl border border-border bg-surface-mutes/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
               </div>
               <div>
                 <label className="mb-1 block text-xs font-bold text-text-muted">Description (Optional)</label>
-                <input type="text" value={newHabit.description} onChange={e => setNewHabit({...newHabit, description: e.target.value})} placeholder="Why is this important?" className="w-full rounded-xl border border-white/10 bg-black/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
+                <input type="text" value={newHabit.description} onChange={e => setNewHabit({...newHabit, description: e.target.value})} placeholder="Why is this important?" className="w-full rounded-xl border border-border bg-surface-mutes/20 p-3 text-white focus:border-brand-primary focus:outline-none" />
               </div>
             </div>
             <div className="mt-4 grid gap-4 sm:grid-cols-2">
@@ -93,7 +93,7 @@ export default function HabitsPage() {
                   <select 
                     value={newHabit.pillarName} 
                     onChange={e => setNewHabit({...newHabit, pillarName: e.target.value})}
-                    className="w-full rounded-xl border border-white/10 bg-black/20 p-2 text-sm text-white focus:border-brand-primary focus:outline-none"
+                    className="w-full rounded-xl border border-border bg-surface-mutes/20 p-2 text-sm text-white focus:border-brand-primary focus:outline-none"
                   >
                     <option value="">-- No Link --</option>
                     {constitution.pillars.map((p, i) => (
@@ -104,7 +104,7 @@ export default function HabitsPage() {
               )}
             </div>
             <div className="mt-6 flex justify-end gap-3">
-              <button onClick={() => setIsCreating(false)} className="rounded-xl px-4 py-2 text-sm text-text-muted hover:bg-white/5">Cancel</button>
+              <button onClick={() => setIsCreating(false)} className="rounded-xl px-4 py-2 text-sm text-text-muted hover:bg-surface-mutes/50">Cancel</button>
               <button onClick={handleCreate} disabled={!newHabit.title} className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-black hover:bg-white/90 disabled:opacity-50">Create</button>
             </div>
           </motion.div>
@@ -121,7 +121,7 @@ export default function HabitsPage() {
                 key={habit.id}
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="group overflow-hidden rounded-[2rem] border border-white/10 bg-surface-soft p-5 sm:p-6"
+                className="group overflow-hidden rounded-[2rem] border border-border bg-surface-soft p-5 sm:p-6"
               >
                 <div className="mb-6 flex items-start justify-between">
                   <div className="flex items-center gap-4">
@@ -132,7 +132,7 @@ export default function HabitsPage() {
                       <h3 className="text-xl font-bold text-white flex items-center gap-2">
                         {habit.title}
                         {habit.pillarName && (
-                          <span className="text-[10px] uppercase tracking-wider bg-white/5 border border-white/10 px-2 py-0.5 rounded-md text-text-muted">
+                          <span className="text-[10px] uppercase tracking-wider bg-surface-mutes/50 border border-border px-2 py-0.5 rounded-md text-text-muted">
                             {habit.pillarName}
                           </span>
                         )}
@@ -182,8 +182,8 @@ export default function HabitsPage() {
           })}
 
           {habits.length === 0 && !isCreating && (
-            <div className="rounded-[2rem] border border-white/10 bg-white/5 p-12 text-center">
-              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-black/20 text-white/40">
+            <div className="rounded-[2rem] border border-border bg-surface-mutes/50 p-12 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-border bg-surface-mutes/20 text-white/40">
                 <FiTarget size={28} />
               </div>
               <h3 className="mt-4 text-xl font-bold text-white">No habits yet</h3>
