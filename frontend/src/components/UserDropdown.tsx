@@ -55,7 +55,7 @@ export default function UserDropdown({ auth }: { auth: AuthResult }) {
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 rounded-xl p-1.5 transition-all hover:bg-surface-soft active:scale-95"
       >
-        <div className="h-9 w-9 overflow-hidden rounded-full ring-2 ring-white/5 bg-brand-primary/10 flex items-center justify-center flex-shrink-0">
+        <div className="h-9 w-9 overflow-hidden rounded-full ring-2 ring-border/50 bg-brand-primary/10 flex items-center justify-center flex-shrink-0">
           {user?.avatar ? (
              <img src={user.avatar} alt="" className="h-full w-full object-cover" />
           ) : (
@@ -77,10 +77,10 @@ export default function UserDropdown({ auth }: { auth: AuthResult }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.15, ease: "easeOut" }}
-            className="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border border-white/5 bg-surface-soft p-2 shadow-2xl backdrop-blur-xl z-50"
+            className="absolute right-0 mt-2 w-64 overflow-hidden rounded-2xl border border-border bg-surface-soft p-2 shadow-2xl backdrop-blur-xl z-50"
           >
             {/* User Info */}
-            <div className="mb-2 px-3 py-3 border-b border-white/5">
+            <div className="mb-2 px-3 py-3 border-b border-border">
               <p className="text-sm font-bold text-text-main truncate">{user?.name}</p>
               <p className="text-xs text-text-muted truncate">{user?.email}</p>
             </div>
@@ -90,7 +90,7 @@ export default function UserDropdown({ auth }: { auth: AuthResult }) {
               <Link
                 href="/profile"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-muted transition-all hover:bg-white/5 hover:text-text-main"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-muted transition-all hover:bg-surface-mutes/50 hover:text-text-main"
               >
                 <FiUser size={16} />
                 Profile Settings
@@ -98,14 +98,14 @@ export default function UserDropdown({ auth }: { auth: AuthResult }) {
               <Link
                 href="/settings"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-muted transition-all hover:bg-white/5 hover:text-text-main"
+                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-text-muted transition-all hover:bg-surface-mutes/50 hover:text-text-main"
               >
                 <FiSettings size={16} />
                 App Preferences
               </Link>
             </div>
 
-            <div className="my-2 h-px bg-white/5" />
+            <div className="my-2 h-px bg-surface-mutes/50" />
 
             {/* Theme Toggle */}
             <div className="px-3 py-2">
@@ -114,11 +114,14 @@ export default function UserDropdown({ auth }: { auth: AuthResult }) {
                 {themes.map((t) => (
                   <button
                     key={t.id}
-                    onClick={() => setTheme(t.id)}
+                    onClick={() => {
+                      setTheme(t.id);
+                      setIsOpen(false);
+                    }}
                     className={`flex flex-col items-center justify-center gap-1.5 rounded-lg py-2 transition-all ${
                       theme === t.id 
                         ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20" 
-                        : "text-text-muted hover:bg-white/5 hover:text-text-main"
+                        : "text-text-muted hover:bg-surface-mutes/50 hover:text-text-main"
                     }`}
                   >
                     <span className="text-base">{t.icon}</span>
@@ -128,7 +131,7 @@ export default function UserDropdown({ auth }: { auth: AuthResult }) {
               </div>
             </div>
 
-            <div className="my-2 h-px bg-white/5" />
+            <div className="my-2 h-px bg-surface-mutes/50" />
 
             {/* Logout */}
             <button

@@ -30,7 +30,7 @@ function MobileApkDownload() {
           window.localStorage.setItem("apk-downloaded", "1");
         } catch {}
       }}
-      className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-border/50 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10"
+      className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-border/50 bg-surface-mutes/50 px-4 py-3 text-left transition hover:bg-white/10"
     >
       <div>
         <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
@@ -40,7 +40,7 @@ function MobileApkDownload() {
           Android install package for mobile and tablets.
         </p>
       </div>
-      <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-black/20 text-text-main">
+      <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-surface-mutes/20 text-text-main">
         <FiDownload size={16} />
       </span>
     </a>
@@ -56,7 +56,7 @@ export function MobileSidebarTrigger() {
   return (
     <button
       onClick={toggleMobileSidebar}
-      className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-text-muted hover:text-text-main transition-all border border-border"
+      className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-surface-mutes/50 hover:bg-white/10 text-text-muted hover:text-text-main transition-all border border-border"
       aria-label="Open navigation"
     >
       <FiMenu size={18} />
@@ -110,7 +110,7 @@ export function MobileSidebarDrawer() {
           </div>
           <button
             onClick={() => setOpen(false)}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-text-muted hover:text-text-main hover:bg-white/5 transition-all"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-text-muted hover:text-text-main hover:bg-surface-mutes/50 transition-all"
           >
             <FiX size={18} />
           </button>

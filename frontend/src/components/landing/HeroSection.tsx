@@ -57,13 +57,13 @@ export default function HeroSection({ isAuthenticated }: HeroSectionProps) {
             <div className="flex flex-col sm:flex-row gap-4 items-center">
               <a
                 href="#features"
-                className="rounded-xl border border-white/10 px-8 py-4 text-base font-semibold text-text-muted transition-all hover:border-white/20 hover:bg-white/5 hover:text-text-main"
+                className="rounded-xl border border-border px-8 py-4 text-base font-semibold text-text-muted transition-all hover:border-white/20 hover:bg-surface-mutes/50 hover:text-text-main"
               >
                 See Features
               </a>
               <a
                 href="/apk" 
-                className="rounded-xl border border-white/10 px-8 py-4 text-base font-semibold text-text-muted transition-all hover:border-white/20 hover:bg-white/5 hover:text-text-main flex items-center gap-2"
+                className="rounded-xl border border-border px-8 py-4 text-base font-semibold text-text-muted transition-all hover:border-white/20 hover:bg-surface-mutes/50 hover:text-text-main flex items-center gap-2"
                 onClick={(e) => {
                   e.preventDefault();
                   window.location.href = "/downloads/pkm.apk";
@@ -88,9 +88,9 @@ export default function HeroSection({ isAuthenticated }: HeroSectionProps) {
         transition={{ duration: 0.9, delay: 0.3 }}
         className="relative z-10 mt-20 w-full max-w-5xl"
       >
-        <div className="overflow-hidden rounded-2xl border border-white/5 bg-surface-soft shadow-2xl shadow-black/50">
+        <div className="overflow-hidden rounded-2xl border border-border bg-surface-soft shadow-2xl shadow-black/50">
           {/* Mock window controls */}
-          <div className="flex items-center gap-2 border-b border-white/5 bg-surface-base px-4 py-3">
+          <div className="flex items-center gap-2 border-b border-border bg-surface-base px-4 py-3">
             <div className="h-3 w-3 rounded-full bg-red-500/70" />
             <div className="h-3 w-3 rounded-full bg-yellow-500/70" />
             <div className="h-3 w-3 rounded-full bg-green-500/70" />
@@ -102,10 +102,10 @@ export default function HeroSection({ isAuthenticated }: HeroSectionProps) {
           {/* Mock UI */}
           <div className="flex h-80 gap-0">
             {/* Sidebar mock */}
-            <div className="hidden w-48 flex-col gap-3 border-r border-white/5 bg-surface-soft p-4 sm:flex">
+            <div className="hidden w-48 flex-col gap-3 border-r border-border bg-surface-soft p-4 sm:flex">
               <div className="flex items-center gap-2">
                 <div className="h-6 w-6 rounded-lg bg-brand-primary/30" />
-                <div className="h-3 w-20 rounded bg-white/5" />
+                <div className="h-3 w-20 rounded bg-surface-mutes/50" />
               </div>
               {["Dashboard", "Notes", "Tasks", "Goals", "Journal"].map(
                 (item) => (
@@ -146,7 +146,7 @@ export default function HeroSection({ isAuthenticated }: HeroSectionProps) {
                 ].map(({ color, label }) => (
                   <div
                     key={label}
-                    className={`rounded-xl border border-white/5 p-4 ${color}`}
+                    className={`rounded-xl border border-border p-4 ${color}`}
                   >
                     <div className="mb-2 h-4 w-16 rounded bg-white/10" />
                     <div className="text-xs font-semibold text-text-muted">
@@ -164,7 +164,7 @@ export default function HeroSection({ isAuthenticated }: HeroSectionProps) {
                 ].map((note) => (
                   <div
                     key={note}
-                    className="flex items-center gap-3 rounded-xl border border-white/5 bg-surface-base px-4 py-3"
+                    className="flex items-center gap-3 rounded-xl border border-border bg-surface-base px-4 py-3"
                   >
                     <div className="h-2 w-2 rounded-full bg-brand-primary/60" />
                     <span className="text-xs text-text-muted">{note}</span>
