@@ -177,7 +177,7 @@ export default function MilestoneList({
         </div>
         <button
           onClick={() => setShowAdd(true)}
-          className="flex items-center gap-2 rounded-xl border border-white/5 bg-white/5 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-brand-primary transition-all hover:bg-white/10"
+          className="flex items-center gap-2 rounded-xl border border-border bg-surface-mutes/50 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-brand-primary transition-all hover:bg-white/10"
         >
           <FiPlus /> New Milestone
         </button>
@@ -215,12 +215,12 @@ export default function MilestoneList({
                 className={`rounded-2xl sm:rounded-3xl border p-4 sm:p-6 transition-all ${
                   milestone.completed
                     ? "border-emerald-500/10 bg-emerald-500/5 text-text-muted"
-                    : "border-white/5 bg-white/5 text-text-main"
+                    : "border-border bg-surface-mutes/50 text-text-main"
                 }`}
               >
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                   <div className="flex min-w-0 items-start gap-3 sm:gap-6">
-                    <span className="w-5 sm:w-6 border-b border-white/10 pb-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-text-muted/30">
+                    <span className="w-5 sm:w-6 border-b border-border pb-0.5 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-text-muted/30">
                       {(index + 1).toString().padStart(2, "0")}
                     </span>
                     <button
@@ -259,7 +259,7 @@ export default function MilestoneList({
                           <FiBook className="mr-1 inline" />
                           {linkedNotes.length} knowledge
                         </span>
-                        <span className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.14em] text-text-main">
+                        <span className="rounded-full border border-border bg-surface-mutes/20 px-2 py-1 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.14em] text-text-main">
                           {linkedTasks.length ? `${taskProgress}% execution ready` : "No execution linked"}
                         </span>
                       </div>
@@ -273,7 +273,7 @@ export default function MilestoneList({
                         setActiveMilestoneId(milestone.id);
                         setBlockedMilestoneId(null);
                       }}
-                      className="rounded-xl border border-white/10 bg-black/20 px-2.5 py-1.5 sm:px-3 sm:py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.16em] sm:tracking-[0.18em] text-text-main transition hover:bg-black/30"
+                      className="rounded-xl border border-border bg-surface-mutes/20 px-2.5 py-1.5 sm:px-3 sm:py-2 text-[9px] sm:text-[10px] font-black uppercase tracking-[0.16em] sm:tracking-[0.18em] text-text-main transition hover:bg-surface-mutes/30"
                     >
                       <FiSettings className="mr-1 inline" />
                       Architect
@@ -315,7 +315,7 @@ export default function MilestoneList({
             );
           })
         ) : (
-          <div className="glass rounded-[2.5rem] border border-dashed border-white/10 py-20 text-center">
+          <div className="glass rounded-[2.5rem] border border-dashed border-border py-20 text-center">
             <p className="text-sm italic text-text-muted">
               Deconstruct your ambition into flexible, rule-aware milestones.
             </p>
@@ -331,7 +331,7 @@ export default function MilestoneList({
             exit={{ opacity: 0, scale: 0.95 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-xl"
           >
-            <div className="relative w-full max-w-md rounded-[2.5rem] border border-white/10 bg-surface-soft p-8 shadow-2xl">
+            <div className="relative w-full max-w-md rounded-[2.5rem] border border-border bg-surface-soft p-8 shadow-2xl">
               <button
                 onClick={() => setShowAdd(false)}
                 className="absolute right-6 top-6 p-2 text-text-muted hover:text-text-main"
@@ -348,7 +348,7 @@ export default function MilestoneList({
                   value={newTitle}
                   onChange={(event) => setNewTitle(event.target.value)}
                   placeholder="e.g. Land first recurring client"
-                  className="w-full rounded-2xl border border-white/10 bg-white/5 px-6 py-4 text-sm text-text-main outline-none transition-all placeholder:text-text-muted/30 focus:ring-2 focus:ring-brand-primary/20"
+                  className="w-full rounded-2xl border border-border bg-surface-mutes/50 px-6 py-4 text-sm text-text-main outline-none transition-all placeholder:text-text-muted/30 focus:ring-2 focus:ring-brand-primary/20"
                 />
                 <button
                   type="submit"
@@ -370,7 +370,7 @@ export default function MilestoneList({
       >
         {activeMilestone && activeArchitecture ? (
           <div className="space-y-5">
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="rounded-2xl border border-border bg-surface-mutes/50 p-4">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
                 Why this exists
               </p>
@@ -381,12 +381,12 @@ export default function MilestoneList({
             </div>
 
             <div className="grid gap-5 lg:grid-cols-2">
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                     Linked execution
                   </p>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+                  <span className="rounded-full border border-border bg-surface-mutes/50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
                     {activeArchitecture.taskIds.length} selected
                   </span>
                 </div>
@@ -397,7 +397,7 @@ export default function MilestoneList({
                       return (
                         <label
                           key={task.id}
-                          className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3"
+                          className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-surface-mutes/50 px-3 py-3"
                         >
                           <input
                             type="checkbox"
@@ -415,7 +415,7 @@ export default function MilestoneList({
                           <div className="min-w-0">
                             <p className="text-sm font-bold text-text-main">{task.title}</p>
                             <div className="mt-1 flex flex-wrap gap-2">
-                              <span className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
+                              <span className="rounded-full border border-border bg-surface-mutes/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
                                 {task.status}
                               </span>
                               <span
@@ -442,12 +442,12 @@ export default function MilestoneList({
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                     Supporting knowledge
                   </p>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+                  <span className="rounded-full border border-border bg-surface-mutes/50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
                     {activeArchitecture.noteIds.length} selected
                   </span>
                 </div>
@@ -458,7 +458,7 @@ export default function MilestoneList({
                       return (
                         <label
                           key={note.id}
-                          className="flex cursor-pointer items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-3"
+                          className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-surface-mutes/50 px-3 py-3"
                         >
                           <input
                             type="checkbox"
@@ -492,7 +492,7 @@ export default function MilestoneList({
             </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
-              <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-4">
+              <label className="flex items-start gap-3 rounded-2xl border border-border bg-surface-mutes/20 px-4 py-4">
                 <input
                   type="checkbox"
                   checked={activeArchitecture.requireLinkedTasksComplete}
@@ -513,7 +513,7 @@ export default function MilestoneList({
                   </p>
                 </div>
               </label>
-              <label className="flex items-start gap-3 rounded-2xl border border-white/10 bg-black/20 px-4 py-4">
+              <label className="flex items-start gap-3 rounded-2xl border border-border bg-surface-mutes/20 px-4 py-4">
                 <input
                   type="checkbox"
                   checked={activeArchitecture.requireNotesOnLinkedTasks}
@@ -536,7 +536,7 @@ export default function MilestoneList({
               </label>
             </div>
 
-            <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <div className="rounded-2xl border border-border bg-surface-mutes/50 p-4">
               <div className="flex items-center gap-2">
                 <FiAlertTriangle className="text-amber-300" />
                 <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
@@ -544,7 +544,7 @@ export default function MilestoneList({
                 </p>
               </div>
               <div className="mt-3 grid gap-3 md:grid-cols-3">
-                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                     Execution linked
                   </p>
@@ -552,7 +552,7 @@ export default function MilestoneList({
                     {activeLinkedTasks.length}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                     Open execution blockers
                   </p>
@@ -560,7 +560,7 @@ export default function MilestoneList({
                     {activeBlockers.incompleteTasks.length}
                   </p>
                 </div>
-                <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                     Missing reference blockers
                   </p>

@@ -24,7 +24,7 @@ const SESSION_SECONDS = 25 * 60;
 
 const priorityTone: Record<FocusTask["priority"], string> = {
   low: "text-sky-300 border-sky-400/20 bg-sky-400/10",
-  medium: "text-slate-300 border-white/10 bg-white/5",
+  medium: "text-slate-300 border-border bg-surface-mutes/50",
   high: "text-amber-300 border-amber-400/20 bg-amber-400/10",
   urgent: "text-rose-300 border-rose-400/20 bg-rose-400/10",
 };
@@ -45,11 +45,11 @@ function FocusSkeleton() {
         {[0, 1, 2].map((item) => (
           <div
             key={item}
-            className="h-40 animate-pulse rounded-4xl border border-white/5 bg-white/5"
+            className="h-40 animate-pulse rounded-4xl border border-border bg-surface-mutes/50"
           />
         ))}
       </div>
-      <div className="h-80 animate-pulse rounded-4xl border border-white/5 bg-white/5" />
+      <div className="h-80 animate-pulse rounded-4xl border border-border bg-surface-mutes/50" />
     </div>
   );
 }
@@ -151,7 +151,7 @@ export default function FocusModePage() {
   return (
     <div className="min-h-[calc(100vh-64px)] overflow-y-auto bg-[radial-gradient(circle_at_top,#262f4d_0%,#131720_38%,#0f1115_100%)] px-4 py-6 sm:px-8 lg:px-10">
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <section className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-8">
+        <section className="overflow-hidden rounded-[2rem] border border-border bg-surface-mutes/50 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-8">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-3xl">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-amber-400/20 bg-amber-400/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.25em] text-amber-300">
@@ -167,17 +167,17 @@ export default function FocusModePage() {
             </div>
 
             <div className="grid gap-3 sm:grid-cols-3">
-              <div className="rounded-3xl border border-white/10 bg-black/20 px-4 py-3">
+              <div className="rounded-3xl border border-border bg-surface-mutes/20 px-4 py-3">
                 <p className="text-[11px] font-black uppercase tracking-[0.2em] text-text-muted">Queue</p>
                 <p className="mt-2 text-2xl font-bold text-text-main">{focusTasks.length}</p>
                 <p className="text-xs text-text-muted">Top tasks surfaced</p>
               </div>
-              <div className="rounded-3xl border border-white/10 bg-black/20 px-4 py-3">
+              <div className="rounded-3xl border border-border bg-surface-mutes/20 px-4 py-3">
                 <p className="text-[11px] font-black uppercase tracking-[0.2em] text-text-muted">Completed</p>
                 <p className="mt-2 text-2xl font-bold text-text-main">{completedCount}</p>
                 <p className="text-xs text-text-muted">This session</p>
               </div>
-              <div className="rounded-3xl border border-white/10 bg-black/20 px-4 py-3">
+              <div className="rounded-3xl border border-border bg-surface-mutes/20 px-4 py-3">
                 <p className="text-[11px] font-black uppercase tracking-[0.2em] text-text-muted">Momentum</p>
                 <p className="mt-2 text-2xl font-bold text-text-main">{Math.round(analytics?.averageScore ?? completionRate)}%</p>
                 <p className="text-xs text-text-muted">Focus quality</p>
@@ -201,7 +201,7 @@ export default function FocusModePage() {
                     className={`overflow-hidden rounded-[2rem] border p-5 transition-all duration-300 sm:p-6 ${
                       index === 0
                         ? "border-brand-primary/30 bg-brand-primary/10 shadow-xl shadow-brand-primary/10"
-                        : "border-white/10 bg-white/5 backdrop-blur-xl"
+                        : "border-border bg-surface-mutes/50 backdrop-blur-xl"
                     }`}
                   >
                     <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -215,7 +215,7 @@ export default function FocusModePage() {
                           >
                             {task.priority}
                           </span>
-                          <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
+                          <span className="rounded-full border border-border bg-surface-mutes/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted">
                             Score {Math.round(task.focusScore)}
                           </span>
                         </div>
@@ -231,15 +231,15 @@ export default function FocusModePage() {
                         ) : null}
 
                         <div className="mt-4 flex flex-wrap gap-2">
-                          <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-text-muted">
+                          <div className="rounded-2xl border border-border bg-surface-mutes/20 px-3 py-2 text-xs text-text-muted">
                             <span className="font-semibold text-text-main">Urgency:</span>{" "}
                             {task.urgencyLabel}
                           </div>
-                          <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-text-muted">
+                          <div className="rounded-2xl border border-border bg-surface-mutes/20 px-3 py-2 text-xs text-text-muted">
                             <span className="font-semibold text-text-main">Due:</span>{" "}
                             {task.dueDate ? dayjs(task.dueDate).format("MMM D, h:mm A") : "No due date"}
                           </div>
-                          <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-text-muted">
+                          <div className="rounded-2xl border border-border bg-surface-mutes/20 px-3 py-2 text-xs text-text-muted">
                             <span className="font-semibold text-text-main">Duration:</span>{" "}
                             {task.estimatedTime ? `${task.estimatedTime} mins` : "Flexible"}
                           </div>
@@ -254,7 +254,7 @@ export default function FocusModePage() {
                           {task.focusReasons.map((reason) => (
                             <span
                               key={reason}
-                              className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted"
+                              className="rounded-full border border-border bg-surface-mutes/50 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-text-muted"
                             >
                               {reason}
                             </span>
@@ -274,7 +274,7 @@ export default function FocusModePage() {
                         <button
                           onClick={() => handleSkip(task.id)}
                           disabled={isSkippingTask || isStartingSession}
-                          className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm font-bold text-text-main transition hover:bg-white/5"
+                          className="flex items-center justify-center gap-2 rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-sm font-bold text-text-main transition hover:bg-surface-mutes/50"
                         >
                           {isSkippingTask ? <FiLoader size={16} className="animate-spin" /> : <FiSkipForward size={16} />}
                           Skip for now
@@ -284,7 +284,7 @@ export default function FocusModePage() {
                   </motion.article>
                 ))
               ) : (
-                <div className="rounded-[2rem] border border-white/10 bg-white/5 p-8 text-center backdrop-blur-xl">
+                <div className="rounded-[2rem] border border-border bg-surface-mutes/50 p-8 text-center backdrop-blur-xl">
                   <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-emerald-400/20 bg-emerald-400/10 text-emerald-300">
                     <FiCheckCircle size={28} />
                   </div>
@@ -297,7 +297,7 @@ export default function FocusModePage() {
             </section>
 
             <aside className="space-y-4">
-              <section className="rounded-[2rem] border border-white/10 bg-black/20 p-6 backdrop-blur-xl">
+              <section className="rounded-[2rem] border border-border bg-surface-mutes/20 p-6 backdrop-blur-xl">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-[11px] font-black uppercase tracking-[0.2em] text-text-muted">
@@ -319,19 +319,19 @@ export default function FocusModePage() {
                 <p className="mt-3 text-sm text-text-muted">
                   Run a 25 minute session and keep your attention on the first ranked task. Session history and task decisions are now stored on the backend.
                 </p>
-                <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-muted">
+                <div className="mt-4 rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm text-text-muted">
                   <span className="font-semibold text-text-main">{focusMinutesToday} mins</span> logged into focus analytics today.
                 </div>
                 <button
                   onClick={handleResetSession}
                   disabled={isEndingSession}
-                  className="mt-4 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-bold text-text-main transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="mt-4 w-full rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm font-bold text-text-main transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {activeSession ? "End session" : "Reset timer"}
                 </button>
               </section>
 
-              <section className="rounded-[2rem] border border-white/10 bg-black/20 p-6 backdrop-blur-xl">
+              <section className="rounded-[2rem] border border-border bg-surface-mutes/20 p-6 backdrop-blur-xl">
                 <p className="text-[11px] font-black uppercase tracking-[0.2em] text-text-muted">
                   Current Target
                 </p>
@@ -360,7 +360,7 @@ export default function FocusModePage() {
                         </div>
                       ) : null}
                     </div>
-                    <div className="mt-4 rounded-3xl border border-white/10 bg-white/5 p-4">
+                    <div className="mt-4 rounded-3xl border border-border bg-surface-mutes/50 p-4">
                       <p className="text-[11px] font-black uppercase tracking-[0.18em] text-text-muted">
                         Why this now
                       </p>
@@ -368,7 +368,7 @@ export default function FocusModePage() {
                         {currentTask.focusReasons.map((reason) => (
                           <span
                             key={reason}
-                            className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-text-main"
+                            className="rounded-full border border-border bg-surface-mutes/20 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-text-main"
                           >
                             {reason}
                           </span>
@@ -383,7 +383,7 @@ export default function FocusModePage() {
                 )}
               </section>
 
-              <section className="rounded-[2rem] border border-white/10 bg-black/20 p-6 backdrop-blur-xl">
+              <section className="rounded-[2rem] border border-border bg-surface-mutes/20 p-6 backdrop-blur-xl">
                 <div className="flex items-center gap-2">
                   <FiCpu className="text-brand-primary" />
                   <p className="text-[11px] font-black uppercase tracking-[0.2em] text-text-muted">
@@ -396,7 +396,7 @@ export default function FocusModePage() {
                 {coach?.coaching?.length ? (
                   <div className="mt-4 space-y-3">
                     {coach.coaching.map((item) => (
-                      <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-muted">
+                      <div key={item} className="rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm text-text-muted">
                         {item}
                       </div>
                     ))}
@@ -404,7 +404,7 @@ export default function FocusModePage() {
                 ) : null}
               </section>
 
-              <section className="rounded-[2rem] border border-white/10 bg-black/20 p-6 backdrop-blur-xl">
+              <section className="rounded-[2rem] border border-border bg-surface-mutes/20 p-6 backdrop-blur-xl">
                 <p className="text-[11px] font-black uppercase tracking-[0.2em] text-text-muted">
                   Queue Logic
                 </p>
