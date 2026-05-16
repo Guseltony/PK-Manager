@@ -10,7 +10,7 @@ export default function GlobalTagFilter() {
 
   return (
     <div className="flex items-center gap-3 overflow-x-auto no-scrollbar pb-2">
-      <div className="flex items-center gap-2 text-text-muted px-2 border-r border-white/10 mr-1 shrink-0">
+      <div className="flex items-center gap-2 text-text-muted px-2 border-r border-border mr-1 shrink-0">
         <FiFilter size={14} />
         <span className="text-[10px] font-black uppercase tracking-widest">Filter By Node</span>
       </div>
@@ -21,7 +21,7 @@ export default function GlobalTagFilter() {
           className={`px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
             globalTagFilter === null 
               ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20" 
-              : "bg-white/5 text-text-muted hover:bg-white/10"
+              : "bg-surface-mutes/50 text-text-muted hover:bg-white/10"
           }`}
         >
           All
@@ -34,7 +34,7 @@ export default function GlobalTagFilter() {
             className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex items-center gap-2 ${
               globalTagFilter === tag.name
                 ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
-                : "bg-surface-soft border border-white/5 text-text-muted hover:border-white/20 hover:text-text-main"
+                : "bg-surface-soft border border-border text-text-muted hover:border-white/20 hover:text-text-main"
             }`}
           >
             <span className="opacity-50">#</span>

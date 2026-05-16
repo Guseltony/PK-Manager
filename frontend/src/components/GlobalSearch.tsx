@@ -146,13 +146,13 @@ export default function GlobalSearch() {
           setQuery("");
           setCursor(0);
         }}
-        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-text-muted text-sm transition-all border border-white/5 group"
+        className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl bg-surface-mutes/50 hover:bg-white/10 text-text-muted text-sm transition-all border border-border group"
       >
         <FiSearch className="text-text-muted group-hover:text-brand-primary transition-colors" />
         <span className="flex-1 text-left opacity-60 text-xs">
           Search everything...
         </span>
-        <kbd className="text-[10px] bg-white/10 border border-white/10 px-1.5 py-0.5 rounded font-mono opacity-50">
+        <kbd className="text-[10px] bg-white/10 border border-border px-1.5 py-0.5 rounded font-mono opacity-50">
           Cmd/Ctrl+K
         </kbd>
       </button>
@@ -172,9 +172,9 @@ export default function GlobalSearch() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96, y: -20 }}
               transition={{ duration: 0.15 }}
-              className="-translate-x-1/2 fixed top-4 sm:top-24 left-1/2 w-[calc(100%-2rem)] sm:w-full sm:max-w-xl z-50 glass border border-white/10 rounded-2xl shadow-2xl overflow-hidden"
+              className="-translate-x-1/2 fixed top-4 sm:top-24 left-1/2 w-[calc(100%-2rem)] sm:w-full sm:max-w-xl z-50 glass border border-border rounded-2xl shadow-2xl overflow-hidden"
             >
-              <div className="flex items-center gap-3 px-5 py-4 border-b border-white/5">
+              <div className="flex items-center gap-3 px-5 py-4 border-b border-border">
                 <FiSearch className="text-text-muted flex-shrink-0" size={18} />
                 <input
                   autoFocus
@@ -189,7 +189,7 @@ export default function GlobalSearch() {
                 {query && (
                   <button
                     onClick={() => setQuery("")}
-                    className="text-text-muted hover:text-text-main text-xs border border-white/10 px-2 py-0.5 rounded"
+                    className="text-text-muted hover:text-text-main text-xs border border-border px-2 py-0.5 rounded"
                   >
                     Clear
                   </button>
@@ -230,11 +230,11 @@ export default function GlobalSearch() {
                           setOpen(false);
                         }}
                         className={`flex items-center gap-4 px-5 py-3.5 cursor-pointer transition-colors ${
-                          i === cursor ? "bg-white/10" : "hover:bg-white/5"
+                          i === cursor ? "bg-white/10" : "hover:bg-surface-mutes/50"
                         }`}
                       >
                         <div
-                          className={`w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0 ${config.color}`}
+                          className={`w-9 h-9 rounded-xl bg-surface-mutes/50 flex items-center justify-center flex-shrink-0 ${config.color}`}
                         >
                           <Icon size={16} />
                         </div>

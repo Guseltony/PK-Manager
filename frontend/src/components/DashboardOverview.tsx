@@ -57,8 +57,8 @@ function StatCard({
   return (
     <NextLink
       href={href}
-      className={`block bg-surface-soft border rounded-xl p-3 md:p-5 transition-all group relative overflow-hidden hover:border-white/10 hover:-translate-y-0.5 ${
-        warning ? "border-amber-400/20 bg-amber-400/5" : "border-white/5"
+      className={`block bg-surface-soft border rounded-xl p-3 md:p-5 transition-all group relative overflow-hidden hover:border-border hover:-translate-y-0.5 ${
+        warning ? "border-amber-400/20 bg-amber-400/5" : "border-border"
       }`}
     >
       <div className="flex items-center justify-between mb-2 md:mb-4 relative z-10">
@@ -277,7 +277,7 @@ export default function DashboardOverview() {
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <NextLink
             href="/journal"
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 border border-white/5 text-text-muted font-bold px-4 py-2.5 rounded-xl transition-all active:scale-[0.98] text-sm"
+            className="flex-1 md:flex-none flex items-center justify-center gap-2 bg-surface-mutes/50 hover:bg-white/10 border border-border text-text-muted font-bold px-4 py-2.5 rounded-xl transition-all active:scale-[0.98] text-sm"
           >
             <FiBookOpen /> Write
           </NextLink>
@@ -294,7 +294,7 @@ export default function DashboardOverview() {
       <motion.div
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="bg-surface-soft/30 border border-white/5 p-4 rounded-2xl backdrop-blur-md"
+        className="bg-surface-soft/30 border border-border p-4 rounded-2xl backdrop-blur-md"
       >
         <GlobalTagFilter />
       </motion.div>
@@ -326,7 +326,7 @@ export default function DashboardOverview() {
               {dashboardSummary.momentum}
             </p>
           </div>
-          <div className="bg-surface-soft border border-white/5 rounded-2xl p-5 md:p-6 max-sm:px-2">
+          <div className="bg-surface-soft border border-border rounded-2xl p-5 md:p-6 max-sm:px-2">
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted mb-3">
               Priority Stack
             </p>
@@ -335,7 +335,7 @@ export default function DashboardOverview() {
                 ? spotlightTasks.map((task) => (
                     <div
                       key={task.id}
-                      className="flex items-center justify-between gap-3 rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-sm text-text-main"
+                      className="flex items-center justify-between gap-3 rounded-xl bg-surface-mutes/50 border border-border px-3 py-2 text-sm text-text-main"
                     >
                       <div>
                         <p className="font-semibold">{task.title}</p>
@@ -359,7 +359,7 @@ export default function DashboardOverview() {
                   ).map((item, i) => (
                     <div
                       key={`priority-${i}-${item}`}
-                      className="rounded-xl bg-white/5 border border-white/5 px-3 py-2 text-sm text-text-main"
+                      className="rounded-xl bg-surface-mutes/50 border border-border px-3 py-2 text-sm text-text-main"
                     >
                       {item}
                     </div>
@@ -382,7 +382,7 @@ export default function DashboardOverview() {
                 <FiChevronRight />
               </NextLink>
             ) : null}
-            <div className="mt-5 border-t border-white/5 pt-4">
+            <div className="mt-5 border-t border-border pt-4">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted mb-3">
                 Activity Feed
               </p>
@@ -391,7 +391,7 @@ export default function DashboardOverview() {
                   <NextLink
                     key={item.id}
                     href={item.href}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-white/5 bg-white/5 px-3 py-2 text-sm text-text-main transition hover:bg-white/7"
+                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface-mutes/50 px-3 py-2 text-sm text-text-main transition hover:bg-white/7"
                   >
                     <div>
                       <p className="font-medium">{item.label}</p>
@@ -413,7 +413,7 @@ export default function DashboardOverview() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
         {/* Left: Recent Notes & Goals */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 md:p-6 max-sm:px-2">
+          <div className="bg-surface-soft border border-border rounded-xl p-5 md:p-6 max-sm:px-2">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-text-main flex items-center gap-3">
                 <FiClock className="text-brand-primary" />
@@ -448,7 +448,7 @@ export default function DashboardOverview() {
                   <NextLink
                     href={`/notes?note=${note.id}`}
                     key={note.id}
-                    className="p-4 rounded-xl bg-surface-base border border-white/5 hover:border-white/10 transition-all flex flex-col md:flex-row items-start md:items-center justify-between group cursor-pointer min-w-60 md:min-w-0 shrink-0"
+                    className="p-4 rounded-xl bg-surface-base border border-border hover:border-border transition-all flex flex-col md:flex-row items-start md:items-center justify-between group cursor-pointer min-w-60 md:min-w-0 shrink-0"
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
@@ -481,7 +481,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Active Dreams */}
-          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 md:p-6 max-sm:px-2">
+          <div className="bg-surface-soft border border-border rounded-xl p-5 md:p-6 max-sm:px-2">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-text-main flex items-center gap-3">
                 <FiActivity className="text-emerald-400" />
@@ -528,7 +528,7 @@ export default function DashboardOverview() {
                       </span>
                       <span>{pct}%</span>
                     </div>
-                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-surface-mutes/50 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-emerald-400 rounded-full transition-all duration-700 shadow-[0_0_8px_rgba(74,222,128,0.3)]"
                         style={{ width: `${pct}%` }}
@@ -543,7 +543,7 @@ export default function DashboardOverview() {
 
         {/* Today's Tasks */}
         <div className="flex flex-col gap-6">
-          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 md:p-6 max-sm:px-2">
+          <div className="bg-surface-soft border border-border rounded-xl p-5 md:p-6 max-sm:px-2">
             <h2 className="text-lg font-bold text-text-main mb-6 flex items-center gap-3">
               <FiCheckSquare className="text-brand-secondary" />
               Due Today
@@ -582,7 +582,7 @@ export default function DashboardOverview() {
               )}
               <NextLink
                 href="/tasks"
-                className="mt-2 text-xs font-bold text-text-muted hover:text-text-main transition-colors text-center py-2 border border-dashed border-white/10 rounded-xl"
+                className="mt-2 text-xs font-bold text-text-muted hover:text-text-main transition-colors text-center py-2 border border-dashed border-border rounded-xl"
               >
                 + View All Tasks
               </NextLink>
@@ -590,7 +590,7 @@ export default function DashboardOverview() {
           </div>
 
           {/* Journal Quick Peek */}
-          <div className="bg-surface-soft border border-white/5 rounded-xl p-5 md:p-6 max-sm:px-2">
+          <div className="bg-surface-soft border border-border rounded-xl p-5 md:p-6 max-sm:px-2">
             <h2 className="text-lg font-bold text-text-main mb-4 flex items-center gap-3">
               <FiBookOpen className="text-amber-400" />
               Today&apos;s Journal
