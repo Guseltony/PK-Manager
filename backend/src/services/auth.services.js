@@ -209,12 +209,16 @@ const googleOAuthSignIn = async (
               email: email,
               emailVerified: email_verified,
               googleId: sub,
+              avatar: picture,
               provider: "GOOGLE",
             },
           })
-        : await prisma.user.findUnique({
+        : await prisma.user.update({
             where: {
-            email: email,
+              email: email,
+            },
+            data: {
+              avatar: picture,
             },
           });
 
@@ -410,4 +414,78 @@ const loginUser = async ({ email, password }, userAgent, ip) => {
   };
 };
 
-export { registerUser, loginUser, googleSignIn, googleOAuthSignIn };
+const googleNativeSignIn = async (idToken, userAgent, ip) => {
+  if (!idToken) {
+    throw new Error("Google ID Token not provided");
+  }
+
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: idToken,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture, sub, email_verified } = payload;
+
+    // Find if the user already exists
+    let user = await prisma.user.findUnique({
+      where: { email: email },
+    });
+
+    if (!user) {
+      // Create new user if not exists
+      user = await prisma.user.create({
+        data: {
+          name: name,
+          email: email,
+          emailVerified: email_verified,
+          googleId: sub,
+          avatar: picture,
+          provider: "GOOGLE",
+        },
+      });
+    } else {
+      // Update existing user's avatar
+      user = await prisma.user.update({
+        where: { email: email },
+        data: { avatar: picture },
+      });
+    }
+
+    // Create user session
+    const { refreshToken, refreshTokenHash, accessToken, csrfToken } =
+      await generateTokens(user.id);
+
+    const newSession = await session.create(
+      refreshTokenHash,
+      user.id,
+      userAgent,
+      ip,
+    );
+
+    if (!newSession) {
+      throw new Error("Unable to Log in");
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        session: {
+          connect: { id: newSession.id },
+        },
+      },
+    });
+
+    const fullUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: { session: true },
+    });
+
+    return { user: fullUser, refreshToken, accessToken, csrfToken };
+  } catch (error) {
+    throw new Error(error.message || "Google Native Auth Failed");
+  }
+};
+
+export { registerUser, loginUser, googleSignIn, googleOAuthSignIn, googleNativeSignIn };
