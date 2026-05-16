@@ -19,13 +19,13 @@ export default function TagItem({ tag, isSelected }: TagItemProps) {
       className={`group flex items-center justify-between p-3 rounded-xl cursor-pointer transition-all duration-200 ${
         isSelected
           ? "border"
-          : "hover:bg-white/5 text-text-muted hover:text-text-main border border-transparent"
+          : "hover:bg-surface-mutes/50 text-text-muted hover:text-text-main border border-transparent"
       }`}
       style={isSelected ? getTagColorStyle(tag.color) : undefined}
     >
       <div className="flex items-center gap-3">
         <div
-          className={`p-2 rounded-lg ${isSelected ? "" : "bg-white/5 group-hover:bg-white/10"}`}
+          className={`p-2 rounded-lg ${isSelected ? "" : "bg-surface-mutes/50 group-hover:bg-white/10"}`}
           style={isSelected ? getTagIconStyle(tag.color) : undefined}
         >
           <FiTag size={14} />

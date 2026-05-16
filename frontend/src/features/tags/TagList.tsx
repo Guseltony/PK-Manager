@@ -26,8 +26,8 @@ export default function TagList() {
   };
 
   return (
-    <div className="flex flex-col h-full border-r border-white/5 bg-surface-soft w-80 shrink-0 overflow-hidden">
-      <div className="p-4 bg-surface-base/30 border-b border-white/5">
+    <div className="flex flex-col h-full border-r border-border bg-surface-soft w-80 shrink-0 overflow-hidden">
+      <div className="p-4 bg-surface-base/30 border-b border-border">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-text-main">Tags</h2>
           <button
@@ -45,7 +45,7 @@ export default function TagList() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search tags..."
-            className="w-full bg-white/5 border border-white/5 rounded-xl py-2 pl-9 pr-4 text-sm text-text-main placeholder:text-text-muted/30 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all"
+            className="w-full bg-surface-mutes/50 border border-border rounded-xl py-2 pl-9 pr-4 text-sm text-text-main placeholder:text-text-muted/30 focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all"
           />
         </div>
       </div>
@@ -67,7 +67,7 @@ export default function TagList() {
         {isLoading ? (
           <div className="p-4 space-y-2">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-10 w-full rounded-lg bg-white/5 animate-pulse" />
+              <div key={i} className="h-10 w-full rounded-lg bg-surface-mutes/50 animate-pulse" />
             ))}
           </div>
         ) : (
