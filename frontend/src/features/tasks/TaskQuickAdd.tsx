@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, FormEvent } from "react";
 import { FiCpu, FiLoader, FiPlus, FiZap } from "react-icons/fi";
 import { useTasks } from "../../hooks/useTasks";
 import { useTaskPlanner } from "../../hooks/useAI";
@@ -19,18 +19,24 @@ export default function TaskQuickAdd() {
     isCreatingSuggestedTasks,
   } = useTaskPlanner();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (title.trim()) {
-      createTask({ title: title.trim() }, {
-        onSuccess: () => setTitle(""),
-      });
+      createTask(
+        { title: title.trim() },
+        {
+          onSuccess: () => setTitle(""),
+        },
+      );
     }
   };
 
   const handlePlan = async () => {
     if (!plannerInput.trim()) return;
-    const result = await planTasks({ input: plannerInput.trim(), sourceType: "task_request" });
+    const result = await planTasks({
+      input: plannerInput.trim(),
+      sourceType: "task_request",
+    });
     setPlan(result);
   };
 
@@ -44,9 +50,12 @@ export default function TaskQuickAdd() {
 
   return (
     <div className="space-y-2 bg-surface-base sm:sticky sm:top-0 z-10 border-b border-white/5">
-      <form onSubmit={handleSubmit} className="relative group max-w-4xl mx-auto flex flex-col sm:block gap-3">
+      <form
+        onSubmit={handleSubmit}
+        className="relative group max-w-4xl mx-auto flex flex-col sm:block gap-3"
+      >
         <div className="relative w-full">
-          <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+          <div className="absolute top-4 md:top-0 md:inset-y-0 left-4 flex items-center pointer-events-none">
             <FiPlus className="h-4 w-4 text-text-muted group-focus-within:text-brand-primary transition-colors" />
           </div>
           <input
@@ -58,29 +67,33 @@ export default function TaskQuickAdd() {
           />
           {/* Action buttons - Desktop absolute, Mobile flex row */}
           <div className="sm:absolute sm:inset-y-0 sm:right-3 flex items-center gap-2 mt-2 sm:mt-0 px-1 sm:px-0">
-              <button
-                type="button"
-                onClick={() => setShowPlanner((current) => !current)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-lg border transition-all ${showPlanner ? "bg-brand-primary/15 border-brand-primary/30 text-brand-primary" : "bg-surface-base border-white/5 text-text-muted hover:text-text-main"}`}
-              >
-                <FiCpu size={12} />
-                <span className="text-[10px] font-bold uppercase tracking-tighter">
-                  AI Plan
-                </span>
-              </button>
-              <div className="flex items-center gap-1.5 px-2.5 sm:px-2 py-1.5 sm:py-1 rounded-lg bg-surface-base border border-white/5">
-                  <FiZap size={12} className="text-amber-400 animate-pulse" />
-                  <span className="text-[10px] font-bold text-text-muted uppercase tracking-tighter">
-                    Smart Add
-                  </span>
-              </div>
-              <button 
-                  type="submit"
-                  disabled={isCreating || !title.trim()}
-                  className="flex-1 sm:flex-none bg-brand-primary text-white text-[11px] font-bold px-5 sm:px-4 py-2 sm:py-1.5 rounded-xl hover:bg-brand-primary/90 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 shadow-lg shadow-brand-primary/20"
-              >
-                  {isCreating ? "..." : "Create"}
-              </button>
+            <button
+              type="button"
+              onClick={() => setShowPlanner((current) => !current)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:py-1 rounded-lg border transition-all ${
+                showPlanner
+                  ? "bg-brand-primary/15 border-brand-primary/30 text-brand-primary"
+                  : "bg-surface-base border-white/5 text-text-muted hover:text-text-main"
+              }`}
+            >
+              <FiCpu size={12} />
+              <span className="text-[10px] font-bold uppercase tracking-tighter">
+                AI Plan
+              </span>
+            </button>
+            <div className="flex items-center gap-1.5 px-2.5 sm:px-2 py-1.5 sm:py-1 rounded-lg bg-surface-base border border-white/5">
+              <FiZap size={12} className="text-amber-400 animate-pulse" />
+              <span className="text-[10px] font-bold text-text-muted uppercase tracking-tighter">
+                Smart Add
+              </span>
+            </div>
+            <button
+              type="submit"
+              disabled={isCreating || !title.trim()}
+              className="flex-1 sm:flex-none bg-brand-primary text-white text-[11px] font-bold px-5 sm:px-4 py-2 sm:py-1.5 rounded-xl hover:bg-brand-primary/90 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed disabled:scale-100 shadow-lg shadow-brand-primary/20"
+            >
+              {isCreating ? "..." : "Create"}
+            </button>
           </div>
         </div>
       </form>
@@ -89,9 +102,12 @@ export default function TaskQuickAdd() {
         <div className="max-w-4xl mx-auto rounded-3xl border border-white/10 bg-surface-soft/80 p-4 sm:p-5">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-400">AI Planner</p>
+              <p className="text-[11px] font-black uppercase tracking-[0.22em] text-amber-400">
+                AI Planner
+              </p>
               <p className="mt-2 text-sm text-text-muted">
-                Drop in a messy goal, request, or work block and turn it into real PK-Manager tasks.
+                Drop in a messy goal, request, or work block and turn it into
+                real PK-Manager tasks.
               </p>
             </div>
             <button
@@ -117,7 +133,11 @@ export default function TaskQuickAdd() {
               disabled={!plannerInput.trim() || isPlanning}
               className="inline-flex items-center gap-2 rounded-2xl bg-brand-primary px-4 py-2 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-50"
             >
-              {isPlanning ? <FiLoader className="animate-spin" size={14} /> : <FiCpu size={14} />}
+              {isPlanning ? (
+                <FiLoader className="animate-spin" size={14} />
+              ) : (
+                <FiCpu size={14} />
+              )}
               Generate plan
             </button>
             {plan ? (
@@ -127,7 +147,11 @@ export default function TaskQuickAdd() {
                 disabled={isCreatingSuggestedTasks}
                 className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-text-main transition hover:bg-white/10 disabled:opacity-50"
               >
-                {isCreatingSuggestedTasks ? <FiLoader className="animate-spin" size={14} /> : <FiPlus size={14} />}
+                {isCreatingSuggestedTasks ? (
+                  <FiLoader className="animate-spin" size={14} />
+                ) : (
+                  <FiPlus size={14} />
+                )}
                 Create all {plan.tasks.length} tasks
               </button>
             ) : null}
@@ -139,21 +163,35 @@ export default function TaskQuickAdd() {
                 {plan.summary}
               </div>
               {plan.tasks.map((task, index) => (
-                <div key={`${task.title}-${index}`} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+                <div
+                  key={`${task.title}-${index}`}
+                  className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
+                >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                       {task.priority}
                     </span>
                     {task.estimatedTime ? (
-                      <span className="text-[11px] text-text-muted">{task.estimatedTime} min</span>
+                      <span className="text-[11px] text-text-muted">
+                        {task.estimatedTime} min
+                      </span>
                     ) : null}
                   </div>
-                  <p className="mt-2 text-sm font-bold text-text-main">{task.title}</p>
-                  {task.description ? <p className="mt-1 text-sm text-text-muted">{task.description}</p> : null}
+                  <p className="mt-2 text-sm font-bold text-text-main">
+                    {task.title}
+                  </p>
+                  {task.description ? (
+                    <p className="mt-1 text-sm text-text-muted">
+                      {task.description}
+                    </p>
+                  ) : null}
                   {task.tags.length > 0 ? (
                     <div className="mt-3 flex flex-wrap gap-2">
                       {task.tags.map((tag) => (
-                        <span key={tag} className="rounded-full border border-brand-primary/20 bg-brand-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-brand-primary">
+                        <span
+                          key={tag}
+                          className="rounded-full border border-brand-primary/20 bg-brand-primary/10 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-brand-primary"
+                        >
                           #{tag}
                         </span>
                       ))}

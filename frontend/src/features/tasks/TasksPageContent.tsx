@@ -91,7 +91,7 @@ export default function TasksPageContent() {
   const focusMinutesToday = getTodayFocusMinutesForTasks(allTasks);
 
   return (
-    <div className="flex flex-col h-[calc(100vh-64px)] overflow-hidden bg-surface-base relative">
+    <div className="flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-64px)] overflow-hidden bg-surface-base relative">
       {/* Top Filter Tabs - Ledger Style */}
       <div className="w-full bg-surface-soft border-b border-white/5 px-4 md:px-8 py-2 shrink-0 overflow-x-auto custom-scrollbar">
         <div className="flex items-center gap-2 min-w-max">
@@ -106,26 +106,33 @@ export default function TasksPageContent() {
                     : "text-text-muted hover:text-text-main hover:bg-white/5"
                 }`}
               >
-                <f.icon className={filter === f.id ? "text-white" : f.color || ""} size={12} />
+                <f.icon
+                  className={filter === f.id ? "text-white" : f.color || ""}
+                  size={12}
+                />
                 {f.label}
               </button>
             ))}
           </div>
-          
+
           <div className="h-5 w-px bg-white/10 mx-1" />
-          
+
           <div className="flex items-center gap-1.5 bg-amber-400/10 px-2 py-1.5 rounded-lg border border-amber-400/20">
             <FiZap className="text-amber-400" size={10} />
-            <span className="text-[9px] font-black uppercase tracking-widest text-amber-400">AI</span>
+            <span className="text-[9px] font-black uppercase tracking-widest text-amber-400">
+              AI
+            </span>
           </div>
         </div>
       </div>
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* Main Engine: Execution Layer */}
-        <div className={`flex-1 flex flex-col relative ${selectedTaskId ? "hidden md:flex" : "flex"}`}>
+        <div
+          className={`flex-1 flex flex-col relative ${selectedTaskId ? "hidden md:flex" : "flex"}`}
+        >
           <div className="px-3 py-2 md:px-8 md:py-3 border-b border-white/5 space-y-1 md:space-y-2">
-            <div className="grid gap-1 grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 md:gap-2">
+            <div className="grid gap-1 grid-cols-3 xl:grid-cols-6 md:gap-2">
               <TaskOverviewCard
                 label="Today"
                 value={String(dueTodayCount)}
@@ -163,7 +170,7 @@ export default function TasksPageContent() {
               />
             </div>
 
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center md:justify-between gap-2">
               <div className="flex items-center gap-0.5 md:gap-1 rounded-xl border border-white/10 bg-white/5 p-0.5 overflow-x-auto custom-scrollbar max-w-[calc(100%-80px)] md:max-w-none">
                 {[
                   { id: "smart", label: "Smart" },
@@ -175,9 +182,15 @@ export default function TasksPageContent() {
                     key={option.id}
                     type="button"
                     onClick={() =>
-                      setGroupBy(option.id as "smart" | "dream" | "priority" | "execution")
+                      setGroupBy(
+                        option.id as
+                          | "smart"
+                          | "dream"
+                          | "priority"
+                          | "execution",
+                      )
                     }
-                    className={`rounded-lg px-2 py-1 md:px-2.5 text-[7px] md:text-[8px] font-black uppercase tracking-[0.1em] md:tracking-[0.18em] transition whitespace-nowrap ${
+                    className={`rounded-lg px-2 py-1 md:px-2.5 text-[7px] md:text-[8px] font-black uppercase tracking-widest md:tracking-[0.18em] transition whitespace-nowrap ${
                       groupBy === option.id
                         ? "bg-brand-primary text-white"
                         : "text-text-muted hover:text-text-main"
@@ -187,10 +200,9 @@ export default function TasksPageContent() {
                   </button>
                 ))}
               </div>
-              <div className="inline-flex items-center gap-1 md:gap-1.5 rounded-xl border border-white/10 bg-black/20 px-1.5 md:px-2.5 py-1 text-[7px] md:text-[8px] font-black uppercase tracking-[0.1em] md:tracking-[0.18em] text-text-main shrink-0">
+              <div className="inline-flex items-center gap-1 md:gap-1.5 rounded-xl border border-white/10 bg-black/20 px-1.5 md:px-2.5 py-1 text-[7px] md:text-[8px] font-black uppercase tracking-widest md:tracking-[0.18em] text-text-main shrink-0">
                 <FiLayers size={10} className="text-brand-primary" />
-                <span className="hidden md:inline">Execution view</span>
-                <span className="md:hidden">Exec</span>
+                <span>Execution view</span>
               </div>
             </div>
             <TaskQuickAdd />
