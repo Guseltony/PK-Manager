@@ -46,7 +46,7 @@ export function ImageGallery({ parentType, parentId }: { parentType: "dream" | "
   };
 
   if (loading) {
-    return <div className="text-text-muted text-sm italic py-20 text-center glass rounded-[2.5rem] border border-dashed border-white/10 p-4">Loading visual data...</div>;
+    return <div className="text-text-muted text-sm italic py-20 text-center glass rounded-[2.5rem] border border-dashed border-border p-4">Loading visual data...</div>;
   }
 
   return (
@@ -63,7 +63,7 @@ export function ImageGallery({ parentType, parentId }: { parentType: "dream" | "
           {images.map((img) => (
             <div
               key={img.id}
-              className="group relative rounded-3xl overflow-hidden border border-white/5 bg-white/5 aspect-video flex-shrink-0 hover:border-brand-primary/30 transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+              className="group relative rounded-3xl overflow-hidden border border-border bg-surface-mutes/50 aspect-video flex-shrink-0 hover:border-brand-primary/30 transition-all shadow-[0_0_15px_rgba(0,0,0,0.5)]"
             >
               <button
                 type="button"
@@ -76,7 +76,7 @@ export function ImageGallery({ parentType, parentId }: { parentType: "dream" | "
                 type="button"
                 onClick={() => handleDeleteImage(img.id)}
                 disabled={deletingId === img.id}
-                className="absolute right-3 top-3 z-10 rounded-full border border-white/10 bg-black/60 p-2 text-white transition hover:bg-red-500/80 disabled:opacity-50"
+                className="absolute right-3 top-3 z-10 rounded-full border border-border bg-black/60 p-2 text-white transition hover:bg-red-500/80 disabled:opacity-50"
                 title="Delete image"
               >
                 <FiTrash2 size={14} />
@@ -85,7 +85,7 @@ export function ImageGallery({ parentType, parentId }: { parentType: "dream" | "
           ))}
         </div>
       ) : (
-        <div className="py-20 text-center glass rounded-[2.5rem] border border-dashed border-white/10 w-full">
+        <div className="py-20 text-center glass rounded-[2.5rem] border border-dashed border-border w-full">
           <p className="text-text-muted text-sm italic">
             No visual assets connected to this node. Add images above to build a moodboard.
           </p>

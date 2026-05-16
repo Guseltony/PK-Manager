@@ -14,7 +14,7 @@ const Header = ({ auth }: { auth: AuthResult }) => {
   const { setCaptureModalOpen } = useUIStore();
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-white/5 bg-surface-base/80 px-4 md:px-6 backdrop-blur-md gap-4">
+    <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-border bg-surface-base/80 px-4 md:px-6 backdrop-blur-md gap-4">
       <div className="flex items-center gap-3 lg:hidden">
         <Link href="/dashboard" className="flex items-center gap-2">
           <Image
@@ -49,7 +49,7 @@ const Header = ({ auth }: { auth: AuthResult }) => {
           </button>
         </div>
 
-        <div className="h-6 w-px bg-white/5" />
+        <div className="h-6 w-px bg-surface-mutes/50" />
 
         {/* User Profile Dropdown */}
         <UserDropdown auth={auth} />
