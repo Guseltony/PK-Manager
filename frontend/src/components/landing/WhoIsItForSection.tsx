@@ -68,7 +68,7 @@ export default function WhoIsItForSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1 }}
-              className="group flex flex-col gap-4 rounded-2xl border border-white/5 bg-surface-soft p-6 transition-all duration-300 hover:-translate-y-1 hover:border-white/10"
+              className="group flex flex-col gap-4 rounded-2xl border border-border bg-surface-soft p-6 transition-all duration-300 hover:-translate-y-1 hover:border-border"
             >
               <div className={`flex h-12 w-12 items-center justify-center rounded-xl ${bg}`}>
                 <Icon size={22} className={color} />
@@ -81,7 +81,7 @@ export default function WhoIsItForSection() {
                 {tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full border border-white/5 bg-surface-base px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted"
+                    className="rounded-full border border-border bg-surface-base px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-text-muted"
                   >
                     {tag}
                   </span>

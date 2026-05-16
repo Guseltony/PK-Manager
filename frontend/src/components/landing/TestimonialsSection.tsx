@@ -57,7 +57,7 @@ export default function TestimonialsSection() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.12 }}
-              className="flex flex-col gap-5 rounded-2xl border border-white/5 bg-surface-soft p-6"
+              className="flex flex-col gap-5 rounded-2xl border border-border bg-surface-soft p-6"
             >
               {/* Stars */}
               <div className="flex gap-1">
