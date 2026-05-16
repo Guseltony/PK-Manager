@@ -21,8 +21,8 @@ export default function NoteList() {
   };
 
   return (
-    <div className="flex flex-col h-full md:border-r border-white/5 bg-surface-soft w-full shrink-0 overflow-hidden">
-      <div className="p-4 bg-surface-base/30 border-b border-white/5">
+    <div className="flex flex-col h-full md:border-r border-border bg-surface-soft w-full shrink-0 overflow-hidden">
+      <div className="p-4 bg-surface-base/30 border-b border-border">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-text-main">My Notes</h2>
           <button
@@ -40,7 +40,7 @@ export default function NoteList() {
         {isLoading ? (
           <div className="p-8 flex flex-col gap-4">
             {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-20 w-full rounded-xl bg-white/5 animate-pulse" />
+              <div key={i} className="h-20 w-full rounded-xl bg-surface-mutes/50 animate-pulse" />
             ))}
           </div>
         ) : (
@@ -58,7 +58,7 @@ export default function NoteList() {
               ))
             ) : (
               <div className="p-8 text-center flex flex-col items-center justify-center gap-3">
-                <div className="w-16 h-16 rounded-3xl bg-white/5 flex items-center justify-center text-text-muted/30">
+                <div className="w-16 h-16 rounded-3xl bg-surface-mutes/50 flex items-center justify-center text-text-muted/30">
                   <FiPlus size={32} />
                 </div>
                 <p className="text-sm text-text-muted">

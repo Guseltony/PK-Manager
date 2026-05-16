@@ -14,7 +14,7 @@ export default function SearchBar() {
         placeholder="Search notes..."
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
-        className="w-full bg-surface-base border border-white/5 rounded-xl py-2 pl-10 pr-4 text-sm text-text-main placeholder:text-text-muted transition-all focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20 outline-none"
+        className="w-full bg-surface-base border border-border rounded-xl py-2 pl-10 pr-4 text-sm text-text-main placeholder:text-text-muted transition-all focus:border-brand-primary/50 focus:ring-2 focus:ring-brand-primary/20 outline-none"
       />
     </div>
   );
