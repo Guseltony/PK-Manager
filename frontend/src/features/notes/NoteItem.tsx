@@ -27,10 +27,10 @@ export default function NoteItem({ note, searchQuery = "" }: NoteItemProps) {
   return (
     <div
       onClick={() => selectNote(note.id)}
-      className={`group flex flex-col gap-2 p-4 cursor-pointer transition-all duration-200 border-b border-white/5 ${
+      className={`group flex flex-col gap-2 p-4 cursor-pointer transition-all duration-200 border-b border-border ${
         isSelected
           ? "bg-brand-primary/10 border-l-4 border-l-brand-primary"
-          : "hover:bg-white/5 border-l-4 border-l-transparent"
+          : "hover:bg-surface-mutes/50 border-l-4 border-l-transparent"
       }`}
     >
       <div className="flex items-center justify-between gap-2">
@@ -62,7 +62,7 @@ export default function NoteItem({ note, searchQuery = "" }: NoteItemProps) {
         {note.tags.slice(0, 2).map((tagObj) => (
           <span
             key={`${note.id}-${tagObj.tag.id || tagObj.tag.name}`}
-            className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-white/5 text-text-muted/70 px-1.5 py-0.5 rounded border border-transparent"
+            className="flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider bg-surface-mutes/50 text-text-muted/70 px-1.5 py-0.5 rounded border border-transparent"
             style={getTagColorStyle(tagObj.tag.color)}
           >
             <FiTag size={8} />

@@ -372,11 +372,11 @@ function NewNoteForm() {
 
   return (
     <div className="flex-1 flex min-h-0 flex-col h-full bg-surface-base overflow-y-auto md:overflow-hidden custom-scrollbar">
-      <div className="p-3 md:p-4 border-b border-white/5 flex items-center justify-between gap-2 md:gap-4 sticky top-0 z-20 bg-surface-base/80 backdrop-blur-md">
+      <div className="p-3 md:p-4 border-b border-border flex items-center justify-between gap-2 md:gap-4 sticky top-0 z-20 bg-surface-base/80 backdrop-blur-md">
         <div className="flex items-center gap-1.5 md:gap-2">
           <button
             onClick={() => setIsCreating(false)}
-            className="md:hidden flex items-center justify-center p-2 rounded-xl text-text-muted hover:bg-white/5 transition-all"
+            className="md:hidden flex items-center justify-center p-2 rounded-xl text-text-muted hover:bg-surface-mutes/50 transition-all"
           >
             <FiArrowLeft size={18} />
           </button>
@@ -387,7 +387,7 @@ function NewNoteForm() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsCreating(false)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-text-muted hover:bg-white/5 transition-all"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold text-text-muted hover:bg-surface-mutes/50 transition-all"
           >
             <FiX size={16} /> Cancel
           </button>
@@ -429,7 +429,7 @@ function NewNoteForm() {
                     setContentType("markdown");
                     setEditorTypeLocked(true);
                   }}
-                  className={`rounded-2xl border px-4 py-3 text-left transition-all ${contentType === "markdown" ? "border-brand-primary/30 bg-brand-primary/10 text-text-main" : "border-white/10 bg-white/5 text-text-muted hover:bg-white/10"}`}
+                  className={`rounded-2xl border px-4 py-3 text-left transition-all ${contentType === "markdown" ? "border-brand-primary/30 bg-brand-primary/10 text-text-main" : "border-border bg-surface-mutes/50 text-text-muted hover:bg-white/10"}`}
                 >
                   <p className="text-xs font-black uppercase tracking-[0.18em]">
                     Developer Note
@@ -444,7 +444,7 @@ function NewNoteForm() {
                     setContentType("richtext");
                     setEditorTypeLocked(true);
                   }}
-                  className={`rounded-2xl border px-4 py-3 text-left transition-all ${contentType === "richtext" ? "border-brand-primary/30 bg-brand-primary/10 text-text-main" : "border-white/10 bg-white/5 text-text-muted hover:bg-white/10"}`}
+                  className={`rounded-2xl border px-4 py-3 text-left transition-all ${contentType === "richtext" ? "border-brand-primary/30 bg-brand-primary/10 text-text-main" : "border-border bg-surface-mutes/50 text-text-muted hover:bg-white/10"}`}
                 >
                   <p className="text-xs font-black uppercase tracking-[0.18em]">
                     Smart Note
@@ -495,12 +495,12 @@ function NewNoteForm() {
                 />
               </form>
               {newTag && suggestions.length > 0 ? (
-                <div className="absolute top-full left-0 mt-1 w-48 bg-surface-soft border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden py-1">
+                <div className="absolute top-full left-0 mt-1 w-48 bg-surface-soft border border-border rounded-xl shadow-2xl z-50 overflow-hidden py-1">
                   {suggestions.slice(0, 5).map((tag) => (
                     <button
                       key={tag.id}
                       onClick={() => handleSelectSuggestion(tag.name)}
-                      className="w-full text-left px-3 py-2 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-white/5 transition-colors"
+                      className="w-full text-left px-3 py-2 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-surface-mutes/50 transition-colors"
                     >
                       #{tag.name}
                     </button>
@@ -524,7 +524,7 @@ function NewNoteForm() {
               className={`inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition ${
                 voiceCapture.isListening
                   ? "border-rose-400/20 bg-rose-500/10 text-rose-200"
-                  : "border-white/10 bg-white/5 text-text-main hover:bg-white/10"
+                  : "border-border bg-surface-mutes/50 text-text-main hover:bg-white/10"
               }`}
             >
               <FiMic className={voiceCapture.isListening ? "animate-pulse" : ""} size={13} />
@@ -536,7 +536,7 @@ function NewNoteForm() {
 
       <div className="flex-1 overflow-hidden p-4 sm:p-6 lg:p-8">
         {!editorTypeLocked ? (
-          <div className="flex h-full items-center justify-center rounded-[2rem] border border-dashed border-white/10 bg-white/5 px-6 text-center text-text-muted">
+          <div className="flex h-full items-center justify-center rounded-[2rem] border border-dashed border-border bg-surface-mutes/50 px-6 text-center text-text-muted">
             Pick the note type above to start writing.
           </div>
         ) : contentType === "markdown" ? (
@@ -567,7 +567,7 @@ function NewNoteForm() {
               onKeyUp={saveRichSelection}
               onMouseUp={saveRichSelection}
               onBlur={saveRichSelection}
-              className="flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm leading-7 text-text-main outline-none custom-scrollbar [&_blockquote]:text-left [&_div]:text-left [&_h1]:text-left [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-left [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-left [&_h3]:text-lg [&_h3]:font-bold [&_li]:text-left [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.75rem] [&_p]:text-left [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain"
+              className="flex-1 overflow-y-auto rounded-3xl border border-border bg-surface-mutes/50 px-4 py-3 text-left text-sm leading-7 text-text-main outline-none custom-scrollbar [&_blockquote]:text-left [&_div]:text-left [&_h1]:text-left [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-left [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-left [&_h3]:text-lg [&_h3]:font-bold [&_li]:text-left [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.75rem] [&_p]:text-left [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain"
               style={{
                 direction: "ltr",
                 textAlign: "left",
@@ -1077,11 +1077,11 @@ function NoteEditorContent({ note }: { note: Note }) {
       onScroll={(e) => setIsScrolled(e.currentTarget.scrollTop > 50)}
       className="flex-1 flex min-h-0 flex-col h-full bg-surface-base overflow-y-auto md:overflow-hidden custom-scrollbar"
     >
-      <div className={`border-b border-white/5 flex flex-wrap items-center justify-between gap-2 md:gap-4 sticky top-0 z-20 bg-surface-base/80 backdrop-blur-md transition-all duration-300 ${isScrolled ? "p-1.5 md:p-2" : "p-3 md:p-4"}`}>
+      <div className={`border-b border-border flex flex-wrap items-center justify-between gap-2 md:gap-4 sticky top-0 z-20 bg-surface-base/80 backdrop-blur-md transition-all duration-300 ${isScrolled ? "p-1.5 md:p-2" : "p-3 md:p-4"}`}>
         <div className="flex items-center gap-2">
           <button
             onClick={() => useNotesStore.getState().selectNote(null)}
-            className="-ml-1 md:hidden flex items-center justify-center p-2 rounded-xl text-text-muted hover:bg-white/5 transition-all"
+            className="-ml-1 md:hidden flex items-center justify-center p-2 rounded-xl text-text-muted hover:bg-surface-mutes/50 transition-all"
           >
             <FiArrowLeft size={18} />
           </button>
@@ -1103,7 +1103,7 @@ function NoteEditorContent({ note }: { note: Note }) {
         </div>
 
         <div className="flex flex-wrap items-center gap-1">
-          <div className="flex bg-white/5 rounded-xl p-1 mr-1">
+          <div className="flex bg-surface-mutes/50 rounded-xl p-1 mr-1">
             <button
               onClick={() => setViewMode("edit")}
               className={`p-1.5 rounded-lg transition-all ${viewMode === "edit" ? "bg-brand-primary text-white" : "text-text-muted hover:text-text-main"}`}
@@ -1134,7 +1134,7 @@ function NoteEditorContent({ note }: { note: Note }) {
             </button>
           </div>
 
-          <div className="flex items-center gap-1.5 rounded-xl border border-white/5 bg-black/20 px-2 py-1 mr-1 h-9">
+          <div className="flex items-center gap-1.5 rounded-xl border border-border bg-surface-mutes/20 px-2 py-1 mr-1 h-9">
             <FiType size={13} className="text-brand-primary" />
             <Select
               value={String(previewFontSize)}
@@ -1143,7 +1143,7 @@ function NoteEditorContent({ note }: { note: Note }) {
               <SelectTrigger className="h-7 border-none bg-transparent p-0 text-[11px] font-black text-text-main hover:text-brand-primary transition-colors focus:ring-0">
                 <SelectValue placeholder={`${previewFontSize}px`} />
               </SelectTrigger>
-              <SelectContent className="min-w-[80px] rounded-xl border border-white/10 bg-surface-soft text-white">
+              <SelectContent className="min-w-[80px] rounded-xl border border-border bg-surface-soft text-white">
                 {[12, 13, 14, 16, 18].map((size) => (
                   <SelectItem key={size} value={String(size)} className="rounded-lg text-[11px] font-bold py-1">
                     {size}px
@@ -1172,7 +1172,7 @@ function NoteEditorContent({ note }: { note: Note }) {
               const result = await noteAi.mutateAsync(note.id);
               setAnalysis(result);
             }}
-            className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 hover:text-brand-primary transition-all"
+            className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-surface-mutes/50 hover:text-brand-primary transition-all"
             title={noteAi.isPending ? "Analyzing..." : "AI Assist"}
           >
             <FiCpu size={16} />
@@ -1182,19 +1182,19 @@ function NoteEditorContent({ note }: { note: Note }) {
               setShowHistory(true);
               await loadHistory();
             }}
-            className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 hover:text-brand-primary transition-all"
+            className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-surface-mutes/50 hover:text-brand-primary transition-all"
             title="Version History"
           >
             <FiRotateCcw size={16} />
           </button>
           <button
-            className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 hover:text-red-400 transition-all"
+            className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-surface-mutes/50 hover:text-red-400 transition-all"
             onClick={() => setShowDeleteConfirm(true)}
             title="Delete Note"
           >
             <FiTrash2 size={16} />
           </button>
-          <button className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-white/5 transition-all">
+          <button className="h-9 w-9 flex items-center justify-center rounded-xl text-text-muted hover:bg-surface-mutes/50 transition-all">
             <FiMoreHorizontal size={18} />
           </button>
           {voiceCapture.isSupported ? (
@@ -1205,7 +1205,7 @@ function NoteEditorContent({ note }: { note: Note }) {
               className={`h-9 w-9 flex items-center justify-center rounded-xl transition-all ${
                 voiceCapture.isListening
                   ? "bg-rose-500/10 text-rose-200"
-                  : "text-text-muted hover:bg-white/5 hover:text-brand-primary"
+                  : "text-text-muted hover:bg-surface-mutes/50 hover:text-brand-primary"
               }`}
               title={voiceCapture.isListening ? "Listening..." : "Voice to text"}
             >
@@ -1241,7 +1241,7 @@ function NoteEditorContent({ note }: { note: Note }) {
               From Inbox
             </span>
           ) : null}
-          <span className="rounded-full border border-white/10 bg-white/5 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+          <span className="rounded-full border border-border bg-surface-mutes/50 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
             Ctrl/Cmd+Shift+F Focus
           </span>
 
@@ -1260,7 +1260,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                   />
                 </form>
                 {suggestions.length > 0 ? (
-                  <div className="absolute top-full left-0 mt-1 w-48 bg-surface-base border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden py-1">
+                  <div className="absolute top-full left-0 mt-1 w-48 bg-surface-base border border-border rounded-xl shadow-2xl z-50 overflow-hidden py-1">
                     {suggestions.slice(0, 5).map((tag) => (
                       <button
                         key={tag.id}
@@ -1268,7 +1268,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                           e.preventDefault();
                           handleSelectSuggestion(tag.name);
                         }}
-                        className="w-full text-left px-3 py-2 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-white/5 transition-colors"
+                        className="w-full text-left px-3 py-2 text-xs font-semibold text-text-muted hover:text-text-main hover:bg-surface-mutes/50 transition-colors"
                       >
                         #{tag.name}
                       </button>
@@ -1287,13 +1287,13 @@ function NoteEditorContent({ note }: { note: Note }) {
           ) : null}
         </div>
 
-        <div className="rounded-[1.35rem] border border-white/10 bg-white/5 px-4 py-3">
+        <div className="rounded-[1.35rem] border border-border bg-surface-mutes/50 px-4 py-3">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+              <span className="rounded-full border border-border bg-surface-mutes/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
                 Dream: {note.dream?.title || "unlinked"}
               </span>
-              <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+              <span className="rounded-full border border-border bg-surface-mutes/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
                 Tasks: {(note.tasks || []).length}
               </span>
               {sourceInboxItem ? (
@@ -1315,12 +1315,12 @@ function NoteEditorContent({ note }: { note: Note }) {
         {showKnowledgeMeta ? (
           <div className="space-y-3">
             <div className="grid gap-3 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+            <div className="rounded-[1.35rem] border border-border bg-surface-mutes/50 p-4">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
                 Knowledge Structure
               </p>
               <div className="mt-3 grid gap-3 md:grid-cols-2">
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                <div className="rounded-2xl border border-border bg-surface-mutes/20 p-3">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                     Parent Dream
                   </p>
@@ -1329,7 +1329,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                       value={note.dreamId || "none"}
                       onValueChange={handleDreamLink}
                     >
-                      <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
+                      <SelectTrigger className="rounded-xl border-border bg-surface-mutes/50 text-text-main">
                         <SelectValue placeholder="Link to dream" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1344,13 +1344,13 @@ function NoteEditorContent({ note }: { note: Note }) {
                   </div>
                 </div>
 
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                <div className="rounded-2xl border border-border bg-surface-mutes/20 p-3">
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                     Link Task
                   </p>
                   <div className="mt-2">
                     <Select onValueChange={handleTaskLink}>
-                      <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
+                      <SelectTrigger className="rounded-xl border-border bg-surface-mutes/50 text-text-main">
                         <SelectValue placeholder="Attach to execution" />
                       </SelectTrigger>
                       <SelectContent>
@@ -1384,7 +1384,7 @@ function NoteEditorContent({ note }: { note: Note }) {
               </div>
             </div>
 
-            <div className="rounded-[1.35rem] border border-white/10 bg-white/5 p-4">
+            <div className="rounded-[1.35rem] border border-border bg-surface-mutes/50 p-4">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
                 Source Material
               </p>
@@ -1394,7 +1394,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                     <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">
                       {captureMethod || "capture"}
                     </span>
-                    <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
+                    <span className="rounded-full border border-border bg-surface-mutes/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                       {sourceInboxItem.source}
                     </span>
                   </div>
@@ -1408,7 +1408,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                       {sourceInboxItem.processedPayload.attachments.map((attachment: NonNullable<typeof sourceInboxItem.processedPayload.attachments>[number]) => (
                         <span
                           key={`${sourceInboxItem.id}-${attachment.name}`}
-                          className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-text-main"
+                          className="rounded-full border border-border bg-surface-mutes/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-text-main"
                         >
                           {attachment.name}
                         </span>
@@ -1419,7 +1419,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                     <button
                       type="button"
                       onClick={handleCreateReadingTask}
-                      className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30"
+                      className="inline-flex items-center gap-2 rounded-2xl border border-border bg-surface-mutes/20 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-surface-mutes/30"
                     >
                       <FiBookOpen />
                       Create reading task
@@ -1468,7 +1468,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                   })
                 }
                 disabled={isCreatingSuggestedTasks}
-                className="rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+                className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-surface-mutes/30 disabled:opacity-50"
               >
                 {isCreatingSuggestedTasks
                   ? "Saving..."
@@ -1482,7 +1482,7 @@ function NoteEditorContent({ note }: { note: Note }) {
               {analysis.keyInsights.map((insight) => (
                 <div
                   key={insight}
-                  className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-text-muted"
+                  className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-sm text-text-muted"
                 >
                   {insight}
                 </div>
@@ -1515,11 +1515,11 @@ function NoteEditorContent({ note }: { note: Note }) {
               value={markdownContent}
               onChange={(e) => setMarkdownContent(e.target.value)}
               placeholder="Start writing..."
-              className={`min-h-[18rem] flex-1 bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/30 resize-none overflow-y-auto font-mono text-sm leading-7 custom-scrollbar ${viewMode === "split" ? "border-r border-white/5 pr-3 mr-1" : ""}`}
+              className={`min-h-[18rem] flex-1 bg-transparent border-none outline-none text-text-main placeholder:text-text-muted/30 resize-none overflow-y-auto font-mono text-sm leading-7 custom-scrollbar ${viewMode === "split" ? "border-r border-border pr-3 mr-1" : ""}`}
             />
           ) : (
             <div
-              className={`min-h-[18rem] flex-1 flex flex-col gap-3 ${viewMode === "split" ? "border-r border-white/5 pr-3 mr-1" : ""}`}
+              className={`min-h-[18rem] flex-1 flex flex-col gap-3 ${viewMode === "split" ? "border-r border-border pr-3 mr-1" : ""}`}
             >
               <RichTextToolbar
                 onCommand={applyRichCommand}
@@ -1539,7 +1539,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                 onKeyUp={saveRichSelection}
                 onMouseUp={saveRichSelection}
                 onBlur={saveRichSelection}
-                className="min-h-[16rem] flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 px-4 py-3 text-left text-sm leading-7 text-text-main outline-none custom-scrollbar [&_blockquote]:text-left [&_div]:text-left [&_h1]:text-left [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-left [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-left [&_h3]:text-lg [&_h3]:font-bold [&_li]:text-left [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.75rem] [&_p]:text-left [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain"
+                className="min-h-[16rem] flex-1 overflow-y-auto rounded-3xl border border-border bg-surface-mutes/50 px-4 py-3 text-left text-sm leading-7 text-text-main outline-none custom-scrollbar [&_blockquote]:text-left [&_div]:text-left [&_h1]:text-left [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-left [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-left [&_h3]:text-lg [&_h3]:font-bold [&_li]:text-left [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.75rem] [&_p]:text-left [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain"
                 style={{
                   direction: "ltr",
                   textAlign: "left",
@@ -1552,7 +1552,7 @@ function NoteEditorContent({ note }: { note: Note }) {
 
         {viewMode === "preview" || viewMode === "split" ? (
           <div
-            className={`min-h-[18rem] flex-1 overflow-y-auto custom-scrollbar rounded-none border-x border-white/5 bg-white/5 ${viewMode === "preview" ? "px-3 py-3 sm:px-6 sm:py-6 lg:px-8" : "px-3 py-3 sm:px-4"}`}
+            className={`min-h-[18rem] flex-1 overflow-y-auto custom-scrollbar rounded-none border-x border-border bg-surface-mutes/50 ${viewMode === "preview" ? "px-3 py-3 sm:px-6 sm:py-6 lg:px-8" : "px-3 py-3 sm:px-4"}`}
             style={{ fontSize: `${previewFontSize}px` }}
           >
             {contentType === "markdown" ? (
@@ -1636,7 +1636,7 @@ function NoteEditorContent({ note }: { note: Note }) {
         ) : null}
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8 py-3 border-t border-white/5 flex items-center justify-between text-[11px] text-text-muted/40 font-medium">
+      <div className="px-4 sm:px-6 lg:px-8 py-3 border-t border-border flex items-center justify-between text-[11px] text-text-muted/40 font-medium">
         <div className="flex items-center gap-4">
           <span className="flex items-center gap-1.5">
             <FiFileText size={12} />{" "}
@@ -1685,8 +1685,8 @@ function NoteEditorContent({ note }: { note: Note }) {
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[105] bg-black/70 p-4 backdrop-blur-sm"
           >
-            <div className="mx-auto flex h-full max-w-2xl flex-col overflow-hidden rounded-[2rem] border border-white/10 bg-surface-base">
-              <div className="flex items-center justify-between border-b border-white/5 p-5">
+            <div className="mx-auto flex h-full max-w-2xl flex-col overflow-hidden rounded-[2rem] border border-border bg-surface-base">
+              <div className="flex items-center justify-between border-b border-border p-5">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
                     Note History
@@ -1698,7 +1698,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                 <button
                   type="button"
                   onClick={() => setShowHistory(false)}
-                  className="rounded-xl p-2 text-text-muted transition hover:bg-white/5 hover:text-text-main"
+                  className="rounded-xl p-2 text-text-muted transition hover:bg-surface-mutes/50 hover:text-text-main"
                 >
                   <FiX size={18} />
                 </button>
@@ -1710,7 +1710,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                     {Array.from({ length: 4 }).map((_, index) => (
                       <div
                         key={index}
-                        className="h-24 animate-pulse rounded-2xl border border-white/10 bg-white/5"
+                        className="h-24 animate-pulse rounded-2xl border border-border bg-surface-mutes/50"
                       />
                     ))}
                   </div>
@@ -1723,7 +1723,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                           className={`rounded-2xl border p-4 transition ${
                             selectedHistoryVersionId === entry.id
                               ? "border-brand-primary/30 bg-brand-primary/10"
-                              : "border-white/10 bg-white/5"
+                              : "border-border bg-surface-mutes/50"
                           }`}
                         >
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -1742,7 +1742,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                               <button
                                 type="button"
                                 onClick={() => setSelectedHistoryVersionId(entry.id)}
-                                className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30"
+                                className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-2 text-xs font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-surface-mutes/30"
                               >
                                 Compare
                               </button>
@@ -1761,7 +1761,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                         </div>
                       ))}
                     </div>
-                    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+                    <div className="rounded-2xl border border-border bg-surface-mutes/50 p-4">
                       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
                         Compare Snapshot
                       </p>
@@ -1772,7 +1772,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                             <DiffMetric label="Removed lines" value={historyDiff.removedLines} />
                           </div>
                           <div className="grid gap-3 md:grid-cols-2">
-                            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                            <div className="rounded-2xl border border-border bg-surface-mutes/20 p-3">
                               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                                 Snapshot
                               </p>
@@ -1780,7 +1780,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                                 {historyDiff.before}
                               </pre>
                             </div>
-                            <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+                            <div className="rounded-2xl border border-border bg-surface-mutes/20 p-3">
                               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
                                 Current
                               </p>
@@ -1791,14 +1791,14 @@ function NoteEditorContent({ note }: { note: Note }) {
                           </div>
                         </div>
                       ) : (
-                        <div className="mt-4 rounded-2xl border border-dashed border-white/10 p-4 text-sm text-text-muted">
+                        <div className="mt-4 rounded-2xl border border-dashed border-border p-4 text-sm text-text-muted">
                           Pick a snapshot to compare it with the current note.
                         </div>
                       )}
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-2xl border border-dashed border-white/10 bg-white/5 p-6 text-sm text-text-muted">
+                  <div className="rounded-2xl border border-dashed border-border bg-surface-mutes/50 p-6 text-sm text-text-muted">
                     No saved snapshots yet. The editor will start recording history
                     when the note changes.
                   </div>
@@ -1815,7 +1815,7 @@ function NoteEditorContent({ note }: { note: Note }) {
             className="fixed inset-0 z-[100] bg-surface-base overflow-y-auto custom-scrollbar"
           >
             <div className="mx-auto flex min-h-full w-full max-w-6xl flex-col px-3 pb-8 pt-4 sm:px-6 sm:pb-12 sm:pt-6">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/5 pb-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
                 <button
                   onClick={() => setIsReaderMode(false)}
                   className="flex items-center gap-2 text-text-muted hover:text-white transition-colors text-xs font-black uppercase tracking-widest group w-fit"
@@ -1825,7 +1825,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                 </button>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex rounded-2xl bg-white/5 p-1">
+                  <div className="flex rounded-2xl bg-surface-mutes/50 p-1">
                     <button
                       type="button"
                       onClick={() => setViewMode("edit")}
@@ -1852,7 +1852,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                     </button>
                   </div>
 
-                  <div className="flex items-center gap-1.5 rounded-2xl border border-white/5 bg-black/20 px-2 py-1 h-10">
+                  <div className="flex items-center gap-1.5 rounded-2xl border border-border bg-surface-mutes/20 px-2 py-1 h-10">
                     <FiType size={13} className="text-brand-primary" />
                     <Select
                       value={String(previewFontSize)}
@@ -1861,7 +1861,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                       <SelectTrigger className="h-7 border-none bg-transparent p-0 text-[11px] font-black text-text-main hover:text-brand-primary transition-colors focus:ring-0">
                         <SelectValue placeholder={`${previewFontSize}px`} />
                       </SelectTrigger>
-                      <SelectContent className="min-w-[80px] rounded-xl border border-white/10 bg-surface-soft text-white">
+                      <SelectContent className="min-w-[80px] rounded-xl border border-border bg-surface-soft text-white">
                         {[12, 13, 14, 16, 18].map((size) => (
                           <SelectItem key={size} value={String(size)} className="rounded-lg text-[11px] font-bold py-1">
                             {size}px
@@ -1888,11 +1888,11 @@ function NoteEditorContent({ note }: { note: Note }) {
                   />
                 )}
 
-                <div className="flex flex-wrap gap-2 items-center border-b border-white/5 pb-4">
+                <div className="flex flex-wrap gap-2 items-center border-b border-border pb-4">
                   {note.tags.map(({ tag }) => (
                     <span
                       key={tag.id || tag.name}
-                      className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded border border-white/10"
+                      className="text-[10px] font-black uppercase tracking-wider px-2 py-1 rounded border border-border"
                       style={getTagColorStyle(tag.color)}
                     >
                       #{tag.name}
@@ -1910,7 +1910,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                         value={markdownContent}
                         onChange={(e) => setMarkdownContent(e.target.value)}
                         placeholder="Start writing..."
-                        className={`min-h-[22rem] flex-1 rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-sm leading-7 text-text-main placeholder:text-text-muted/30 outline-none resize-none custom-scrollbar ${viewMode === "split" ? "lg:max-w-[48%]" : ""}`}
+                        className={`min-h-[22rem] flex-1 rounded-3xl border border-border bg-surface-mutes/50 px-4 py-4 text-sm leading-7 text-text-main placeholder:text-text-muted/30 outline-none resize-none custom-scrollbar ${viewMode === "split" ? "lg:max-w-[48%]" : ""}`}
                       />
                     ) : (
                       <div
@@ -1934,7 +1934,7 @@ function NoteEditorContent({ note }: { note: Note }) {
                           onKeyUp={saveRichSelection}
                           onMouseUp={saveRichSelection}
                           onBlur={saveRichSelection}
-                          className="min-h-[20rem] flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 px-4 py-4 text-left text-sm leading-7 text-text-main outline-none custom-scrollbar [&_blockquote]:text-left [&_div]:text-left [&_h1]:text-left [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-left [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-left [&_h3]:text-lg [&_h3]:font-bold [&_li]:text-left [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.75rem] [&_p]:text-left [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain"
+                          className="min-h-[20rem] flex-1 overflow-y-auto rounded-3xl border border-border bg-surface-mutes/50 px-4 py-4 text-left text-sm leading-7 text-text-main outline-none custom-scrollbar [&_blockquote]:text-left [&_div]:text-left [&_h1]:text-left [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-left [&_h2]:text-xl [&_h2]:font-bold [&_h3]:text-left [&_h3]:text-lg [&_h3]:font-bold [&_li]:text-left [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:min-h-[1.75rem] [&_p]:text-left [&_ul]:list-disc [&_ul]:pl-5 [&_img]:my-3 [&_img]:max-h-56 [&_img]:max-w-full [&_img]:rounded-2xl [&_img]:object-contain"
                           style={{
                             direction: "ltr",
                             textAlign: "left",
@@ -1947,7 +1947,7 @@ function NoteEditorContent({ note }: { note: Note }) {
 
                   {viewMode === "preview" || viewMode === "split" ? (
                     <div
-                      className={`min-h-[22rem] flex-1 overflow-y-auto rounded-3xl border border-white/10 bg-white/5 custom-scrollbar ${viewMode === "preview" ? "px-4 py-4 sm:px-8 sm:py-8" : "px-4 py-4 lg:max-w-[52%]"}`}
+                      className={`min-h-[22rem] flex-1 overflow-y-auto rounded-3xl border border-border bg-surface-mutes/50 custom-scrollbar ${viewMode === "preview" ? "px-4 py-4 sm:px-8 sm:py-8" : "px-4 py-4 lg:max-w-[52%]"}`}
                       style={{ fontSize: `${previewFontSize}px` }}
                     >
                       {contentType === "markdown" ? (
@@ -2030,7 +2030,7 @@ function RichTextToolbar({
   onAddLink: () => void;
 }) {
   return (
-    <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-white/5 p-2">
+    <div className="flex flex-wrap gap-2 rounded-2xl border border-border bg-surface-mutes/50 p-2">
       <ToolbarButton
         icon={<FiBold size={14} />}
         label="Bold"
@@ -2099,11 +2099,11 @@ function NoteConstellation({
     .slice(0, 4);
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+    <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
         Knowledge Constellation
       </p>
-      <div className="relative mt-4 h-36 overflow-hidden rounded-2xl border border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_40%),rgba(0,0,0,0.15)]">
+      <div className="relative mt-4 h-36 overflow-hidden rounded-2xl border border-border bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.08),transparent_40%),rgba(0,0,0,0.15)]">
         <div className="absolute left-1/2 top-1/2 z-10 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-brand-primary/30 bg-brand-primary/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
           {truncateNoteLabel(note.title)}
         </div>
@@ -2127,7 +2127,7 @@ function NoteConstellation({
           );
         })}
         {!orbitNodes.length ? (
-          <div className="absolute inset-x-4 bottom-4 rounded-xl border border-dashed border-white/10 px-3 py-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
+          <div className="absolute inset-x-4 bottom-4 rounded-xl border border-dashed border-border px-3 py-2 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
             No backlinks orbiting this note yet
           </div>
         ) : null}
@@ -2158,13 +2158,13 @@ function RelatedKnowledgePanel({
   ];
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+    <div className="rounded-2xl border border-border bg-surface-mutes/50 p-4">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
         Context Rail
       </p>
       <div className="mt-4 grid gap-3 md:grid-cols-3">
         {sections.map((section) => (
-          <div key={section.id} className="rounded-2xl border border-white/10 bg-black/20 p-3">
+          <div key={section.id} className="rounded-2xl border border-border bg-surface-mutes/20 p-3">
             <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
               {section.label}
             </p>
@@ -2175,13 +2175,13 @@ function RelatedKnowledgePanel({
                     key={item.id}
                     type="button"
                     onClick={() => onOpenNote(item.id)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-left text-xs font-bold text-text-main transition hover:bg-white/10"
+                    className="w-full rounded-xl border border-border bg-surface-mutes/50 px-3 py-2 text-left text-xs font-bold text-text-main transition hover:bg-white/10"
                   >
                     {item.title || "Untitled Note"}
                   </button>
                 ))
               ) : (
-                <div className="rounded-xl border border-dashed border-white/10 px-3 py-3 text-xs text-text-muted">
+                <div className="rounded-xl border border-dashed border-border px-3 py-3 text-xs text-text-muted">
                   Nothing surfaced here yet.
                 </div>
               )}
@@ -2195,7 +2195,7 @@ function RelatedKnowledgePanel({
 
 function DiffMetric({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-3">
+    <div className="rounded-2xl border border-border bg-surface-mutes/20 p-3">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">
         {label}
       </p>
@@ -2280,7 +2280,7 @@ function ToolbarButton({
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[11px] font-bold text-text-main transition hover:bg-black/30"
+      className="inline-flex items-center gap-2 rounded-xl border border-border bg-surface-mutes/20 px-3 py-2 text-[11px] font-bold text-text-main transition hover:bg-surface-mutes/30"
       title={label}
     >
       {icon}
