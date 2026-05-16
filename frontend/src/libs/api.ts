@@ -128,4 +128,15 @@ export const setManualCsrfToken = (token: string) => {
   }
 };
 
+export const logout = async () => {
+  try {
+    await apiFetch("/auth/logout", { method: "POST" });
+  } finally {
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("csrf-token");
+      // Clear any other auth related items if any
+    }
+  }
+};
+
 export default api;
