@@ -20,7 +20,7 @@ export const getAccessTokenCookieOptions = () => {
     httpOnly: true,
     secure: !isLocal,
     sameSite: isLocal ? "lax" : "none",
-    maxAge: 15 * 60 * 1000,
+    maxAge: 60 * 60 * 1000,
     path: "/",
   };
   console.log(`[CookieUtils] Access Options: secure=${options.secure}, sameSite=${options.sameSite}`);

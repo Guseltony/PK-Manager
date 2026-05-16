@@ -25,8 +25,8 @@ export default function ArchivePage() {
           </p>
         </header>
 
-        <div className="glass rounded-[2rem] border border-white/5 p-8 sm:p-20 flex flex-col items-center justify-center text-center">
-          <div className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center mb-6">
+        <div className="glass rounded-[2rem] border border-border p-8 sm:p-20 flex flex-col items-center justify-center text-center">
+          <div className="w-24 h-24 rounded-full bg-surface-mutes/50 border border-border flex items-center justify-center mb-6">
             <FiBox size={40} className="text-text-muted/20" />
           </div>
           <h3 className="text-xl font-bold text-text-main mb-2">Vault is Currently Empty</h3>

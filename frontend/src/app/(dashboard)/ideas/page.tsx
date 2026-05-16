@@ -236,8 +236,8 @@ export default function IdeasPage() {
           </motion.p>
         </div>
 
-        <div className="flex bg-surface-soft/50 border border-white/5 rounded-2xl p-2 backdrop-blur-sm self-start">
-          <div className="flex items-center gap-3 px-4 py-2 text-text-muted border-r border-white/5">
+        <div className="flex bg-surface-soft/50 border border-border rounded-2xl p-2 backdrop-blur-sm self-start">
+          <div className="flex items-center gap-3 px-4 py-2 text-text-muted border-r border-border">
             <FiSearch />
             <input
               type="text"
@@ -262,7 +262,7 @@ export default function IdeasPage() {
           onClick={() => setShowConverted((current) => !current)}
           className={`rounded-xl border px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition ${
             showConverted
-              ? "border-white/10 bg-white/5 text-text-main"
+              ? "border-border bg-surface-mutes/50 text-text-main"
               : "border-brand-primary/30 bg-brand-primary/10 text-brand-primary"
           }`}
         >
@@ -276,7 +276,7 @@ export default function IdeasPage() {
           className={`inline-flex items-center gap-2 rounded-xl border px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] transition ${
             viewMode === "canvas"
               ? "border-brand-primary/30 bg-brand-primary/10 text-brand-primary"
-              : "border-white/10 bg-white/5 text-text-main"
+              : "border-border bg-surface-mutes/50 text-text-main"
           }`}
         >
           {viewMode === "canvas" ? <FiLayers /> : <FiGrid />}
@@ -300,13 +300,13 @@ export default function IdeasPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <span className="rounded-full border border-white/10 bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
+            <span className="rounded-full border border-border bg-surface-mutes/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
               {selectedMergeIds.length}/2 selected
             </span>
             <button
               type="button"
               onClick={() => setSelectedMergeIds([])}
-              className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30"
+              className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-surface-mutes/30"
             >
               Clear
             </button>
@@ -326,7 +326,7 @@ export default function IdeasPage() {
       {/* Quick Capture Bar */}
       <motion.div layout className="relative group h-fit">
         <div className="absolute -inset-1 bg-linear-to-r from-brand-primary/20 via-brand-secondary/20 to-brand-primary/20 rounded-3xl blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-700" />
-        <div className="relative bg-surface-soft border border-white/10 rounded-2xl p-5 sm:p-6 max-sm:px-2 shadow-2xl transition-all duration-300 group-focus-within:border-brand-primary/30 flex flex-col gap-3">
+        <div className="relative bg-surface-soft border border-border rounded-2xl p-5 sm:p-6 max-sm:px-2 shadow-2xl transition-all duration-300 group-focus-within:border-brand-primary/30 flex flex-col gap-3">
           <input
             ref={inputRef}
             type="text"
@@ -345,19 +345,19 @@ export default function IdeasPage() {
           />
 
           {content && (
-            <div className="p-3 bg-black/20 rounded-xl border border-white/5 flex flex-col gap-3 text-xs text-brand-primary">
+            <div className="p-3 bg-surface-mutes/20 rounded-xl border border-border flex flex-col gap-3 text-xs text-brand-primary">
               <div className="w-full text-[10px] font-black uppercase text-brand-primary mb-1 flex items-center gap-1">
                 <FiImage /> Inspiration Board Preview
               </div>
               {uploadedImages.length > 0 ? (
                 <div className="flex flex-wrap gap-3">
                   {uploadedImages.map((image) => (
-                    <div key={image.id} className="group relative rounded-2xl border border-white/10 bg-white/5 p-2">
+                    <div key={image.id} className="group relative rounded-2xl border border-border bg-surface-mutes/50 p-2">
                       <ContentImage src={image.url} onOpen={(srcValue) => setActiveImage(srcValue)} className="max-h-28" />
                       <button
                         type="button"
                         onClick={() => handleRemoveUploadedImage(image.id, image.url)}
-                        className="absolute right-2 top-2 rounded-full border border-white/10 bg-black/60 p-1 text-white hover:bg-red-500/80"
+                        className="absolute right-2 top-2 rounded-full border border-border bg-black/60 p-1 text-white hover:bg-red-500/80"
                         title="Remove image"
                       >
                         <FiX size={12} />
@@ -380,7 +380,7 @@ export default function IdeasPage() {
             </div>
           )}
 
-          <div className="flex items-center justify-between mt-2 pt-4 border-t border-white/5">
+          <div className="flex items-center justify-between mt-2 pt-4 border-t border-border">
             <div className="flex items-center gap-4">
               <ImageUploader
                 parentType="idea"
@@ -393,14 +393,14 @@ export default function IdeasPage() {
                 className={`inline-flex items-center gap-1.5 md:gap-2 rounded-xl border px-2.5 py-2 md:px-3 text-[10px] font-black uppercase tracking-[0.18em] transition ${
                   isListening
                     ? "border-rose-400/20 bg-rose-500/10 text-rose-200"
-                    : "border-white/10 bg-white/5 text-text-main hover:bg-white/10"
+                    : "border-border bg-surface-mutes/50 text-text-main hover:bg-white/10"
                 }`}
               >
                 <FiMic className={isListening ? "animate-pulse" : ""} />
                 <span className="hidden md:inline">{isListening ? "Listening..." : "Voice"}</span>
               </button>
               <span className="text-[10px] text-brand-primary/60 font-medium tracking-tighter items-center gap-1 hidden sm:flex">
-                <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 uppercase">
+                <kbd className="px-1.5 py-0.5 rounded bg-surface-mutes/50 border border-border uppercase">
                   Enter
                 </kbd>{" "}
                 to save
@@ -428,7 +428,7 @@ export default function IdeasPage() {
       <div
         className={
           viewMode === "canvas"
-            ? "relative min-h-[720px] overflow-hidden rounded-[30px] border border-white/10 bg-surface-soft/60 p-4"
+            ? "relative min-h-[720px] overflow-hidden rounded-[30px] border border-border bg-surface-soft/60 p-4"
             : "grid grid-cols-1 gap-6 md:grid-cols-2"
         }
       >
@@ -452,7 +452,7 @@ export default function IdeasPage() {
 
         {filteredIdeas.length === 0 && !isLoading && (
           <div className="col-span-full py-20 flex flex-col items-center justify-center text-center space-y-4 opacity-50 grayscale">
-            <div className="w-16 h-16 rounded-full border-2 border-dashed border-white/10 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full border-2 border-dashed border-border flex items-center justify-center">
               <BsFillLightbulbFill className="w-8 h-8 text-text-muted" />
             </div>
             <div>
@@ -524,7 +524,7 @@ function IdeaCard({
       exit={{ opacity: 0, scale: 0.8, filter: "blur(10px)" }}
       transition={{ delay: idx * 0.05 }}
       style={canvasStyle}
-      className={`relative group bg-surface-soft border rounded-2xl p-5 sm:p-6 max-sm:px-2 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col ${idea.status === "converted" ? "opacity-50 grayscale-[0.5]" : ""} ${isFresh ? "shadow-[0_0_0_1px_rgba(var(--brand-primary-rgb),0.18),0_0_28px_rgba(var(--brand-primary-rgb),0.12)]" : ""} ${isSelected ? "border-amber-300/40 shadow-[0_0_0_1px_rgba(252,211,77,0.22)]" : isHighlighted ? "border-brand-primary/40 shadow-[0_0_0_1px_rgba(var(--brand-primary-rgb),0.25)]" : "border-white/5 hover:border-brand-primary/20"}`}
+      className={`relative group bg-surface-soft border rounded-2xl p-5 sm:p-6 max-sm:px-2 transition-all hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col ${idea.status === "converted" ? "opacity-50 grayscale-[0.5]" : ""} ${isFresh ? "shadow-[0_0_0_1px_rgba(var(--brand-primary-rgb),0.18),0_0_28px_rgba(var(--brand-primary-rgb),0.12)]" : ""} ${isSelected ? "border-amber-300/40 shadow-[0_0_0_1px_rgba(252,211,77,0.22)]" : isHighlighted ? "border-brand-primary/40 shadow-[0_0_0_1px_rgba(var(--brand-primary-rgb),0.25)]" : "border-border hover:border-brand-primary/20"}`}
     >
       <div className="flex justify-between items-start mb-4">
         <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-text-muted/60">
@@ -548,7 +548,7 @@ function IdeaCard({
             className={`rounded-lg border px-2 py-1 text-[9px] font-black uppercase tracking-[0.18em] transition ${
               isSelected
                 ? "border-amber-300/30 bg-amber-300/10 text-amber-100"
-                : "border-white/10 bg-black/20 text-text-muted hover:text-text-main"
+                : "border-border bg-surface-mutes/20 text-text-muted hover:text-text-main"
             }`}
             title="Select for merge"
           >
@@ -585,8 +585,8 @@ function IdeaCard({
       </p>
 
       {idea.content && idea.content.trim().length > 0 && (
-        <div className="mt-4 mb-6 bg-black/20 rounded-xl p-4 border border-white/5 prose prose-invert max-w-none prose-img:rounded-xl prose-img:border prose-img:border-white/10 w-full overflow-hidden">
-          <div className="text-[10px] font-black uppercase text-brand-primary mb-3 flex items-center gap-1 border-b border-white/5 pb-2">
+        <div className="mt-4 mb-6 bg-surface-mutes/20 rounded-xl p-4 border border-border prose prose-invert max-w-none prose-img:rounded-xl prose-img:border prose-img:border-border w-full overflow-hidden">
+          <div className="text-[10px] font-black uppercase text-brand-primary mb-3 flex items-center gap-1 border-b border-border pb-2">
             <FiImage /> Inspiration Board
           </div>
           <ReactMarkdown
@@ -617,8 +617,8 @@ function IdeaCard({
 
       {idea.status !== "converted" && (
         <div className="flex items-center gap-2 mt-auto pt-4">
-          <div className="h-px flex-1 bg-white/5" />
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-black/20 border border-white/5">
+          <div className="h-px flex-1 bg-surface-mutes/50" />
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-surface-mutes/20 border border-border">
             <button
               onClick={() => onConvert("note")}
               className="p-2 rounded-lg hover:bg-brand-primary/10 text-white/40 hover:text-brand-primary transition-all flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest"
@@ -659,7 +659,7 @@ function IdeaCard({
                   createSuggestedTasks({ tasks: aiPlan.suggestedTasks })
                 }
                 disabled={isCreatingSuggestedTasks}
-                className="rounded-xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+                className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-surface-mutes/30 disabled:opacity-50"
               >
                 {isCreatingSuggestedTasks
                   ? "Saving..."
@@ -673,7 +673,7 @@ function IdeaCard({
               {aiPlan.suggestedTags.map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-amber-100"
+                  className="rounded-full border border-border bg-surface-mutes/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-amber-100"
                 >
                   #{tag}
                 </span>
@@ -686,7 +686,7 @@ function IdeaCard({
               {aiPlan.suggestedTasks.map((task, taskIndex) => (
                 <div
                   key={`${task.title}-${taskIndex}`}
-                  className="rounded-xl border border-white/10 bg-black/20 px-3 py-2"
+                  className="rounded-xl border border-border bg-surface-mutes/20 px-3 py-2"
                 >
                   <p className="text-sm font-bold text-text-main">
                     {task.title}
