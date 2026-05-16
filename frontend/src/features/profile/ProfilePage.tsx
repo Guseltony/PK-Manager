@@ -85,7 +85,7 @@ function ProfileIdentity({ user }: { user: User }) {
   );
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-surface-soft/80 p-5 sm:p-6">
+    <div className="rounded-3xl border border-border bg-surface-soft/80 p-5 sm:p-6">
       <div className="flex items-center gap-2">
         <FiUserCheck className="text-brand-primary" size={14} />
         <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-text-main">
@@ -135,7 +135,7 @@ function SystemProfile({ user }: { user: User }) {
   ];
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-surface-soft/80 p-5 sm:p-6">
+    <div className="rounded-3xl border border-border bg-surface-soft/80 p-5 sm:p-6">
       <div className="flex items-center gap-2">
         <FiCpu className="text-brand-primary" size={14} />
         <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-text-main">
@@ -165,7 +165,7 @@ function SystemProfile({ user }: { user: User }) {
         {switches.map((item) => (
           <div
             key={item.label}
-            className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
+            className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3"
           >
             <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
               {item.label}
@@ -207,7 +207,7 @@ function ExecutionProfile({ stats }: { stats: UserStats }) {
   ];
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-surface-soft/80 p-5 sm:p-6">
+    <div className="rounded-3xl border border-border bg-surface-soft/80 p-5 sm:p-6">
       <div className="flex items-center gap-2">
         <FiTarget className="text-brand-primary" size={14} />
         <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-text-main">
@@ -218,7 +218,7 @@ function ExecutionProfile({ stats }: { stats: UserStats }) {
         {executionCards.map((item) => (
           <div
             key={item.label}
-            className="rounded-2xl border border-white/10 bg-black/20 p-3 sm:p-4"
+            className="rounded-2xl border border-border bg-surface-mutes/20 p-3 sm:p-4"
           >
             <div className="flex items-center gap-1.5 text-brand-primary">
               {item.icon}
@@ -272,7 +272,7 @@ function RecentSignals({ stats }: { stats: UserStats }) {
   ];
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-surface-soft/80 p-5 sm:p-6">
+    <div className="rounded-3xl border border-border bg-surface-soft/80 p-5 sm:p-6">
       <div className="flex items-center gap-2">
         <FiClock className="text-brand-primary" size={14} />
         <h2 className="text-[11px] font-black uppercase tracking-[0.2em] text-text-main">
@@ -283,7 +283,7 @@ function RecentSignals({ stats }: { stats: UserStats }) {
         {items.map((item) => (
           <div
             key={item.label}
-            className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
+            className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3"
           >
             <div className="flex items-center gap-2 text-brand-primary">
               {item.icon}
@@ -304,7 +304,7 @@ function RecentSignals({ stats }: { stats: UserStats }) {
 
 function ProfileField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+    <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3">
       <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
         {label}
       </p>
@@ -315,7 +315,7 @@ function ProfileField({ label, value }: { label: string; value: string }) {
 
 function SystemPill({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
+    <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3">
       <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
         {label}
       </p>

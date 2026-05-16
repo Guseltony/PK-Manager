@@ -67,7 +67,7 @@ export default function ProfileStats({ stats }: ProfileStatsProps) {
       {statItems.map((item) => (
         <div
           key={item.label}
-          className="rounded-3xl border border-white/10 bg-surface-soft/70 p-4"
+          className="rounded-3xl border border-border bg-surface-soft/70 p-4"
         >
           <div className="flex items-center justify-between gap-3">
             <div>
