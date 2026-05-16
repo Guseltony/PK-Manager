@@ -68,7 +68,7 @@ export default function CalendarPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-2 py-6 sm:px-4 md:px-6">
-      <section className="rounded-xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-4 sm:p-6 shadow-2xl">
+      <section className="rounded-xl sm:rounded-[28px] border border-border bg-surface-soft p-4 sm:p-6 shadow-2xl">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.22em] text-brand-primary">
@@ -91,7 +91,7 @@ export default function CalendarPage() {
           </div>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="inline-flex rounded-2xl border border-white/10 bg-black/20 p-1">
+            <div className="inline-flex rounded-2xl border border-border bg-surface-mutes/20 p-1">
               <button
                 type="button"
                 onClick={() => setDisplayView("month")}
@@ -116,7 +116,7 @@ export default function CalendarPage() {
               <button
                 type="button"
                 onClick={() => setSelectedDate(dayjs(selectedDate).subtract(1, 'month').format('YYYY-MM-DD'))}
-                className="rounded-2xl border border-white/10 bg-black/20 p-3 text-text-muted transition hover:text-white"
+                className="rounded-2xl border border-border bg-surface-mutes/20 p-3 text-text-muted transition hover:text-white"
               >
                 <FiChevronLeft />
               </button>
@@ -124,12 +124,12 @@ export default function CalendarPage() {
                 type="date"
                 value={selectedDate}
                 onChange={(event) => setSelectedDate(event.target.value)}
-                className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-text-main outline-none"
+                className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-sm text-text-main outline-none"
               />
               <button
                 type="button"
                 onClick={() => setSelectedDate(dayjs(selectedDate).add(1, 'month').format('YYYY-MM-DD'))}
-                className="rounded-2xl border border-white/10 bg-black/20 p-3 text-text-muted transition hover:text-white"
+                className="rounded-2xl border border-border bg-surface-mutes/20 p-3 text-text-muted transition hover:text-white"
               >
                 <FiChevronRight />
               </button>
@@ -139,7 +139,7 @@ export default function CalendarPage() {
       </section>
 
       <section className={`grid gap-6 ${displayView === "day" ? "xl:grid-cols-[1.5fr_1fr]" : "grid-cols-1"}`}>
-        <div className="rounded-xl sm:rounded-[28px] border border-white/10 bg-surface-soft p-1 sm:p-6">
+        <div className="rounded-xl sm:rounded-[28px] border border-border bg-surface-soft p-1 sm:p-6">
           <div className="mb-4 flex items-center justify-between gap-4 px-2 sm:px-0 pt-2 sm:pt-0">
             <div>
               <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-primary">{displayView === "month" ? dayjs(selectedDate).format("MMMM YYYY") : "Day Timeline"}</p>
@@ -149,7 +149,7 @@ export default function CalendarPage() {
                   : "Review today's executed signals and planned focus blocks."}
               </p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-right">
+            <div className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-right">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Signals</p>
               <p className="mt-2 text-2xl font-black text-white">{overview?.events.length || 0}</p>
             </div>
@@ -168,7 +168,7 @@ export default function CalendarPage() {
           ) : (
             <div className="grid gap-4 grid-cols-1">
               {isLoading ? (
-                <div className="h-72 animate-pulse rounded-2xl border border-white/10 bg-black/20" />
+                <div className="h-72 animate-pulse rounded-2xl border border-border bg-surface-mutes/20" />
               ) : visibleDays.filter(d => d.date === selectedDate).map((day) => (
                 <div
                   key={day.date}
@@ -181,7 +181,7 @@ export default function CalendarPage() {
                       </p>
                       <p className="mt-2 text-lg font-black text-white">{dayjs(day.date).format("MMM D")}</p>
                     </div>
-                    <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-right">
+                    <div className="rounded-xl border border-border bg-surface-mutes/50 px-3 py-2 text-right">
                       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Score</p>
                       <p className="mt-1 text-sm font-bold text-white">{day.productivityScore}</p>
                     </div>
@@ -191,7 +191,7 @@ export default function CalendarPage() {
                     {day.events.map((event) => (
                       <div
                         key={event.id}
-                        className="w-full rounded-2xl border border-white/10 bg-white/5 p-3 text-left"
+                        className="w-full rounded-2xl border border-border bg-surface-mutes/50 p-3 text-left"
                       >
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-sm font-bold text-white">{event.title}</p>
@@ -205,7 +205,7 @@ export default function CalendarPage() {
                       </div>
                     ))}
                     {!day.events.length ? (
-                      <div className="rounded-2xl border border-dashed border-white/10 px-3 py-6 text-center text-xs text-text-muted">
+                      <div className="rounded-2xl border border-dashed border-border px-3 py-6 text-center text-xs text-text-muted">
                         No events logged for this day yet.
                       </div>
                     ) : null}
@@ -218,7 +218,7 @@ export default function CalendarPage() {
 
         {displayView === "day" && (
         <div className="space-y-6">
-          <section className="rounded-[28px] border border-white/10 bg-surface-soft p-6">
+          <section className="rounded-[28px] border border-border bg-surface-soft p-6">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-primary">Daily Summary</p>
@@ -228,7 +228,7 @@ export default function CalendarPage() {
             </div>
 
             {isLoading ? (
-              <div className="mt-4 h-72 animate-pulse rounded-2xl border border-white/10 bg-black/20" />
+              <div className="mt-4 h-72 animate-pulse rounded-2xl border border-border bg-surface-mutes/20" />
             ) : (
               <div className="mt-4 space-y-4">
                 <div className="grid grid-cols-2 gap-3">
@@ -249,7 +249,7 @@ export default function CalendarPage() {
                   </div>
                 ) : null}
 
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+                <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-bold text-white">Journal status</p>
                     {dayDetails?.missingJournal ? (
@@ -272,7 +272,7 @@ export default function CalendarPage() {
             )}
           </section>
 
-          <section className="rounded-[28px] border border-white/10 bg-surface-soft p-6">
+          <section className="rounded-[28px] border border-border bg-surface-soft p-6">
             <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-brand-primary">Smart Scheduling</p>
@@ -287,13 +287,13 @@ export default function CalendarPage() {
                   value={blockTitle}
                   onChange={(event) => setBlockTitle(event.target.value)}
                   placeholder="Focus block title"
-                  className="flex-1 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-text-main outline-none"
+                  className="flex-1 rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-sm text-text-main outline-none"
                 />
                 <input
                   type="time"
                   value={blockTime}
                   onChange={(event) => setBlockTime(event.target.value)}
-                  className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-text-main outline-none"
+                  className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-sm text-text-main outline-none"
                 />
                 <button
                   type="button"
@@ -305,7 +305,7 @@ export default function CalendarPage() {
                 </button>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
                 <p className="text-sm text-text-main">{suggestions?.summary}</p>
                 <div className="mt-4 space-y-3">
                   {suggestions?.suggestions.map((suggestion) => (
@@ -320,7 +320,7 @@ export default function CalendarPage() {
                           plannedEnd: suggestion.recommendedEnd,
                         })
                       }
-                      className="w-full rounded-2xl border border-white/10 bg-white/5 p-4 text-left transition hover:border-brand-primary/20"
+                      className="w-full rounded-2xl border border-border bg-surface-mutes/50 p-4 text-left transition hover:border-brand-primary/20"
                     >
                       <div className="flex items-center justify-between gap-3">
                         <p className="text-sm font-bold text-white">{suggestion.title}</p>
@@ -335,7 +335,7 @@ export default function CalendarPage() {
                     </button>
                   ))}
                   {!suggestions?.suggestions.length ? (
-                    <div className="rounded-2xl border border-dashed border-white/10 p-4 text-sm text-text-muted">
+                    <div className="rounded-2xl border border-dashed border-border p-4 text-sm text-text-muted">
                       No suggestions yet. Add tasks or shift the selected day.
                     </div>
                   ) : null}
@@ -372,7 +372,7 @@ export default function CalendarPage() {
 
 function MetricCard({ label, value }: { label: string; value: number }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+    <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">{label}</p>
       <p className="mt-2 text-2xl font-black text-white">{value}</p>
     </div>
@@ -397,12 +397,12 @@ function MonthOverviewGrid({
   }
 
   return (
-    <div className="overflow-hidden rounded-[24px] border border-white/10 bg-black/20">
-      <div className="grid grid-cols-7 border-b border-white/10">
+    <div className="overflow-hidden rounded-[24px] border border-border bg-surface-mutes/20">
+      <div className="grid grid-cols-7 border-b border-border">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((label) => (
           <div
             key={label}
-            className="border-r border-white/10 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted last:border-r-0"
+            className="border-r border-border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-muted last:border-r-0"
           >
             {label}
           </div>
@@ -415,7 +415,7 @@ function MonthOverviewGrid({
               {Array.from({ length: 7 }).map((__, columnIndex) => (
                 <div
                   key={`${rowIndex}-${columnIndex}`}
-                  className="h-28 animate-pulse border-r border-b border-white/10 bg-white/5 last:border-r-0"
+                  className="h-28 animate-pulse border-r border-b border-border bg-surface-mutes/50 last:border-r-0"
                 />
               ))}
             </div>
@@ -433,12 +433,12 @@ function MonthOverviewGrid({
                     key={day.date}
                     type="button"
                     onClick={() => onSelectDay(day.date)}
-                    className={`relative flex h-28 flex-col justify-between border-r border-b border-white/10 p-3 text-left transition last:border-r-0 ${
+                    className={`relative flex h-28 flex-col justify-between border-r border-b border-border p-3 text-left transition last:border-r-0 ${
                       isSelected
                         ? "bg-brand-primary/10"
                         : taskCount >= 5
                           ? "bg-amber-400/10 hover:bg-amber-400/15"
-                          : "hover:bg-white/5"
+                          : "hover:bg-surface-mutes/50"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
