@@ -30,7 +30,7 @@ function MobileApkDownload() {
           window.localStorage.setItem("apk-downloaded", "1");
         } catch {}
       }}
-      className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10"
+      className="mt-6 flex items-center justify-between gap-3 rounded-2xl border border-border/50 bg-white/5 px-4 py-3 text-left transition hover:bg-white/10"
     >
       <div>
         <p className="text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
@@ -56,7 +56,7 @@ export function MobileSidebarTrigger() {
   return (
     <button
       onClick={toggleMobileSidebar}
-      className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-text-muted hover:text-text-main transition-all border border-white/5"
+      className="lg:hidden flex items-center justify-center w-9 h-9 rounded-xl bg-white/5 hover:bg-white/10 text-text-muted hover:text-text-main transition-all border border-border"
       aria-label="Open navigation"
     >
       <FiMenu size={18} />
@@ -89,7 +89,7 @@ export function MobileSidebarDrawer() {
 
       {/* Drawer */}
       <div
-        className={`fixed top-0 left-0 h-full w-72 bg-surface-soft border-r border-white/5 flex flex-col p-6 z-101 transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) lg:hidden ${
+        className={`fixed top-0 left-0 h-full w-72 bg-surface-soft border-r border-border flex flex-col p-6 z-101 transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) lg:hidden ${
           open ? "translate-x-0 overflow-hidden" : "-translate-x-full"
         }`}
       >
@@ -133,7 +133,7 @@ export function MobileSidebarDrawer() {
 // ============================================================
 const SideBar = () => {
   return (
-    <div className="hidden lg:flex bg-surface-soft w-64 xl:w-72 h-screen sticky top-0 border-r border-white/5 flex-col p-6 shrink-0 overflow-hidden">
+    <div className="hidden lg:flex bg-surface-soft w-64 xl:w-72 h-screen sticky top-0 border-r border-border flex-col p-6 shrink-0 overflow-hidden">
       {/* Logo */}
       <div className="flex items-center gap-3 mb-10 px-2 shrink-0">
         <div className="flex items-center justify-center">

@@ -71,7 +71,7 @@ const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => {
     <nav className="flex flex-col gap-8">
       {navSections.length > 0 ? navSections.map(({ label, links }) => (
         <div key={label} className="flex flex-col gap-2">
-          <p className="text-[11px] font-black uppercase tracking-[0.2em] text-white/50 px-4 mb-1">
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted/60 px-4 mb-1">
             {label}
           </p>
           <div className="flex flex-col gap-1">
@@ -84,8 +84,8 @@ const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => {
                   onClick={onLinkClick}
                   className={`group relative flex cursor-pointer items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 ${
                     isActive
-                      ? "bg-brand-primary/20 text-white"
-                      : "text-text-muted hover:bg-white/5 hover:text-text-main"
+                      ? "bg-brand-primary/10 text-brand-primary shadow-[inset_0_0_0_1px_rgba(99,102,241,0.1)]"
+                      : "text-text-muted hover:bg-surface-soft hover:text-text-main"
                   }`}
                 >
                   <Icon
@@ -96,7 +96,7 @@ const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => {
                         : "text-text-muted group-hover:text-text-main"
                     }`}
                   />
-                  <span className={`text-sm font-bold capitalize tracking-wide ${isActive ? 'text-white' : 'text-text-muted'}`}>
+                  <span className={`text-sm font-bold capitalize tracking-wide ${isActive ? 'text-brand-primary' : 'text-text-muted group-hover:text-text-main'}`}>
                     {name}
                   </span>
                   {isActive && (
@@ -114,7 +114,7 @@ const NavLinks = ({ onLinkClick }: { onLinkClick?: () => void }) => {
       )}
 
       {/* Global Search at bottom of list for mobile ease of use, or kept separate */}
-      <div className="px-1 pt-4 border-t border-white/5">
+      <div className="px-1 pt-4 border-t border-border">
         <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted/40 px-4 mb-3">COMMAND PALETTE</p>
         <GlobalSearch />
       </div>
