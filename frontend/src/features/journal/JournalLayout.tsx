@@ -62,7 +62,7 @@ export default function JournalLayout() {
       
       {/* HEADER (Date and Mood) */}
       <div className="w-full max-w-3xl mx-auto px-4 sm:px-8 py-6 sm:py-10 pb-0 shrink-0">
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-white/5 pb-4 gap-4">
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end border-b border-border pb-4 gap-4">
           <div>
             <span className="text-brand-primary uppercase tracking-[0.2em] font-bold text-[10px]">Today</span>
             <h1 className="text-3xl font-display font-medium text-text-main mt-1">
@@ -71,15 +71,15 @@ export default function JournalLayout() {
           </div>
 
           <div className="flex flex-row sm:flex-col items-center sm:items-end gap-3 w-full sm:w-auto justify-between sm:justify-start">
-            <div className="flex items-center gap-1 sm:gap-2 bg-white/5 p-1 rounded-full border border-white/5">
-              <button onClick={() => handleMoodSelect("great")} className={`p-2 rounded-full transition-all ${mood === 'great' ? 'bg-amber-500/20 text-amber-500' : 'text-text-muted hover:bg-white/5'}`} title="Great"><FaRegSmileBeam size={18} /></button>
-              <button onClick={() => handleMoodSelect("good")} className={`p-2 rounded-full transition-all ${mood === 'good' ? 'bg-emerald-500/20 text-emerald-500' : 'text-text-muted hover:bg-white/5'}`} title="Good"><RiEmotionHappyLine size={18} /></button>
-              <button onClick={() => handleMoodSelect("neutral")} className={`p-2 rounded-full transition-all ${mood === 'neutral' ? 'bg-blue-500/20 text-blue-500' : 'text-text-muted hover:bg-white/5'}`} title="Neutral"><RiEmotionNormalLine size={18} /></button>
-              <button onClick={() => handleMoodSelect("bad")} className={`p-2 rounded-full transition-all ${mood === 'bad' ? 'bg-red-500/20 text-red-500' : 'text-text-muted hover:bg-white/5'}`} title="Bad"><RiEmotionUnhappyLine size={18} /></button>
+            <div className="flex items-center gap-1 sm:gap-2 bg-surface-mutes/50 p-1 rounded-full border border-border">
+              <button onClick={() => handleMoodSelect("great")} className={`p-2 rounded-full transition-all ${mood === 'great' ? 'bg-amber-500/20 text-amber-500' : 'text-text-muted hover:bg-surface-mutes/50'}`} title="Great"><FaRegSmileBeam size={18} /></button>
+              <button onClick={() => handleMoodSelect("good")} className={`p-2 rounded-full transition-all ${mood === 'good' ? 'bg-emerald-500/20 text-emerald-500' : 'text-text-muted hover:bg-surface-mutes/50'}`} title="Good"><RiEmotionHappyLine size={18} /></button>
+              <button onClick={() => handleMoodSelect("neutral")} className={`p-2 rounded-full transition-all ${mood === 'neutral' ? 'bg-blue-500/20 text-blue-500' : 'text-text-muted hover:bg-surface-mutes/50'}`} title="Neutral"><RiEmotionNormalLine size={18} /></button>
+              <button onClick={() => handleMoodSelect("bad")} className={`p-2 rounded-full transition-all ${mood === 'bad' ? 'bg-red-500/20 text-red-500' : 'text-text-muted hover:bg-surface-mutes/50'}`} title="Bad"><RiEmotionUnhappyLine size={18} /></button>
             </div>
             <button 
               onClick={() => setShowTimeline(!showTimeline)} 
-              className={`p-2 transition-all rounded-xl border border-white/5 text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${showTimeline ? 'bg-brand-primary text-white' : 'bg-white/5 text-text-muted hover:text-text-main'}`}
+              className={`p-2 transition-all rounded-xl border border-border text-xs font-bold uppercase tracking-widest flex items-center gap-2 ${showTimeline ? 'bg-brand-primary text-white' : 'bg-surface-mutes/50 text-text-muted hover:text-text-main'}`}
             >
               <FiList /> History
             </button>
@@ -128,7 +128,7 @@ export default function JournalLayout() {
                 <button
                   onClick={() => createSuggestedTasks({ tasks: reflection.extractedTasks })}
                   disabled={isCreatingSuggestedTasks}
-                  className="rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
+                  className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-2 text-xs font-black uppercase tracking-[0.18em] text-text-main transition hover:bg-surface-mutes/30 disabled:opacity-50"
                 >
                   {isCreatingSuggestedTasks ? "Saving..." : `Create ${reflection.extractedTasks.length} tasks`}
                 </button>
@@ -138,7 +138,7 @@ export default function JournalLayout() {
             {entry?.insights?.length ? (
               <div className="mt-4 grid gap-2 sm:grid-cols-2">
                 {entry.insights.map((insight) => (
-                  <div key={insight.id} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-text-muted">
+                  <div key={insight.id} className="rounded-2xl border border-border bg-surface-mutes/20 px-4 py-3 text-sm text-text-muted">
                     {insight.message}
                   </div>
                 ))}
@@ -170,8 +170,8 @@ export default function JournalLayout() {
 
       {/* TIMELINE SLIDEOVER */}
       {showTimeline && (
-        <div className="fixed sm:absolute top-0 right-0 w-full sm:w-80 h-full glass border-l border-white/5 z-40 flex flex-col shadow-2xl">
-          <div className="p-6 border-b border-white/5 flex items-center justify-between">
+        <div className="fixed sm:absolute top-0 right-0 w-full sm:w-80 h-full glass border-l border-border z-40 flex flex-col shadow-2xl">
+          <div className="p-6 border-b border-border flex items-center justify-between">
             <h2 className="font-display font-bold text-text-main flex items-center gap-2"><FiCalendar /> PAST JOURNALS</h2>
             <button onClick={() => setShowTimeline(false)} className="text-text-muted hover:text-text-main"><FiX size={20} /></button>
           </div>
@@ -193,7 +193,7 @@ export default function JournalLayout() {
                   className={`p-4 rounded-xl cursor-pointer transition-all border ${
                     dayjs(currentDate).format("YYYY-MM-DD") === dayjs(pastEntry.date).format("YYYY-MM-DD") 
                       ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary' 
-                      : 'bg-white/5 border-white/5 hover:bg-white/10 text-text-main'
+                      : 'bg-surface-mutes/50 border-border hover:bg-white/10 text-text-main'
                   }`}
                 >
                   <p className="font-bold text-sm mb-1">{dayjs(pastEntry.date).format("MMM D, YYYY")}</p>

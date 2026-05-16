@@ -24,7 +24,7 @@ export default function InsightsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-8 px-4 py-6 md:px-6">
-      <section className="rounded-[28px] border border-white/10 bg-surface-soft p-6 shadow-2xl">
+      <section className="rounded-[28px] border border-border bg-surface-soft p-6 shadow-2xl">
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.22em] text-brand-primary">
@@ -51,16 +51,16 @@ export default function InsightsPage() {
             <div>
               <h2 className="text-2xl font-black tracking-tight text-white">{spotlight.title}</h2>
               <p className="mt-3 text-sm leading-7 text-text-main">{spotlight.description}</p>
-              <p className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-sm text-text-main">
+              <p className="mt-4 rounded-2xl border border-border bg-surface-mutes/20 p-4 text-sm text-text-main">
                 {data?.topRecommendation}
               </p>
             </div>
 
-            <div className="rounded-[24px] border border-white/10 bg-black/20 p-5">
+            <div className="rounded-[24px] border border-border bg-surface-mutes/20 p-5">
               <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Why this exists</p>
               <div className="mt-4 space-y-3">
                 {spotlight.evidence.map((item) => (
-                  <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-main">
+                  <div key={item} className="rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm text-text-main">
                     {item}
                   </div>
                 ))}
@@ -70,7 +70,7 @@ export default function InsightsPage() {
         </section>
       ) : null}
 
-      <section className="rounded-[28px] border border-white/10 bg-surface-soft p-6">
+      <section className="rounded-[28px] border border-border bg-surface-soft p-6">
         <div className="flex flex-wrap gap-2">
           {tabs.map(({ id, label, icon: Icon }) => (
             <button
@@ -80,7 +80,7 @@ export default function InsightsPage() {
               className={`inline-flex items-center gap-2 rounded-2xl border px-4 py-3 text-xs font-black uppercase tracking-[0.18em] transition ${
                 activeTab === id
                   ? "border-brand-primary/30 bg-brand-primary text-black"
-                  : "border-white/10 bg-black/20 text-text-muted hover:text-text-main"
+                  : "border-border bg-surface-mutes/20 text-text-muted hover:text-text-main"
               }`}
             >
               <Icon className="text-sm" />
@@ -92,7 +92,7 @@ export default function InsightsPage() {
         <div className="mt-6 grid gap-4">
           {isLoading
             ? Array.from({ length: 5 }).map((_, index) => (
-                <div key={index} className="h-44 animate-pulse rounded-[24px] border border-white/10 bg-black/20" />
+                <div key={index} className="h-44 animate-pulse rounded-[24px] border border-border bg-surface-mutes/20" />
               ))
             : data?.insights.map((insight, index) => (
                 <InsightCard key={insight.id} insight={insight} index={index} />
@@ -105,7 +105,7 @@ export default function InsightsPage() {
 
 function MetricCard({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+    <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
       <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">{label}</p>
       <p className="mt-2 text-xl font-black text-white capitalize">{value}</p>
     </div>
@@ -118,18 +118,18 @@ function InsightCard({ insight, index }: { insight: InsightRecord; index: number
       initial={{ opacity: 0, y: 18 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.04 }}
-      className="rounded-[24px] border border-white/10 bg-black/20 p-5"
+      className="rounded-[24px] border border-border bg-surface-mutes/20 p-5"
     >
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="max-w-3xl">
-          <div className="inline-flex rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
+          <div className="inline-flex rounded-full border border-border bg-surface-mutes/50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-brand-primary">
             {insight.type.replace("_", " ")}
           </div>
           <h3 className="mt-4 text-xl font-black tracking-tight text-white">{insight.title}</h3>
           <p className="mt-3 text-sm leading-7 text-text-muted">{insight.description}</p>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-center">
+        <div className="rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-center">
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Confidence</p>
           <p className="mt-2 text-lg font-black text-white">{Math.round(insight.confidence * 100)}%</p>
         </div>
@@ -140,7 +140,7 @@ function InsightCard({ insight, index }: { insight: InsightRecord; index: number
           <p className="text-[10px] font-black uppercase tracking-[0.18em] text-text-muted">Evidence</p>
           <div className="mt-3 space-y-2">
             {insight.evidence.map((item) => (
-              <div key={item} className="rounded-2xl border border-white/10 bg-white/5 px-3 py-2 text-sm text-text-main">
+              <div key={item} className="rounded-2xl border border-border bg-surface-mutes/50 px-3 py-2 text-sm text-text-main">
                 {item}
               </div>
             ))}
