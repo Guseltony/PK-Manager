@@ -99,7 +99,7 @@ export default function TaskItem({
       className={`group flex items-center gap-3 px-2 py-3 md:gap-4 md:p-4 rounded-2xl border transition-all duration-300 cursor-pointer relative overflow-hidden ${
         isSelected
           ? "bg-brand-primary/5 border-brand-primary/30 shadow-xl shadow-brand-primary/5 scale-[1.02] z-10"
-          : "bg-surface-soft/50 border-white/5 hover:border-white/10 hover:bg-white/5 active:scale-[0.99]"
+          : "bg-surface-soft/50 border-border hover:border-border hover:bg-surface-mutes/50 active:scale-[0.99]"
       } ${showWarning ? "border-brand-accent/50 bg-brand-accent/5" : ""} ${
         task.priority === "urgent" && !isDone
           ? "shadow-[0_0_0_1px_rgba(248,113,113,0.18),0_0_32px_rgba(248,113,113,0.08)]"
@@ -156,7 +156,7 @@ export default function TaskItem({
                   ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
                   : readiness.executionState === "in_progress"
                     ? "border-amber-400/20 bg-amber-400/10 text-amber-200"
-                    : "border-white/10 bg-white/5"
+                    : "border-border bg-surface-mutes/50"
             }`}
           >
             {readiness.executionState === "blocked" ? <FiLock size={8} /> : <FiPlayCircle size={8} />}
@@ -168,7 +168,7 @@ export default function TaskItem({
             </div>
           ) : null}
           {schedule.bucket !== "backlog" && schedule.bucket !== "completed" ? (
-            <div className="flex items-center gap-1 bg-white/5 px-1.5 py-0 rounded-md border border-white/10 text-text-main">
+            <div className="flex items-center gap-1 bg-surface-mutes/50 px-1.5 py-0 rounded-md border border-border text-text-main">
               {schedule.statusLabel}
             </div>
           ) : null}
@@ -183,7 +183,7 @@ export default function TaskItem({
             </div>
           ) : null}
           {task.dueDate && (
-            <div className="flex items-center gap-1 bg-white/5 px-1.5 py-0 rounded-md border border-white/5">
+            <div className="flex items-center gap-1 bg-surface-mutes/50 px-1.5 py-0 rounded-md border border-border">
               <FiClock size={8} className="text-brand-primary/70" />
               <span>{dayjs(task.dueDate).format("MMM D, HH:mm")}</span>
             </div>
