@@ -10,6 +10,8 @@ import { loginSchema, registerSchema, type RegisterFormData, type LoginFormData 
 import { loginAction, registerAction } from "./actions";
 import { setManualCsrfToken } from "@/src/libs/api";
 import Image from "next/image";
+import { SocialLogin } from "@capgo/capacitor-social-login";
+import { useIsMobile } from "@/src/hooks/useIsMobile";
 
 export default function SignInForm() {
   const [isLogin, setIsLogin] = useState(true);
@@ -102,7 +104,50 @@ export default function SignInForm() {
     router.push("/dashboard");
   };
 
-  const handleGoogleAuth = () => {
+  const { isNative } = useIsMobile();
+
+  const handleGoogleAuth = async () => {
+    if (isNative) {
+      try {
+        const result = await SocialLogin.login({
+          provider: "google",
+          options: {
+            scopes: ["email", "profile"],
+          },
+        });
+
+        if (result.provider === "google") {
+          const googleResult = result.result;
+          if (googleResult.responseType === "online" && googleResult.idToken) {
+            // Send to backend for native verification
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/google/native`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ idToken: googleResult.idToken }),
+            });
+
+            if (response.ok) {
+              const body = await response.json();
+              if (body.data?.csrfToken) {
+                setManualCsrfToken(body.data.csrfToken);
+              }
+              router.push("/dashboard");
+              return;
+            } else {
+              const errData = await response.json();
+              setServerError(errData.error || "Native Google Sign-in failed");
+            }
+          } else if (googleResult.responseType === "offline") {
+             setServerError("Offline login mode not supported yet");
+          }
+        }
+      } catch (err) {
+        console.error("Native Google Login Error:", err);
+        setServerError("Native Google Login failed");
+      }
+      return;
+    }
+
     const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
     const redirectUri = `${window.location.origin}/auth/callback`;
     
