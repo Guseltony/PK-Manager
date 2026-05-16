@@ -160,13 +160,13 @@ export default function TagNotes() {
   return (
     <div className="flex-1 flex flex-col h-full bg-surface-base overflow-hidden">
       {/* Header */}
-      <div className="p-4 sm:p-6 lg:p-8 pb-0 border-b border-white/5 bg-surface-base/50 backdrop-blur-xl sticky top-0 z-10">
+      <div className="p-4 sm:p-6 lg:p-8 pb-0 border-b border-border bg-surface-base/50 backdrop-blur-xl sticky top-0 z-10">
         <div className="flex items-start justify-between gap-4 mb-6">
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
               <button
                 onClick={() => selectTag(null)}
-                className="md:hidden p-2 -ml-2 text-text-muted hover:text-text-main hover:bg-white/5 rounded-xl transition-all"
+                className="md:hidden p-2 -ml-2 text-text-muted hover:text-text-main hover:bg-surface-mutes/50 rounded-xl transition-all"
               >
                 <FiArrowLeft size={18} />
               </button>
@@ -183,7 +183,7 @@ export default function TagNotes() {
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
                   onBlur={() => setIsEditing(false)}
-                  className="text-4xl font-display font-bold bg-white/5 border border-brand-primary/30 rounded-xl px-4 py-1 outline-none text-text-main w-full"
+                  className="text-4xl font-display font-bold bg-surface-mutes/50 border border-brand-primary/30 rounded-xl px-4 py-1 outline-none text-text-main w-full"
                 />
               </form>
             ) : (
@@ -196,7 +196,7 @@ export default function TagNotes() {
                 </h1>
                 <button 
                   onClick={() => { setEditName(tagDetail.name); setIsEditing(true); }}
-                  className="p-2 rounded-xl bg-white/5 text-text-muted hover:text-brand-primary transition-all"
+                  className="p-2 rounded-xl bg-surface-mutes/50 text-text-muted hover:text-brand-primary transition-all"
                 >
                   <FiEdit3 size={18} />
                 </button>
@@ -214,24 +214,24 @@ export default function TagNotes() {
                     type="button"
                     onClick={() => handleColorChange(color)}
                     disabled={usedColors.has(color) && tagDetail.color !== color}
-                    className={`h-6 w-6 shrink-0 rounded-full border-2 transition-all ${tagDetail.color === color ? "scale-110 border-white" : "border-white/10 hover:scale-105"} ${(usedColors.has(color) && tagDetail.color !== color) ? "cursor-not-allowed opacity-30" : ""}`}
+                    className={`h-6 w-6 shrink-0 rounded-full border-2 transition-all ${tagDetail.color === color ? "scale-110 border-white" : "border-border hover:scale-105"} ${(usedColors.has(color) && tagDetail.color !== color) ? "cursor-not-allowed opacity-30" : ""}`}
                     style={{ backgroundColor: color }}
                     title={color}
                   />
                 ))}
-                <label className="flex shrink-0 items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-text-muted">
+                <label className="flex shrink-0 items-center gap-1.5 rounded-xl border border-border bg-surface-mutes/50 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-text-muted">
                   Palette
                   <input
                     type="color"
                     value={tagDetail.color || "#6366f1"}
                     onChange={(e) => handleColorChange(e.target.value)}
-                    className="h-5 w-7 cursor-pointer rounded border border-white/10 bg-transparent"
+                    className="h-5 w-7 cursor-pointer rounded border border-border bg-transparent"
                   />
                 </label>
                 <button
                   type="button"
                   onClick={() => handleColorChange(null)}
-                  className="shrink-0 rounded-xl border border-white/10 bg-white/5 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-text-muted hover:bg-white/10"
+                  className="shrink-0 rounded-xl border border-border bg-surface-mutes/50 px-2 py-1 text-[9px] font-bold uppercase tracking-widest text-text-muted hover:bg-white/10"
                 >
                   Clear
                 </button>
@@ -277,7 +277,7 @@ export default function TagNotes() {
               className={`flex items-center gap-2 px-4 py-3 text-xs font-bold uppercase tracking-wider whitespace-nowrap border-b-2 transition-all ${
                 activeTab === tab.id
                   ? "border-brand-primary text-brand-primary bg-brand-primary/5"
-                  : "border-transparent text-text-muted hover:text-text-main hover:bg-white/5"
+                  : "border-transparent text-text-muted hover:text-text-main hover:bg-surface-mutes/50"
               }`}
             >
               <tab.icon size={14} />
@@ -312,7 +312,7 @@ export default function TagNotes() {
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                       {tagDetail.notes.slice(0, 3).map((note) => (
-                        <div key={note.id} onClick={() => openNote(note.id)} className="bg-surface-soft border border-white/5 rounded-2xl overflow-hidden hover:border-brand-primary/30 transition-all cursor-pointer">
+                        <div key={note.id} onClick={() => openNote(note.id)} className="bg-surface-soft border border-border rounded-2xl overflow-hidden hover:border-brand-primary/30 transition-all cursor-pointer">
                           <NoteItem note={note} />
                         </div>
                       ))}
@@ -330,7 +330,7 @@ export default function TagNotes() {
                     </div>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {tagDetail.tasks.slice(0, 4).map((task) => (
-                        <div key={task.id} onClick={() => openTask(task.id)} className="bg-surface-soft border border-white/5 rounded-2xl overflow-hidden px-4 cursor-pointer hover:border-brand-primary/30 transition-all">
+                        <div key={task.id} onClick={() => openTask(task.id)} className="bg-surface-soft border border-border rounded-2xl overflow-hidden px-4 cursor-pointer hover:border-brand-primary/30 transition-all">
                           <TaskItem task={task} />
                         </div>
                       ))}
@@ -369,7 +369,7 @@ export default function TagNotes() {
                           key={idea.id}
                           type="button"
                           onClick={() => openIdea(idea.id)}
-                          className="rounded-2xl border border-white/5 bg-surface-soft p-5 text-left transition-all hover:border-brand-primary/30"
+                          className="rounded-2xl border border-border bg-surface-soft p-5 text-left transition-all hover:border-brand-primary/30"
                         >
                           <p className="text-sm font-black text-text-main">{idea.title}</p>
                           <p className="mt-2 line-clamp-3 text-xs text-text-muted">
@@ -393,7 +393,7 @@ export default function TagNotes() {
             {activeTab === "notes" && (
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                 {tagDetail.notes?.map((note) => (
-                  <div key={note.id} onClick={() => openNote(note.id)} className="bg-surface-soft border border-white/5 rounded-2xl overflow-hidden hover:border-brand-primary/30 transition-all cursor-pointer">
+                  <div key={note.id} onClick={() => openNote(note.id)} className="bg-surface-soft border border-border rounded-2xl overflow-hidden hover:border-brand-primary/30 transition-all cursor-pointer">
                     <NoteItem note={note} />
                   </div>
                 ))}
@@ -403,7 +403,7 @@ export default function TagNotes() {
             {activeTab === "tasks" && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {tagDetail.tasks?.map((task) => (
-                  <div key={task.id} onClick={() => openTask(task.id)} className="bg-surface-soft border border-white/5 rounded-2xl overflow-hidden px-4 cursor-pointer hover:border-brand-primary/30 transition-all">
+                  <div key={task.id} onClick={() => openTask(task.id)} className="bg-surface-soft border border-border rounded-2xl overflow-hidden px-4 cursor-pointer hover:border-brand-primary/30 transition-all">
                     <TaskItem task={task} />
                   </div>
                 ))}
@@ -427,7 +427,7 @@ export default function TagNotes() {
                     key={idea.id}
                     type="button"
                     onClick={() => openIdea(idea.id)}
-                    className="rounded-2xl border border-white/5 bg-surface-soft p-5 text-left transition-all hover:border-brand-primary/30"
+                    className="rounded-2xl border border-border bg-surface-soft p-5 text-left transition-all hover:border-brand-primary/30"
                   >
                     <p className="text-sm font-black text-text-main">{idea.title}</p>
                     <p className="mt-2 line-clamp-4 text-xs text-text-muted">
@@ -441,10 +441,10 @@ export default function TagNotes() {
             {activeTab === "journals" && (
               <div className="space-y-4">
                 {tagDetail.journals?.map((journal) => (
-                  <div key={journal.id} className="bg-surface-soft border border-white/5 rounded-2xl p-6 hover:border-brand-primary/30 transition-all">
+                  <div key={journal.id} className="bg-surface-soft border border-border rounded-2xl p-6 hover:border-brand-primary/30 transition-all">
                     <div className="flex items-center justify-between mb-3">
                        <span className="text-sm font-bold text-text-main">{dayjs(journal.date).format("MMMM D, YYYY")}</span>
-                       <span className="px-2 py-0.5 rounded bg-white/5 text-[10px] uppercase font-black tracking-widest text-text-muted">{journal.mood || "NEUTRAL"}</span>
+                       <span className="px-2 py-0.5 rounded bg-surface-mutes/50 text-[10px] uppercase font-black tracking-widest text-text-muted">{journal.mood || "NEUTRAL"}</span>
                     </div>
                     <p className="text-xs text-text-muted line-clamp-3 leading-loose">{journal.content}</p>
                   </div>

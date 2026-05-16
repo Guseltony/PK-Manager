@@ -142,6 +142,7 @@ export default function TaskDetailView({
     null,
   );
   const [focusSessions, setFocusSessions] = useState<TaskFocusSession[]>([]);
+  const [activeTab, setActiveTab] = useState<"overview" | "architecture" | "scheduling" | "intelligence">("overview");
 
   const getTagName = (tagLike: unknown) => {
     if (!tagLike || typeof tagLike !== "object") return null;
@@ -712,16 +713,16 @@ export default function TaskDetailView({
 
   if (isLoading)
     return (
-      <div className="absolute inset-0 z-20 w-full border-l border-white/5 bg-surface-soft p-4 sm:p-5 lg:relative lg:w-[38rem] lg:p-6 xl:w-[42rem] 2xl:w-[46rem] space-y-6">
-        <div className="h-8 w-32 bg-white/5 animate-pulse rounded-lg" />
-        <div className="h-24 w-full bg-white/5 animate-pulse rounded-2xl" />
-        <div className="h-48 w-full bg-white/5 animate-pulse rounded-2xl" />
+      <div className="absolute inset-0 z-20 w-full border-l border-border bg-surface-soft p-4 sm:p-5 lg:relative lg:w-[38rem] lg:p-6 xl:w-[42rem] 2xl:w-[46rem] space-y-6">
+        <div className="h-8 w-32 bg-surface-mutes/50 animate-pulse rounded-lg" />
+        <div className="h-24 w-full bg-surface-mutes/50 animate-pulse rounded-2xl" />
+        <div className="h-48 w-full bg-surface-mutes/50 animate-pulse rounded-2xl" />
       </div>
     );
 
   if (!task)
     return (
-      <div className="absolute inset-0 z-20 flex w-full items-center justify-center border-l border-white/5 bg-surface-soft p-4 sm:p-5 lg:relative lg:w-[38rem] lg:p-6 xl:w-[42rem] 2xl:w-[46rem]">
+      <div className="absolute inset-0 z-20 flex w-full items-center justify-center border-l border-border bg-surface-soft p-4 sm:p-5 lg:relative lg:w-[38rem] lg:p-6 xl:w-[42rem] 2xl:w-[46rem]">
         <p className="text-text-muted">Task context not found</p>
       </div>
     );
@@ -767,13 +768,13 @@ export default function TaskDetailView({
   );
 
   return (
-    <div className="absolute inset-0 z-20 flex h-full w-full flex-col border-l border-white/5 bg-surface-soft shadow-2xl shadow-black/50 animate-in slide-in-from-right duration-500 ease-out lg:relative lg:w-[38rem] xl:w-[42rem] 2xl:w-[46rem]">
+    <div className="absolute inset-0 z-20 flex h-full w-full flex-col border-l border-border bg-surface-soft shadow-2xl shadow-black/50 animate-in slide-in-from-right duration-500 ease-out lg:relative lg:w-[38rem] xl:w-[42rem] 2xl:w-[46rem]">
       {/* Header */}
-      <div className="glass flex items-center justify-between border-b border-white/10 p-4 sm:p-5 xl:p-6">
+      <div className="glass flex items-center justify-between border-b border-border p-4 sm:p-5 xl:p-6">
         <div className="flex items-center gap-2">
           <button
             onClick={() => useTasksStore.getState().setSelectedTaskId(null)}
-            className="-ml-2 p-2 text-text-muted hover:text-text-main hover:bg-white/5 rounded-xl transition-all"
+            className="-ml-2 p-2 text-text-muted hover:text-text-main hover:bg-surface-mutes/50 rounded-xl transition-all"
             title="Back to list"
           >
             <FiArrowLeft size={18} />
@@ -794,13 +795,13 @@ export default function TaskDetailView({
             <>
               <button
                 onClick={() => setIsEditingDesc(true)}
-                className="p-2 text-text-muted hover:text-text-main hover:bg-white/5 rounded-xl transition-all duration-200"
+                className="p-2 text-text-muted hover:text-text-main hover:bg-surface-mutes/50 rounded-xl transition-all duration-200"
               >
                 <FiEdit size={16} />
               </button>
               <button
                 onClick={handleAiEnrich}
-                className="p-2 text-text-muted hover:text-brand-primary hover:bg-white/5 rounded-xl transition-all duration-200"
+                className="p-2 text-text-muted hover:text-brand-primary hover:bg-surface-mutes/50 rounded-xl transition-all duration-200"
                 title="AI enrich objective"
               >
                 <FiZap size={16} className={taskEnrichmentAi.isPending ? "animate-pulse" : ""} />
@@ -811,12 +812,12 @@ export default function TaskDetailView({
               >
                 <FiTrash2 size={16} />
               </button>
-              <div className="w-px h-6 bg-white/5 mx-1" />
+              <div className="w-px h-6 bg-surface-mutes/50 mx-1" />
             </>
           )}
           <button
             onClick={onClose}
-            className="p-2 text-text-muted hover:text-text-main hover:bg-white/5 rounded-xl transition-all duration-200"
+            className="p-2 text-text-muted hover:text-text-main hover:bg-surface-mutes/50 rounded-xl transition-all duration-200"
           >
             <FiX size={18} />
           </button>
@@ -824,1213 +825,882 @@ export default function TaskDetailView({
       </div>
 
       {/* Content */}
-      <div className="custom-scrollbar flex-1 overflow-y-auto p-4 sm:p-5 xl:p-6">
+      <div className="custom-scrollbar flex-1 overflow-y-auto">
         {/* Warning Toast */}
-        <AnimatePresence>
-          {showSubtaskWarning && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="mb-8 p-6 rounded-3xl bg-brand-accent/10 border-2 border-brand-accent/30 shadow-2xl shadow-brand-accent/5 backdrop-blur-md relative overflow-hidden group"
-            >
-              <div className="absolute inset-0 bg-linear-to-br from-brand-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-              <div className="flex items-start gap-4 relative z-10">
-                <div className="p-3 rounded-2xl bg-brand-accent/20 text-brand-accent shadow-lg shadow-brand-accent/20 animate-bounce">
-                  <FiZap size={20} />
-                </div>
-                <div className="flex-1">
-                  <h5 className="text-sm font-black text-brand-accent uppercase tracking-widest mb-1">
-                    System Interlock Initialized
-                  </h5>
-                  <p className="text-xs text-brand-accent/80 font-bold leading-relaxed">
-                    Objective completion is disabled. Prerequisite sub-layers
-                    must all reach 100% synchronization before final execution
-                    state can be committed.
-                  </p>
-                  <div className="mt-4 flex items-center gap-2">
-                    <button
-                      onClick={() => setShowSubtaskWarning(false)}
-                      className="px-4 py-1.5 rounded-xl bg-brand-accent/20 text-[10px] font-bold text-brand-accent hover:bg-brand-accent/30 transition-all uppercase tracking-widest"
-                    >
-                      Acknowledge
-                    </button>
+        <div className="p-4 sm:p-5 xl:p-6 pb-0">
+          <AnimatePresence>
+            {showSubtaskWarning && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="mb-8 p-6 rounded-3xl bg-brand-accent/10 border-2 border-brand-accent/30 shadow-2xl shadow-brand-accent/5 backdrop-blur-md relative overflow-hidden group"
+              >
+                <div className="absolute inset-0 bg-linear-to-br from-brand-accent/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="flex items-start gap-4 relative z-10">
+                  <div className="p-3 rounded-2xl bg-brand-accent/20 text-brand-accent shadow-lg shadow-brand-accent/20 animate-bounce">
+                    <FiZap size={20} />
+                  </div>
+                  <div className="flex-1">
+                    <h5 className="text-sm font-black text-brand-accent uppercase tracking-widest mb-1">
+                      System Interlock Initialized
+                    </h5>
+                    <p className="text-xs text-brand-accent/80 font-bold leading-relaxed">
+                      Objective completion is disabled. Prerequisite sub-layers
+                      must all reach 100% synchronization before final execution
+                      state can be committed.
+                    </p>
+                    <div className="mt-4 flex items-center gap-2">
+                      <button
+                        onClick={() => setShowSubtaskWarning(false)}
+                        className="px-4 py-1.5 rounded-xl bg-brand-accent/20 text-[10px] font-bold text-brand-accent hover:bg-brand-accent/30 transition-all uppercase tracking-widest"
+                      >
+                        Acknowledge
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Title Section */}
-        <div className="mb-10">
-          <div className="mb-4 flex min-w-0 items-start gap-4">
-            <button
-              onClick={handleStatusToggle}
-              className={`mt-1.5 shrink-0 transition-all active:scale-75 ${task.status === "done" ? "text-brand-primary" : "text-text-muted/40 hover:text-text-main"}`}
-            >
-              {task.status === "done" ? (
-                <FiCheckCircle
-                  size={24}
-                  className="drop-shadow-[0_0_8px_rgba(99,102,241,0.4)]"
-                />
-              ) : task.status === "in_progress" ? (
-                <FiActivity
-                  size={24}
-                  className="animate-pulse text-amber-400"
-                />
-              ) : (
-                <div className="w-6 h-6 rounded-full border-2 border-current opacity-30" />
-              )}
-            </button>
-            <h2
-              className={`min-w-0 text-xl sm:text-2xl font-display font-extrabold leading-tight break-words ${task.status === "done" ? "text-text-muted/50 line-through" : "text-text-main"}`}
-            >
-              {task.title}
-            </h2>
-          </div>
-
-          <div className="ml-0 flex flex-wrap gap-2 sm:ml-10">
-            {(task.tags || []).map((tagObj, index) => {
-              const tagName = getTagName(tagObj);
-              if (!tagName) return null;
-
-              const tagId =
-                tagObj &&
-                typeof tagObj === "object" &&
-                "tag" in tagObj &&
-                tagObj.tag &&
-                typeof tagObj.tag === "object" &&
-                "id" in tagObj.tag
-                  ? String(tagObj.tag.id)
-                  : `temp-${tagName}-${index}`;
-
-              const tagColor =
-                tagObj &&
-                typeof tagObj === "object" &&
-                "tag" in tagObj &&
-                tagObj.tag &&
-                typeof tagObj.tag === "object" &&
-                "color" in tagObj.tag
-                  ? (tagObj.tag.color as string | null | undefined)
-                  : undefined;
-
-              return (
-                <span
-                  key={tagId}
-                  onClick={() => !isCompleted && handleRemoveTag(tagName)}
-                  className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-xl border uppercase tracking-tighter transition-all group ${!isCompleted ? "cursor-pointer hover:opacity-90" : ""}`}
-                  style={getTagColorStyle(tagColor)}
-                >
-                  <FiTag size={10} /> {tagName}
-                  {!isCompleted && (
-                    <span className="opacity-0 group-hover:opacity-100">
-                      &times;
-                    </span>
-                  )}
-                </span>
-              );
-            })}
-            {!isCompleted && (
-              <button
-                onClick={() => setShowTagPrompt(true)}
-                className="flex items-center gap-1.5 text-[10px] font-bold text-text-muted bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 hover:bg-white/10 hover:text-text-main transition-all uppercase tracking-tighter"
-              >
-                <FiPlus size={10} /> Link Tag
-              </button>
+              </motion.div>
             )}
+          </AnimatePresence>
+
+          {/* Title Section */}
+          <div className="mb-6">
+            <div className="mb-4 flex min-w-0 items-start gap-4">
+              <button
+                onClick={handleStatusToggle}
+                className={`mt-1.5 shrink-0 transition-all active:scale-75 ${task.status === "done" ? "text-brand-primary" : "text-text-muted/40 hover:text-text-main"}`}
+              >
+                {task.status === "done" ? (
+                  <FiCheckCircle
+                    size={24}
+                    className="drop-shadow-[0_0_8px_rgba(99,102,241,0.4)]"
+                  />
+                ) : task.status === "in_progress" ? (
+                  <FiActivity
+                    size={24}
+                    className="animate-pulse text-amber-400"
+                  />
+                ) : (
+                  <div className="w-6 h-6 rounded-full border-2 border-current opacity-30" />
+                )}
+              </button>
+              <h2
+                className={`min-w-0 text-xl sm:text-2xl font-display font-extrabold leading-tight break-words ${task.status === "done" ? "text-text-muted/50 line-through" : "text-text-main"}`}
+              >
+                {task.title}
+              </h2>
+            </div>
+
+            <div className="ml-0 flex flex-wrap gap-2 sm:ml-10">
+              {(task.tags || []).map((tagObj, index) => {
+                const tagName = getTagName(tagObj);
+                if (!tagName) return null;
+
+                const tagId =
+                  tagObj &&
+                  typeof tagObj === "object" &&
+                  "tag" in tagObj &&
+                  tagObj.tag &&
+                  typeof tagObj.tag === "object" &&
+                  "id" in tagObj.tag
+                    ? String(tagObj.tag.id)
+                    : `temp-${tagName}-${index}`;
+
+                const tagColor =
+                  tagObj &&
+                  typeof tagObj === "object" &&
+                  "tag" in tagObj &&
+                  tagObj.tag &&
+                  typeof tagObj.tag === "object" &&
+                  "color" in tagObj.tag
+                    ? (tagObj.tag.color as string | null | undefined)
+                    : undefined;
+
+                return (
+                  <span
+                    key={tagId}
+                    onClick={() => !isCompleted && handleRemoveTag(tagName)}
+                    className={`flex items-center gap-1.5 text-[10px] font-bold px-3 py-1.5 rounded-xl border uppercase tracking-tighter transition-all group ${!isCompleted ? "cursor-pointer hover:opacity-90" : ""}`}
+                    style={getTagColorStyle(tagColor)}
+                  >
+                    <FiTag size={10} /> {tagName}
+                    {!isCompleted && (
+                      <span className="opacity-0 group-hover:opacity-100">
+                        &times;
+                      </span>
+                    )}
+                  </span>
+                );
+              })}
+              {!isCompleted && (
+                <button
+                  onClick={() => setShowTagPrompt(true)}
+                  className="flex items-center gap-1.5 text-[10px] font-bold text-text-muted bg-surface-mutes/50 px-3 py-1.5 rounded-xl border border-border hover:bg-white/10 hover:text-text-main transition-all uppercase tracking-tighter"
+                >
+                  <FiPlus size={10} /> Link Tag
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        <div className="mb-10 rounded-3xl border border-white/10 bg-white/5 p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
-                Execution Cockpit
-              </p>
-              <p className="mt-2 text-sm leading-6 text-text-muted">
-                Control execution state, supporting context, and where this task
-                sits inside your dream architecture.
-              </p>
-            </div>
-            <div
-              className={`rounded-2xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] ${
-                readiness.executionState === "blocked"
-                  ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
-                  : readiness.executionState === "ready"
-                    ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
-                    : readiness.executionState === "in_progress"
-                      ? "border-amber-400/20 bg-amber-400/10 text-amber-200"
-                      : "border-white/10 bg-black/20 text-text-main"
-              }`}
-            >
-              {readiness.readinessLabel}
-            </div>
+        {/* Command Center Tabs */}
+        <div className="sticky top-0 z-20 bg-surface-soft/80 backdrop-blur-xl border-y border-border px-4 sm:px-6">
+          <div className="flex gap-6 overflow-x-auto custom-scrollbar no-scrollbar py-3">
+            {(
+              [
+                { id: "overview", label: "Overview", icon: FiActivity },
+                { id: "architecture", label: "Architecture", icon: FiZap },
+                { id: "scheduling", label: "Scheduling", icon: FiCalendar },
+                { id: "intelligence", label: "Intelligence", icon: FiBookOpen },
+              ] as const
+            ).map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 whitespace-nowrap px-1 py-1 text-[10px] font-black uppercase tracking-[0.2em] transition-all relative ${
+                  activeTab === tab.id
+                    ? "text-brand-primary"
+                    : "text-text-muted hover:text-text-main"
+                }`}
+              >
+                <tab.icon size={12} />
+                {tab.label}
+                {activeTab === tab.id && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute -bottom-[13px] left-0 right-0 h-0.5 bg-brand-primary shadow-[0_0_8px_rgba(99,102,241,0.6)]"
+                  />
+                )}
+              </button>
+            ))}
           </div>
+        </div>
 
-          <div className="mt-4 grid gap-3 2xl:grid-cols-2">
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                Structure
-              </p>
-              <div className="mt-3 grid gap-3">
-                <Select
-                  value={task.dreamId || "none"}
-                  onValueChange={handleDreamChange}
+        {/* Tab Content */}
+        <div className="p-4 sm:p-5 xl:p-6 pb-20">
+          {activeTab === "overview" && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              {/* Quick Stats Grid */}
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="p-4 rounded-2xl bg-surface-base/80 border border-border group hover:border-brand-primary/30 transition-all duration-300">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="p-1.5 rounded-lg bg-brand-primary/10 text-brand-primary">
+                      <FiClock size={12} />
+                    </div>
+                    <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                      Schedule State
+                    </span>
+                  </div>
+                  <p className="text-sm text-text-main font-bold">
+                    {schedule.scheduledDate ? (
+                      dayjs(schedule.scheduledDate).format("MMM DD, YYYY")
+                    ) : (
+                      <span className="text-text-muted font-medium italic opacity-40">
+                        Not scheduled
+                      </span>
+                    )}
+                  </p>
+                  {(schedule.endDate || task.dueDate) && (
+                    <p className="text-[10px] text-text-muted mt-1 uppercase font-semibold">
+                      {schedule.endDate
+                        ? `Window ends ${dayjs(schedule.endDate).format("MMM DD")}`
+                        : `Due ${dayjs(task.dueDate).format("MMM DD")}`}
+                    </p>
+                  )}
+                </div>
+                <button
+                  onClick={handlePriorityCycle}
+                  disabled={isCompleted}
+                  className={`p-4 rounded-2xl bg-surface-base/80 border border-border group transition-all duration-300 text-left relative overflow-hidden ${isCompleted ? "cursor-default" : "hover:border-brand-primary/30"}`}
                 >
-                  <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
-                    <SelectValue placeholder="Link dream" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No dream</SelectItem>
-                    {dreams.map((dreamOption) => (
-                      <SelectItem key={dreamOption.id} value={dreamOption.id}>
-                        {dreamOption.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <AnimatePresence mode="wait">
+                    {isCycling && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute inset-0 bg-brand-primary/5 flex items-center justify-center backdrop-blur-[2px]"
+                      >
+                        <FiActivity
+                          className="animate-spin text-brand-primary"
+                          size={16}
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
-                <Select
-                  value={task.projectId || "none"}
-                  onValueChange={handleProjectChange}
-                >
-                  <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
-                    <SelectValue placeholder="Link project" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No project</SelectItem>
-                    {projects.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={readiness.milestoneId || "none"}
-                  onValueChange={handleMilestoneChange}
-                  disabled={!task.dreamId}
-                >
-                  <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
-                    <SelectValue placeholder="Attach to milestone" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">No milestone</SelectItem>
-                    {(dream?.milestones || []).map((milestone) => (
-                      <SelectItem key={milestone.id} value={milestone.id}>
-                        {milestone.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                Readiness Rules
-              </p>
-              <div className="mt-3 grid gap-3">
-                <Select
-                  value={executionMeta?.executionState || readiness.executionState}
-                  onValueChange={(value) =>
-                    handleExecutionStateChange(value as ExecutionState)
-                  }
-                >
-                  <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
-                    <SelectValue placeholder="Execution state" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {executionStates.map((state) => (
-                      <SelectItem key={state} value={state}>
-                        {state.replace("_", " ")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={executionMeta?.requireReferenceNote ? "required" : "optional"}
-                  onValueChange={handleRequireReferenceNote}
-                >
-                  <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
-                    <SelectValue placeholder="Reference note policy" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="optional">Reference note optional</SelectItem>
-                    <SelectItem value="required">Reference note required</SelectItem>
-                  </SelectContent>
-                </Select>
-
-                <Select
-                  value={String(executionMeta?.focusMinutesTarget || readiness.focusMinutesTarget)}
-                  onValueChange={handleFocusTargetChange}
-                >
-                  <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
-                    <SelectValue placeholder="Focus target" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {[15, 25, 30, 45, 60, 90].map((minutes) => (
-                      <SelectItem key={minutes} value={String(minutes)}>
-                        {minutes} minutes
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-3 2xl:grid-cols-[1.1fr_0.9fr]">
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                Current Blocker
-              </p>
-              <textarea
-                value={executionMeta?.blockerReason || ""}
-                onChange={(event) => handleBlockerReasonChange(event.target.value)}
-                placeholder="What is blocking this task right now?"
-                className="mt-3 min-h-24 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-text-main outline-none"
-              />
-              {readiness.blockers.length ? (
-                <div className="mt-3 space-y-2">
-                  {readiness.blockers.map((blocker) => (
+                  <div className="flex items-center gap-2 mb-2">
                     <div
-                      key={blocker}
-                      className="rounded-2xl border border-rose-400/20 bg-rose-400/10 px-3 py-2 text-xs text-rose-200"
+                      className={`p-1.5 rounded-lg ${
+                        localPriority === "urgent"
+                          ? "bg-brand-accent/10 text-brand-accent"
+                          : localPriority === "high"
+                            ? "bg-amber-400/10 text-amber-400"
+                            : localPriority === "low"
+                              ? "bg-blue-400/10 text-blue-400"
+                              : "bg-white/10 text-text-muted"
+                      }`}
                     >
-                      {blocker}
+                      <FiFlag size={12} />
+                    </div>
+                    <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                      Priority
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <motion.p
+                      key={localPriority}
+                      initial={{ y: 10, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      className={`text-sm font-extrabold uppercase tracking-tight ${
+                        localPriority === "urgent"
+                          ? "text-brand-accent"
+                          : localPriority === "high"
+                            ? "text-amber-400"
+                            : localPriority === "low"
+                              ? "text-blue-400"
+                              : "text-text-main"
+                      }`}
+                    >
+                      {localPriority || "Medium"}
+                    </motion.p>
+                  </div>
+                </button>
+
+                <button
+                  onClick={() => !isCompleted && setShowDurationPrompt(true)}
+                  disabled={isCompleted}
+                  className={`p-4 rounded-2xl bg-surface-base/80 border border-border group transition-all duration-300 text-left ${isCompleted ? "cursor-default" : "hover:border-brand-primary/30"}`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="p-1.5 rounded-lg bg-emerald-400/10 text-emerald-400">
+                      <FiZap size={12} />
+                    </div>
+                    <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                      Duration
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-extrabold text-text-main uppercase tracking-tight">
+                      {task.duration || 0} {task.duration === 1 ? "Day" : "Days"}
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-text-muted mt-1 uppercase font-semibold">
+                    {schedule.progressLabel || "Execution Span"}
+                  </p>
+                </button>
+                <div className="p-4 rounded-2xl bg-surface-base/80 border border-border">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="p-1.5 rounded-lg bg-amber-400/10 text-amber-400">
+                      <FiCalendar size={12} />
+                    </div>
+                    <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
+                      Dream Node
+                    </span>
+                  </div>
+                  <p className="text-sm text-text-main font-bold truncate">
+                    {task.dream?.title || "Standalone Task"}
+                  </p>
+                  {task.project && (
+                    <p className="text-[10px] text-text-muted mt-1 uppercase font-semibold">
+                      Layer: {task.project.title}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Description Section */}
+              <div className="p-6 rounded-3xl bg-linear-to-b from-surface-base to-surface-soft border border-border relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <FiZap size={64} className="text-brand-primary" />
+                </div>
+                <div className="relative z-10 w-full">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <FiActivity size={14} className="text-brand-primary" />
+                      <h4 className="text-[10px] font-bold text-text-main uppercase tracking-[0.2em]">
+                        Objective Details
+                      </h4>
+                    </div>
+                    {!isEditingDesc && !isCompleted && (
+                      <button
+                        onClick={() => setIsEditingDesc(true)}
+                        className="p-1.5 rounded-lg hover:bg-surface-mutes/50 text-text-muted transition-all"
+                      >
+                        <FiEdit size={12} />
+                      </button>
+                    )}
+                  </div>
+
+                  {isEditingDesc ? (
+                    <textarea
+                      autoFocus
+                      value={localDescription}
+                      onChange={(e) => setLocalDescription(e.target.value)}
+                      onBlur={handleUpdateDescription}
+                      className="w-full bg-transparent text-sm text-text-main leading-relaxed outline-none border-none resize-none min-h-24 custom-scrollbar"
+                      placeholder="Describe the desired outcome..."
+                    />
+                  ) : (
+                    <div
+                      onClick={() => !isCompleted && setIsEditingDesc(true)}
+                      className={`text-sm text-text-muted leading-relaxed prose prose-invert font-medium ${isCompleted ? "cursor-default" : "cursor-text"}`}
+                    >
+                      {task.description ||
+                        "The intelligence engine is awaiting further context for this objective. Define the scope to enable deeper execution linking."}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === "architecture" && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              {/* Subtasks Section */}
+              <div className="rounded-3xl border border-border bg-surface-mutes/50 p-5">
+                <div className="flex items-center justify-between mb-6">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
+                    Execution Steps
+                  </p>
+                  <div className="h-px flex-1 bg-surface-mutes/50 ml-4" />
+                </div>
+                <div className="space-y-2 mb-6">
+                  {task.subtasks?.map((sub) => (
+                    <div
+                      key={sub.id}
+                      className="flex items-center gap-3 p-3 rounded-xl bg-surface-base/50 border border-border group/sub"
+                    >
+                      <button
+                        onClick={() => handleSubtaskToggle(sub.id, sub.status)}
+                        disabled={isCompleted || isUpdatingSubtask}
+                        className={`shrink-0 transition-all active:scale-75 ${sub.status === "done" ? "text-brand-primary" : "text-text-muted/40 group-hover/sub:text-text-muted/70"} ${isCompleted || isUpdatingSubtask ? "cursor-wait opacity-50" : ""}`}
+                      >
+                        {isUpdatingSubtask ? (
+                          <FiActivity size={16} className="animate-spin" />
+                        ) : sub.status === "done" ? (
+                          <FiCheckCircle size={16} />
+                        ) : (
+                          <div className="w-4 h-4 rounded-full border border-current" />
+                        )}
+                      </button>
+                      <span
+                        className={`flex-1 text-sm ${sub.status === "done" ? "text-text-muted line-through" : "text-text-main font-medium"}`}
+                      >
+                        {sub.title}
+                      </span>
+                      {!isCompleted && (
+                        <button
+                          onClick={() => handleSubtaskDelete(sub.id)}
+                          className="opacity-0 group-hover/sub:opacity-100 p-1 text-text-muted hover:text-red-400 transition-all"
+                        >
+                          <FiX size={14} />
+                        </button>
+                      )}
                     </div>
                   ))}
-                </div>
-              ) : null}
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                Dependency Threads
-              </p>
-              <div className="mt-3 flex max-h-56 flex-col gap-2 overflow-y-auto custom-scrollbar">
-                {tasks
-                  .filter((candidate) => candidate.id !== task.id)
-                  .slice(0, 8)
-                  .map((candidate) => {
-                    const active = executionMeta?.dependencyTaskIds.includes(candidate.id);
-                    return (
+                  {!isCompleted && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
                       <button
-                        key={candidate.id}
-                        type="button"
-                        onClick={() => handleDependencyToggle(candidate.id)}
-                        className={`rounded-2xl border px-3 py-2.5 text-left transition ${
-                          active
-                            ? "border-brand-primary/30 bg-brand-primary/10 text-white"
-                            : "border-white/10 bg-white/5 text-text-muted hover:text-text-main"
-                        }`}
+                        onClick={() => setShowSubtaskPrompt(true)}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-border text-text-muted hover:text-text-main hover:border-white/20 transition-all"
                       >
-                        <p className="text-xs font-bold leading-5 sm:text-sm">
-                          {candidate.title}
-                        </p>
-                        <p className="mt-1 text-[9px] font-black uppercase tracking-[0.16em] sm:text-[10px]">
-                          {candidate.status === "done" ? "Done" : "Open dependency"}
-                        </p>
+                        <FiPlus size={16} />
+                        <span className="text-xs font-semibold uppercase tracking-widest">
+                          Add Subtask
+                        </span>
                       </button>
-                    );
-                  })}
-                {!tasks.filter((candidate) => candidate.id !== task.id).length ? (
-                  <p className="text-xs leading-5 text-text-muted">
-                    No other tasks exist yet to use as dependencies.
-                  </p>
-                ) : null}
-              </div>
-            </div>
-          </div>
-
-          {readiness.warnings.length ? (
-            <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-amber-300">
-                Readiness Gaps
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {readiness.warnings.map((warning) => (
-                  <span
-                    key={warning}
-                    className="rounded-full border border-amber-400/20 bg-black/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-amber-100"
-                  >
-                    {warning}
-                  </span>
-                ))}
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="mb-10 rounded-3xl border border-white/10 bg-white/5 p-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
-                Scheduling Window
-              </p>
-              <p className="mt-2 text-sm leading-6 text-text-muted">
-                Define when this task should surface, when it becomes carryover,
-                and whether it is part of today&apos;s committed queue.
-              </p>
-            </div>
-            <div
-              className={`rounded-2xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] ${
-                schedule.bucket === "today"
-                  ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
-                  : schedule.bucket === "carryover"
-                    ? "border-amber-400/20 bg-amber-400/10 text-amber-200"
-                    : schedule.bucket === "overdue"
-                      ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
-                      : "border-white/10 bg-black/20 text-text-main"
-              }`}
-            >
-              {schedule.statusLabel}
-            </div>
-          </div>
-
-          <div className="mt-4 grid gap-3 2xl:grid-cols-[1.05fr_0.95fr]">
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                Date Window
-              </p>
-              <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                <label className="space-y-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
-                    Scheduled Date
-                  </span>
-                  <input
-                    type="date"
-                    value={schedule.scheduledDate || ""}
-                    onChange={(event) => handleScheduleDateChange(event.target.value)}
-                    className="w-full rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-text-main outline-none"
-                    disabled={isCompleted}
-                  />
-                </label>
-                <div className="space-y-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
-                    Due Date
-                  </span>
-                  <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-text-main">
-                    {schedule.dueDate
-                      ? dayjs(schedule.dueDate).format("MMM DD, YYYY")
-                      : "No due date"}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
-                    Active Until
-                  </span>
-                  <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-3 text-sm text-text-main">
-                    {schedule.endDate
-                      ? dayjs(schedule.endDate).format("MMM DD, YYYY")
-                      : "No active window"}
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <span className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
-                    Recurrence
-                  </span>
-                  <Select
-                    value={schedule.recurrence}
-                    onValueChange={handleRecurrenceChange}
-                    disabled={isCompleted}
-                  >
-                    <SelectTrigger className="rounded-xl border-white/10 bg-white/5 text-text-main">
-                      <SelectValue placeholder="Choose recurrence" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No recurrence</SelectItem>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                    </SelectContent>
-                  </Select>
+                      <button
+                        onClick={async () => {
+                          const result = await taskSubtasksAi.mutateAsync(task.id);
+                          result.subtasks.forEach((subtask) => handleAddSubtask(subtask.title));
+                        }}
+                        className="w-full flex items-center gap-3 p-3 rounded-xl border border-amber-400/20 bg-amber-400/10 text-amber-300 hover:bg-amber-400/15 transition-all"
+                      >
+                        <FiZap size={16} />
+                        <span className="text-xs font-semibold uppercase tracking-widest">
+                          {taskSubtasksAi.isPending ? "Generating..." : "AI Subtasks"}
+                        </span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {schedule.recurrence === "weekly" ? (
-                <div className="mt-4 rounded-2xl border border-white/10 bg-white/5 p-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-main">
-                    Weekly Active Days
-                  </p>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {weekdayOptions.map((option) => {
-                      const active = schedule.weeklyDays.includes(option.value);
-                      return (
-                        <button
-                          key={option.value}
-                          type="button"
-                          onClick={() => handleWeeklyDayToggle(option.value)}
-                          disabled={isCompleted}
-                          className={`rounded-xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.16em] transition ${
-                            active
-                              ? "border-brand-primary/30 bg-brand-primary/10 text-white"
-                              : "border-white/10 bg-black/20 text-text-muted hover:text-text-main"
-                          }`}
-                        >
-                          {option.label}
-                        </button>
-                      );
-                    })}
+              {/* Execution Cockpit: Structure & Rules */}
+              <div className="rounded-3xl border border-border bg-surface-mutes/50 p-5">
+                <div className="flex items-center justify-between gap-3 mb-6">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
+                      Execution Cockpit
+                    </p>
+                    <p className="mt-2 text-[10px] leading-5 text-text-muted/70 uppercase font-black tracking-widest">
+                      Deep Architecture Controls
+                    </p>
                   </div>
-                  <p className="mt-3 text-xs leading-5 text-text-muted">
-                    {formatWeeklyDays(schedule.weeklyDays)}
-                  </p>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                Recovery Actions
-              </p>
-              <div className="mt-3 grid gap-3">
-                <button
-                  type="button"
-                  onClick={handleTodayCommitmentToggle}
-                  disabled={isCompleted}
-                  className={`rounded-2xl border px-4 py-3 text-left transition ${
-                    schedule.isTodayCommitment
-                      ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100"
-                      : "border-white/10 bg-white/5 text-text-main hover:bg-white/10"
-                  }`}
-                >
-                  <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em]">
-                    <FiClock size={12} />
-                    Commit To Today
-                  </div>
-                  <p className="mt-1 text-xs leading-5 text-current/80">
-                    Keep this in today&apos;s queue even if it is not strictly due
-                    today.
-                  </p>
-                </button>
-
-                {schedule.recurrence !== "none" ? (
-                  <button
-                    type="button"
-                    onClick={handleRecurringOccurrenceRecord}
-                    disabled={isCompleted || schedule.todayOccurrenceCompleted}
-                    className={`rounded-2xl border px-4 py-3 text-left transition ${
-                      schedule.todayOccurrenceCompleted
-                        ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-100"
-                        : "border-brand-primary/30 bg-brand-primary/10 text-white hover:bg-brand-primary/15"
+                  <div
+                    className={`rounded-2xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] ${
+                      readiness.executionState === "blocked"
+                        ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
+                        : readiness.executionState === "ready"
+                          ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+                          : readiness.executionState === "in_progress"
+                            ? "border-amber-400/20 bg-amber-400/10 text-amber-200"
+                            : "border-border bg-surface-mutes/20 text-text-main"
                     }`}
                   >
-                    <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em]">
-                      <FiCheckCircle size={12} />
-                      {schedule.todayOccurrenceCompleted
-                        ? "Today's Occurrence Logged"
-                        : "Record Today's Occurrence"}
+                    {readiness.readinessLabel}
+                  </div>
+                </div>
+
+                <div className="grid gap-4 2xl:grid-cols-2">
+                  <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted mb-4">
+                      Structural Linking
+                    </p>
+                    <div className="grid gap-3">
+                      <Select
+                        value={task.dreamId || "none"}
+                        onValueChange={handleDreamChange}
+                      >
+                        <SelectTrigger className="rounded-xl border-border bg-surface-mutes/50 text-text-main">
+                          <SelectValue placeholder="Link dream" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No dream</SelectItem>
+                          {dreams.map((dreamOption) => (
+                            <SelectItem key={dreamOption.id} value={dreamOption.id}>
+                              {dreamOption.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select
+                        value={task.projectId || "none"}
+                        onValueChange={handleProjectChange}
+                      >
+                        <SelectTrigger className="rounded-xl border-border bg-surface-mutes/50 text-text-main">
+                          <SelectValue placeholder="Link project" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No project</SelectItem>
+                          {projects.map((project) => (
+                            <SelectItem key={project.id} value={project.id}>
+                              {project.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select
+                        value={readiness.milestoneId || "none"}
+                        onValueChange={handleMilestoneChange}
+                        disabled={!task.dreamId}
+                      >
+                        <SelectTrigger className="rounded-xl border-border bg-surface-mutes/50 text-text-main">
+                          <SelectValue placeholder="Attach to milestone" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">No milestone</SelectItem>
+                          {(dream?.milestones || []).map((milestone) => (
+                            <SelectItem key={milestone.id} value={milestone.id}>
+                              {milestone.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <p className="mt-1 text-xs leading-5 text-current/80">
-                      Use this for repeating commitments so the task stays alive
-                      while the current period progresses.
-                    </p>
-                  </button>
-                ) : null}
+                  </div>
 
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <button
-                    type="button"
-                    onClick={() => handleQuickReschedule(1)}
-                    disabled={isCompleted}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-text-main transition hover:bg-white/10"
-                  >
-                    <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em]">
-                      <FiCalendar size={12} />
-                      Move To Tomorrow
+                  <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted mb-4">
+                      Execution Policies
+                    </p>
+                    <div className="grid gap-3">
+                      <Select
+                        value={executionMeta?.executionState || readiness.executionState}
+                        onValueChange={(value) =>
+                          handleExecutionStateChange(value as ExecutionState)
+                        }
+                      >
+                        <SelectTrigger className="rounded-xl border-border bg-surface-mutes/50 text-text-main">
+                          <SelectValue placeholder="Execution state" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {executionStates.map((state) => (
+                            <SelectItem key={state} value={state}>
+                              {state.replace("_", " ")}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      <Select
+                        value={executionMeta?.requireReferenceNote ? "required" : "optional"}
+                        onValueChange={handleRequireReferenceNote}
+                      >
+                        <SelectTrigger className="rounded-xl border-border bg-surface-mutes/50 text-text-main">
+                          <SelectValue placeholder="Reference note policy" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="optional">Note Optional</SelectItem>
+                          <SelectItem value="required">Note Required</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select
+                        value={String(executionMeta?.focusMinutesTarget || readiness.focusMinutesTarget)}
+                        onValueChange={handleFocusTargetChange}
+                      >
+                        <SelectTrigger className="rounded-xl border-border bg-surface-mutes/50 text-text-main">
+                          <SelectValue placeholder="Focus target" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[15, 25, 30, 45, 60, 90].map((minutes) => (
+                            <SelectItem key={minutes} value={String(minutes)}>
+                              {minutes} minutes
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <p className="mt-1 text-xs leading-5 text-text-muted">
-                      Shift the task out of today and restart its active window tomorrow.
-                    </p>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleQuickReschedule(3)}
-                    disabled={isCompleted}
-                    className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-left text-text-main transition hover:bg-white/10"
-                  >
-                    <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.16em]">
-                      <FiCornerDownRight size={12} />
-                      Defer 3 Days
-                    </div>
-                    <p className="mt-1 text-xs leading-5 text-text-muted">
-                      Useful for carryover recovery when this work should leave today&apos;s stack.
-                    </p>
-                  </button>
-                </div>
-
-                <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-main">
-                    Recurrence Intelligence
-                  </p>
-                  <div className="mt-2 space-y-1.5 text-xs leading-5 text-text-muted">
-                    <p>Today only holds scheduled, due, active-window, recurring-due, or explicitly committed work.</p>
-                    <p>Carryover means the execution window has passed, or a repeating occurrence earlier in the current period was missed.</p>
-                    <p>Duration controls how many days the active window remains visible after the scheduled date.</p>
                   </div>
                 </div>
-              </div>
-            </div>
-          </div>
-        </div>
 
-        {schedule.recurrence !== "none" ? (
-          <div className="mb-10 rounded-3xl border border-white/10 bg-white/5 p-5">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
-                  Recurrence Pulse
-                </p>
-                <p className="mt-2 text-sm leading-6 text-text-muted">
-                  Track this recurring commitment by valid occurrences instead
-                  of permanently completing the task.
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
-                {schedule.progressLabel || "Recurring"}
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
-                  Completed This Period
-                </p>
-                <p className="mt-2 text-lg font-extrabold text-white">
-                  {schedule.completedThisPeriod}
-                  <span className="ml-1 text-sm text-text-muted">
-                    / {schedule.requiredThisPeriod || 1}
-                  </span>
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
-                  Missed So Far
-                </p>
-                <p className="mt-2 text-lg font-extrabold text-amber-300">
-                  {schedule.missedThisPeriod}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.16em] text-text-muted">
-                  Next Occurrence
-                </p>
-                <p className="mt-2 text-sm font-bold text-white">
-                  {schedule.nextOccurrenceDate
-                    ? dayjs(schedule.nextOccurrenceDate).format("ddd, MMM DD")
-                    : schedule.todayOccurrenceCompleted
-                      ? "Waiting for next cycle"
-                      : schedule.isRecurringDueToday
-                        ? "Due today"
-                        : "No next slot"}
-                </p>
-              </div>
-            </div>
-          </div>
-        ) : null}
-
-        {/* Quick Stats Grid */}
-        <div className="mb-10 grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="p-4 rounded-2xl bg-surface-base/80 border border-white/5 group hover:border-brand-primary/30 transition-all duration-300">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-1.5 rounded-lg bg-brand-primary/10 text-brand-primary">
-                <FiClock size={12} />
-              </div>
-              <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
-                Schedule State
-              </span>
-            </div>
-            <p className="text-sm text-text-main font-bold">
-              {schedule.scheduledDate ? (
-                dayjs(schedule.scheduledDate).format("MMM DD, YYYY")
-              ) : (
-                <span className="text-text-muted font-medium italic opacity-40">
-                  Not scheduled
-                </span>
-              )}
-            </p>
-            {(schedule.endDate || task.dueDate) && (
-              <p className="text-[10px] text-text-muted mt-1 uppercase font-semibold">
-                {schedule.endDate
-                  ? `Window ends ${dayjs(schedule.endDate).format("MMM DD")}`
-                  : `Due ${dayjs(task.dueDate).format("MMM DD")}`}
-              </p>
-            )}
-          </div>
-          <button
-            onClick={handlePriorityCycle}
-            disabled={isCompleted}
-            className={`p-4 rounded-2xl bg-surface-base/80 border border-white/5 group transition-all duration-300 text-left relative overflow-hidden ${isCompleted ? "cursor-default" : "hover:border-brand-primary/30"}`}
-          >
-            <AnimatePresence mode="wait">
-              {isCycling && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 bg-brand-primary/5 flex items-center justify-center backdrop-blur-[2px]"
-                >
-                  <FiActivity
-                    className="animate-spin text-brand-primary"
-                    size={16}
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <div className="flex items-center gap-2 mb-2">
-              <div
-                className={`p-1.5 rounded-lg ${
-                  localPriority === "urgent"
-                    ? "bg-brand-accent/10 text-brand-accent"
-                    : localPriority === "high"
-                      ? "bg-amber-400/10 text-amber-400"
-                      : localPriority === "low"
-                        ? "bg-blue-400/10 text-blue-400"
-                        : "bg-white/10 text-text-muted"
-                }`}
-              >
-                <FiFlag size={12} />
-              </div>
-              <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
-                Priority
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <motion.p
-                key={localPriority}
-                initial={{ y: 10, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                className={`text-sm font-extrabold uppercase tracking-tight ${
-                  localPriority === "urgent"
-                    ? "text-brand-accent"
-                    : localPriority === "high"
-                      ? "text-amber-400"
-                      : localPriority === "low"
-                        ? "text-blue-400"
-                        : "text-text-main"
-                }`}
-              >
-                {localPriority || "Medium"}
-              </motion.p>
-            </div>
-            <p className="text-[10px] text-text-muted mt-1 uppercase font-semibold">
-              Force Multiplier
-            </p>
-          </button>
-
-          <button
-            onClick={() => !isCompleted && setShowDurationPrompt(true)}
-            disabled={isCompleted}
-            className={`p-4 rounded-2xl bg-surface-base/80 border border-white/5 group transition-all duration-300 text-left ${isCompleted ? "cursor-default" : "hover:border-brand-primary/30"}`}
-          >
-            <div className="flex items-center gap-2 mb-2">
-              <div className="p-1.5 rounded-lg bg-emerald-400/10 text-emerald-400">
-                <FiZap size={12} />
-              </div>
-              <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">
-                Duration
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <p className="text-sm font-extrabold text-text-main uppercase tracking-tight">
-                {task.duration || 0} {task.duration === 1 ? "Day" : "Days"}
-              </p>
-            </div>
-            <p className="text-[10px] text-text-muted mt-1 uppercase font-semibold">
-              {schedule.progressLabel || "Execution Span"}
-            </p>
-          </button>
-        </div>
-
-        {/* Description Section */}
-        <div className="mb-10 p-6 rounded-3xl bg-linear-to-b from-surface-base to-surface-soft border border-white/5 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-            <FiZap size={64} className="text-brand-primary" />
-          </div>
-          <div className="relative z-10 w-full">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <FiActivity size={14} className="text-brand-primary" />
-                <h4 className="text-[10px] font-bold text-text-main uppercase tracking-[0.2em]">
-                  Objective Details
-                </h4>
-              </div>
-              {!isEditingDesc && !isCompleted && (
-                <button
-                  onClick={() => setIsEditingDesc(true)}
-                  className="p-1.5 rounded-lg hover:bg-white/5 text-text-muted transition-all"
-                >
-                  <FiEdit size={12} />
-                </button>
-              )}
-            </div>
-
-            {isEditingDesc ? (
-              <textarea
-                autoFocus
-                value={localDescription}
-                onChange={(e) => setLocalDescription(e.target.value)}
-                onBlur={handleUpdateDescription}
-                className="w-full bg-transparent text-sm text-text-main leading-relaxed outline-none border-none resize-none min-h-24 custom-scrollbar"
-                placeholder="Describe the desired outcome..."
-              />
-            ) : (
-              <div
-                onClick={() => !isCompleted && setIsEditingDesc(true)}
-                className={`text-sm text-text-muted leading-relaxed prose prose-invert font-medium ${isCompleted ? "cursor-default" : "cursor-text"}`}
-              >
-                {task.description ||
-                  "The intelligence engine is awaiting further context for this objective. Define the scope to enable deeper execution linking."}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Subtasks Section */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">
-              Execution Steps
-            </h4>
-            <div className="h-px flex-1 bg-white/5 ml-4" />
-          </div>
-          <div className="space-y-2">
-            {task.subtasks?.map((sub) => (
-              <div
-                key={sub.id}
-                className="flex items-center gap-3 p-3 rounded-xl bg-surface-base/50 border border-white/5 group/sub"
-              >
-                <button
-                  onClick={() => handleSubtaskToggle(sub.id, sub.status)}
-                  disabled={isCompleted || isUpdatingSubtask}
-                  className={`shrink-0 transition-all active:scale-75 ${sub.status === "done" ? "text-brand-primary" : "text-text-muted/40 group-hover/sub:text-text-muted/70"} ${isCompleted || isUpdatingSubtask ? "cursor-wait opacity-50" : ""}`}
-                >
-                  {isUpdatingSubtask ? (
-                    <FiActivity size={16} className="animate-spin" />
-                  ) : sub.status === "done" ? (
-                    <FiCheckCircle size={16} />
-                  ) : (
-                    <div className="w-4 h-4 rounded-full border border-current" />
-                  )}
-                </button>
-                <span
-                  className={`flex-1 text-sm ${sub.status === "done" ? "text-text-muted line-through" : "text-text-main font-medium"}`}
-                >
-                  {sub.title}
-                </span>
-                {!isCompleted && (
-                  <button
-                    onClick={() => handleSubtaskDelete(sub.id)}
-                    className="opacity-0 group-hover/sub:opacity-100 p-1 text-text-muted hover:text-red-400 transition-all"
-                  >
-                    <FiX size={14} />
-                  </button>
-                )}
-              </div>
-            ))}
-            {isAddingSubtask && (
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5 animate-pulse">
-                <div className="w-4 h-4 rounded-full border border-white/20" />
-                <div className="h-4 w-32 bg-white/10 rounded-md" />
-              </div>
-            )}
-            {!isCompleted && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <button
-                  onClick={() => setShowSubtaskPrompt(true)}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-white/10 text-text-muted hover:text-text-main hover:border-white/20 transition-all"
-                >
-                  <FiPlus size={16} />
-                  <span className="text-xs font-semibold uppercase tracking-widest">
-                    Add Subtask
-                  </span>
-                </button>
-                <button
-                  onClick={async () => {
-                    const result = await taskSubtasksAi.mutateAsync(task.id);
-                    result.subtasks.forEach((subtask) => handleAddSubtask(subtask.title));
-                  }}
-                  className="w-full flex items-center gap-3 p-3 rounded-xl border border-amber-400/20 bg-amber-400/10 text-amber-300 hover:bg-amber-400/15 transition-all"
-                >
-                  <FiZap size={16} />
-                  <span className="text-xs font-semibold uppercase tracking-widest">
-                    {taskSubtasksAi.isPending ? "Generating..." : "AI Subtasks"}
-                  </span>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {shouldShowReadingSession ? (
-          <div className="mb-10 rounded-3xl border border-white/10 bg-white/5 p-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
-                  Active Reading
-                </p>
-                <p className="mt-2 text-sm leading-6 text-text-muted">
-                  Run a presence-aware reading session and log real engagement
-                  into execution history instead of just checking the task off.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowReadingSession(true)}
-                disabled={isCompleted}
-                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
-              >
-                <FiBookOpen size={14} />
-                Start Reading
-              </button>
-            </div>
-
-            {readingLogs.length ? (
-              <div className="mt-4 grid gap-3">
-                {readingLogs.slice(0, 3).map((log) => (
-                  <div
-                    key={log.id}
-                    className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-bold text-white">
-                        {log.duration || 0} mins active
-                      </p>
-                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                        {log.status}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-xs text-text-muted">
-                      {dayjs(log.completedAt).fromNow()}
+                <div className="mt-4 grid gap-4 2xl:grid-cols-2">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted mb-3">
+                      Active Blocker
                     </p>
-                  </div>
-                ))}
-              </div>
-            ) : null}
-          </div>
-        ) : null}
-
-        <div className="mb-10 rounded-3xl border border-white/10 bg-white/5 p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
-                Focus Sessions
-              </p>
-              <p className="mt-2 text-sm leading-6 text-text-muted">
-                Track real work time against this task even when it is not a
-                reading objective.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowFocusSession(true)}
-              disabled={isCompleted}
-              className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/20 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-text-main transition hover:bg-black/30 disabled:opacity-50"
-            >
-              <FiZap size={14} />
-              Start Focus
-            </button>
-          </div>
-
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <FocusSummaryCard label="Target" value={`${readiness.focusMinutesTarget}m`} />
-            <FocusSummaryCard label="Focused" value={`${focusMinutesCompleted}m`} />
-            <FocusSummaryCard
-              label="Sessions"
-              value={String(focusSessions.length)}
-            />
-          </div>
-
-          {focusSessions.length ? (
-            <div className="mt-4 grid gap-3">
-              {focusSessions.slice(0, 3).map((session) => (
-                <div
-                  key={session.id}
-                  className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-bold text-white">
-                      {session.durationMinutes} mins focused
-                    </p>
-                    <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                      {session.status}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs text-text-muted">
-                    {dayjs(session.createdAt).fromNow()} · {session.engagementCount} engagement signals
-                  </p>
-                </div>
-              ))}
-            </div>
-          ) : null}
-        </div>
-
-        <div className="mb-10 grid gap-4 2xl:grid-cols-2">
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
-              Source Trace
-            </p>
-            {sourceInboxItem ? (
-              <div className="mt-3 space-y-3">
-                <div className="flex flex-wrap gap-2">
-                  <span className="rounded-full border border-sky-400/20 bg-sky-400/10 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-sky-200">
-                    {sourceInboxItem.processedPayload?.captureMethod || "capture"}
-                  </span>
-                  <span className="rounded-full border border-white/10 bg-black/20 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-text-main">
-                    {sourceInboxItem.status}
-                  </span>
-                </div>
-                <p className="text-sm leading-6 text-text-main/90">
-                  {sourceInboxItem.processedPayload?.summary ||
-                    sourceInboxItem.content ||
-                    sourceInboxItem.rawInput}
-                </p>
-                {sourceInboxItem.processedPayload?.extracted_tasks?.length ? (
-                  <div className="flex flex-wrap gap-2">
-                    {sourceInboxItem.processedPayload.extracted_tasks
-                      .slice(0, 3)
-                      .map((candidate) => (
-                        <span
-                          key={candidate.title}
-                          className="rounded-full border border-white/10 bg-black/20 px-2 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-text-muted"
-                        >
-                          {candidate.title}
-                        </span>
-                      ))}
-                  </div>
-                ) : null}
-              </div>
-            ) : (
-              <p className="mt-3 text-sm leading-6 text-text-muted">
-                No inbox-origin source is attached to this task.
-              </p>
-            )}
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
-              Ledger Summary
-            </p>
-            {taskLedgerLogs.length ? (
-              <div className="mt-3 space-y-3">
-                {taskLedgerLogs.map((log) => (
-                  <div
-                    key={log.id}
-                    className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3"
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-bold text-white">{log.title}</p>
-                      <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
-                        {log.status}
-                      </span>
-                    </div>
-                    <p className="mt-1 text-xs text-text-muted">
-                      {dayjs(log.completedAt).format("MMM D, YYYY HH:mm")}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="mt-3 text-sm leading-6 text-text-muted">
-                No ledger entries yet for this task. Once you complete or log
-                sessions against it, the accountability trail will appear here.
-              </p>
-            )}
-          </div>
-        </div>
-
-        {/* Knowledge & Goals Links */}
-        <div className="mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h4 className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">
-              Connected Nodes
-            </h4>
-            <div className="h-px flex-1 bg-white/5 ml-4" />
-          </div>
-          <div className="space-y-3">
-            {linkedNotes.map((linkedNote) => (
-              <div
-                key={linkedNote.id}
-                className="group relative overflow-hidden flex items-center justify-between p-4 rounded-2xl bg-surface-base border border-brand-primary/20 hover:border-brand-primary/50 transition-all"
-              >
-                <button
-                  type="button"
-                  onClick={() => {
-                    useNotesStore.getState().selectNote(linkedNote.id);
-                    router.push(`/notes?note=${linkedNote.id}`);
-                  }}
-                  className="absolute inset-0"
-                  title={`Open ${linkedNote.title}`}
-                />
-                <div className="absolute inset-0 bg-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="flex items-center gap-3 relative z-10 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-brand-primary/20 flex items-center justify-center text-brand-primary">
-                    <FiLink size={14} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-text-main leading-tight mb-1 truncate">
-                      {linkedNote.title}
-                    </p>
-                    <p className="text-[10px] text-brand-primary font-bold uppercase tracking-tighter">
-                      Linked Knowledge Node
-                    </p>
-                  </div>
-                </div>
-                {!isCompleted && (
-                  <button
-                    onClick={() => handleUnlinkNote(linkedNote.id)}
-                    className="relative z-10 p-2 text-text-muted hover:text-red-400 transition-colors"
-                    title="Unlink Note"
-                  >
-                    <FiX size={16} />
-                  </button>
-                )}
-              </div>
-            ))}
-            {task.dream ? (
-              <div className="group relative overflow-hidden flex items-center justify-between p-4 rounded-2xl bg-surface-base border border-emerald-500/20 hover:border-emerald-500/50 transition-all">
-                <button
-                  type="button"
-                  onClick={() => router.push(`/dreams/${task.dream?.id}`)}
-                  className="absolute inset-0"
-                  title={`Open ${task.dream.title}`}
-                />
-                <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="flex items-center gap-3 relative z-10">
-                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-400">
-                    <FiZap size={14} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-text-main leading-tight mb-1 truncate">
-                      {task.dream.title}
-                    </p>
-                    <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-tighter">
-                      Linked Dream Node
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-            {task.project ? (
-              <div className="group relative overflow-hidden flex items-center justify-between p-4 rounded-2xl bg-surface-base border border-cyan-400/20 hover:border-cyan-400/50 transition-all">
-                <div className="absolute inset-0 bg-cyan-400/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="flex items-center gap-3 relative z-10">
-                  <div className="w-8 h-8 rounded-lg bg-cyan-400/20 flex items-center justify-center text-cyan-300">
-                    <FiActivity size={14} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-text-main leading-tight mb-1 truncate">
-                      {task.project.title}
-                    </p>
-                    <p className="text-[10px] text-cyan-300 font-bold uppercase tracking-tighter">
-                      Linked Project Layer
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-            {readiness.milestoneTitle ? (
-              <div className="group relative overflow-hidden flex items-center justify-between p-4 rounded-2xl bg-surface-base border border-amber-400/20 hover:border-amber-400/50 transition-all">
-                <div className="absolute inset-0 bg-amber-400/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="flex items-center gap-3 relative z-10">
-                  <div className="w-8 h-8 rounded-lg bg-amber-400/20 flex items-center justify-center text-amber-300">
-                    <FiFlag size={14} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-text-main leading-tight mb-1 truncate">
-                      {readiness.milestoneTitle}
-                    </p>
-                    <p className="text-[10px] text-amber-300 font-bold uppercase tracking-tighter">
-                      Milestone Channel
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ) : null}
-            {!isCompleted ? (
-              <button
-                onClick={() => setShowNotePrompt(true)}
-                className="w-full flex flex-col items-center justify-center gap-2 p-6 rounded-3xl border border-dashed border-white/10 text-text-muted hover:text-brand-primary hover:border-brand-primary/30 hover:bg-brand-primary/5 transition-all group"
-              >
-                <FiLink
-                  size={20}
-                  className="group-hover:scale-110 transition-transform"
-                />
-                <p className="text-[10px] font-bold uppercase tracking-widest">
-                  Connect to Library
-                </p>
-              </button>
-            ) : !linkedNotes.length && !task.dream ? (
-              <p className="text-[10px] text-text-muted italic opacity-40 text-center py-4">
-                No linked knowledge nodes
-              </p>
-            ) : null}
-          </div>
-        </div>
-
-        {/* Component: Visual Inspiration (ImageGallery) */}
-        <div className="mb-10">
-          <ImageGallery parentType="task" parentId={task.id} />
-        </div>
-
-        {/* Execution History (Activity Timeline) */}
-        <div>
-          <div className="flex items-center justify-between mb-6">
-            <h4 className="text-[10px] font-bold text-text-muted uppercase tracking-[0.2em]">
-              Execution History
-            </h4>
-            <div className="h-px flex-1 bg-white/5 ml-4" />
-          </div>
-          <div className="space-y-6 border-l border-white/10 ml-3 pl-8 relative">
-            {task.activities?.length ? (
-              task.activities.map((activity, idx) => (
-                <div key={idx} className="relative group/item">
-                  <div className="absolute -left-9.25 top-1 w-4 h-4 rounded-full bg-surface-soft border border-white/10 flex items-center justify-center z-10 group-hover/item:border-brand-primary transition-colors">
-                    <div
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        activity.action === "created" 
-                          ? "bg-blue-400 shadow-[0_0_8px_rgba(96,165,250,0.5)]" 
-                          : activity.action === "completed" 
-                          ? "bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)]" 
-                          : "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)]"
-                      }`}
+                    <textarea
+                      value={executionMeta?.blockerReason || ""}
+                      onChange={(event) => handleBlockerReasonChange(event.target.value)}
+                      placeholder="What is blocking this task?"
+                      className="min-h-32 w-full rounded-2xl border border-border bg-surface-mutes/30 px-4 py-3 text-sm leading-6 text-text-main outline-none focus:border-brand-primary/40"
                     />
                   </div>
                   <div>
-                    <div className="flex items-center gap-3 mb-0.5">
-                      <p className="text-xs font-bold text-text-main tracking-tight">
-                        {activity.action}
-                      </p>
-                      <div className="h-px w-2 bg-white/10" />
-                      <span className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/5 text-text-muted/60 font-mono uppercase tracking-tighter">
-                        Log Entry
-                      </span>
-                    </div>
-                    <p className="text-[10px] text-text-muted font-medium opacity-60">
-                      {dayjs(activity.timestamp).format("dddd, MMM DD · HH:mm:ss")}
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted mb-3">
+                      Dependencies
                     </p>
+                    <div className="flex max-h-32 flex-col gap-2 overflow-y-auto custom-scrollbar no-scrollbar">
+                      {tasks
+                        .filter((candidate) => candidate.id !== task.id)
+                        .slice(0, 8)
+                        .map((candidate) => {
+                          const active = executionMeta?.dependencyTaskIds.includes(candidate.id);
+                          return (
+                            <button
+                              key={candidate.id}
+                              type="button"
+                              onClick={() => handleDependencyToggle(candidate.id)}
+                              className={`rounded-xl border px-3 py-2 text-left transition ${
+                                active
+                                  ? "border-brand-primary/30 bg-brand-primary/10 text-white"
+                                  : "border-border bg-surface-mutes/50 text-text-muted hover:text-text-main"
+                              }`}
+                            >
+                              <p className="text-xs font-bold truncate">{candidate.title}</p>
+                            </button>
+                          );
+                        })}
+                    </div>
                   </div>
                 </div>
-              ))
-            ) : (
-              <div className="py-4 text-center sm:text-left">
-                <p className="text-[10px] text-text-muted italic opacity-40">
-                  Initial execution log pending...
-                </p>
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {activeTab === "scheduling" && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              {/* Scheduling Window */}
+              <div className="rounded-3xl border border-border bg-surface-mutes/50 p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">
+                      Scheduling Window
+                    </p>
+                    <p className="mt-2 text-[10px] leading-5 text-text-muted/70 uppercase font-black tracking-widest">
+                      Temporal Execution Bounds
+                    </p>
+                  </div>
+                  <div
+                    className={`rounded-2xl border px-3 py-2 text-[10px] font-black uppercase tracking-[0.18em] ${
+                      schedule.bucket === "today"
+                        ? "border-emerald-400/20 bg-emerald-400/10 text-emerald-200"
+                        : schedule.bucket === "carryover"
+                          ? "border-amber-400/20 bg-amber-400/10 text-amber-200"
+                          : schedule.bucket === "overdue"
+                            ? "border-rose-400/20 bg-rose-400/10 text-rose-200"
+                            : "border-border bg-surface-mutes/20 text-text-main"
+                    }`}
+                  >
+                    {schedule.statusLabel}
+                  </div>
+                </div>
+
+                <div className="grid gap-4 2xl:grid-cols-2">
+                  <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted mb-4">
+                      Date Configuration
+                    </p>
+                    <div className="grid gap-4">
+                      <label className="space-y-1">
+                        <span className="text-[9px] font-black uppercase tracking-[0.16em] text-text-muted ml-1">
+                          Scheduled
+                        </span>
+                        <input
+                          type="date"
+                          value={schedule.scheduledDate || ""}
+                          onChange={(event) => handleScheduleDateChange(event.target.value)}
+                          className="w-full rounded-xl border border-border bg-surface-mutes/50 px-3 py-2.5 text-xs text-text-main outline-none focus:border-brand-primary/40"
+                          disabled={isCompleted}
+                        />
+                      </label>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <span className="text-[9px] font-black uppercase tracking-[0.16em] text-text-muted ml-1">
+                            Due
+                          </span>
+                          <div className="rounded-xl border border-border bg-surface-mutes/50 px-3 py-2.5 text-xs text-text-main">
+                            {schedule.dueDate ? dayjs(schedule.dueDate).format("MMM DD, YYYY") : "None"}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-[9px] font-black uppercase tracking-[0.16em] text-text-muted ml-1">
+                            Recurrence
+                          </span>
+                          <Select value={schedule.recurrence} onValueChange={handleRecurrenceChange} disabled={isCompleted}>
+                            <SelectTrigger className="h-[38px] rounded-xl border-border bg-surface-mutes/50 text-xs text-text-main">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">None</SelectItem>
+                              <SelectItem value="daily">Daily</SelectItem>
+                              <SelectItem value="weekly">Weekly</SelectItem>
+                              <SelectItem value="monthly">Monthly</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                      
+                      {schedule.recurrence === "weekly" && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {weekdayOptions.map((opt) => (
+                            <button
+                              key={opt.value}
+                              onClick={() => handleWeeklyDayToggle(opt.value)}
+                              className={`w-9 h-9 rounded-lg border text-[9px] font-black transition-all ${
+                                schedule.weeklyDays.includes(opt.value)
+                                  ? "bg-brand-primary border-brand-primary text-white"
+                                  : "bg-surface-mutes/50 border-border text-text-muted hover:border-border"
+                              }`}
+                            >
+                              {opt.label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted mb-4">
+                      Control Actions
+                    </p>
+                    <div className="grid gap-3">
+                      <button
+                        onClick={handleTodayCommitmentToggle}
+                        className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all ${
+                          schedule.isTodayCommitment 
+                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400" 
+                            : "bg-surface-mutes/50 border-border text-text-muted hover:bg-white/10"
+                        }`}
+                      >
+                        <span className="text-[10px] font-bold uppercase tracking-widest">Commit to Today</span>
+                        <FiClock size={14} className={schedule.isTodayCommitment ? "animate-pulse" : ""} />
+                      </button>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => handleQuickReschedule(1)}
+                          className="p-3 rounded-xl border border-border bg-surface-mutes/50 text-[9px] font-bold uppercase tracking-widest text-text-muted hover:bg-white/10 hover:text-text-main transition-all"
+                        >
+                          Tomorrow
+                        </button>
+                        <button
+                          onClick={() => handleQuickReschedule(3)}
+                          className="p-3 rounded-xl border border-border bg-surface-mutes/50 text-[9px] font-bold uppercase tracking-widest text-text-muted hover:bg-white/10 hover:text-text-main transition-all"
+                        >
+                          Defer 3d
+                        </button>
+                      </div>
+
+                      {schedule.recurrence !== "none" && (
+                        <button
+                          onClick={handleRecurringOccurrenceRecord}
+                          disabled={schedule.todayOccurrenceCompleted}
+                          className={`w-full p-3 rounded-xl border transition-all ${
+                            schedule.todayOccurrenceCompleted
+                              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400/50"
+                              : "bg-brand-primary/10 border-brand-primary/30 text-brand-primary hover:bg-brand-primary/20"
+                          }`}
+                        >
+                          <span className="text-[10px] font-bold uppercase tracking-widest">
+                            {schedule.todayOccurrenceCompleted ? "Occurrence Logged" : "Log Occurrence"}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recurrence Pulse Stats */}
+              {schedule.recurrence !== "none" && (
+                <div className="rounded-3xl border border-border bg-surface-mutes/50 p-5">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary mb-6">
+                    Recurrence Pulse
+                  </p>
+                  <div className="grid grid-cols-3 gap-3">
+                    <div className="p-3 rounded-2xl bg-surface-mutes/20 border border-border">
+                      <p className="text-[8px] font-black uppercase text-text-muted mb-1">Period</p>
+                      <p className="text-base font-black text-white">{schedule.completedThisPeriod}/{schedule.requiredThisPeriod || 1}</p>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-surface-mutes/20 border border-border">
+                      <p className="text-[8px] font-black uppercase text-text-muted mb-1">Missed</p>
+                      <p className="text-base font-black text-rose-400">{schedule.missedThisPeriod}</p>
+                    </div>
+                    <div className="p-3 rounded-2xl bg-surface-mutes/20 border border-border">
+                      <p className="text-[8px] font-black uppercase text-text-muted mb-1">Next</p>
+                      <p className="text-[10px] font-bold text-emerald-400 truncate">
+                        {schedule.nextOccurrenceDate ? dayjs(schedule.nextOccurrenceDate).format("ddd, DD") : "Due Today"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "intelligence" && (
+            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+              {/* Focus & Reading Sessions */}
+              <div className="grid gap-4 2xl:grid-cols-2">
+                <div className="rounded-3xl border border-border bg-surface-mutes/50 p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">Focus Flow</p>
+                    <button onClick={() => setShowFocusSession(true)} className="p-2 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-all">
+                      <FiZap size={14} />
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <div className="p-3 rounded-xl bg-surface-mutes/20 text-center">
+                      <p className="text-[8px] font-black text-text-muted uppercase mb-1">Total</p>
+                      <p className="text-sm font-black text-white">{focusMinutesCompleted}m</p>
+                    </div>
+                    <div className="p-3 rounded-xl bg-surface-mutes/20 text-center">
+                      <p className="text-[8px] font-black text-text-muted uppercase mb-1">Target</p>
+                      <p className="text-sm font-black text-white">{readiness.focusMinutesTarget}m</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2 max-h-40 overflow-y-auto no-scrollbar">
+                    {focusSessions.slice(0, 3).map(s => (
+                      <div key={s.id} className="p-2 rounded-lg bg-surface-mutes/50 border border-border flex justify-between items-center text-[10px]">
+                        <span className="font-bold text-text-main">{s.durationMinutes}m focused</span>
+                        <span className="text-text-muted uppercase">{dayjs(s.createdAt).fromNow()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-border bg-surface-mutes/50 p-5">
+                  <div className="flex items-center justify-between mb-4">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary">Reading Log</p>
+                    {shouldShowReadingSession && (
+                      <button onClick={() => setShowReadingSession(true)} className="p-2 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 transition-all">
+                        <FiBookOpen size={14} />
+                      </button>
+                    )}
+                  </div>
+                  <div className="space-y-2 max-h-56 overflow-y-auto no-scrollbar">
+                    {readingLogs.length ? readingLogs.slice(0, 4).map(l => (
+                      <div key={l.id} className="p-2 rounded-lg bg-surface-mutes/50 border border-border flex justify-between items-center text-[10px]">
+                        <span className="font-bold text-text-main">{l.duration}m reading</span>
+                        <span className="text-text-muted uppercase">{dayjs(l.completedAt).fromNow()}</span>
+                      </div>
+                    )) : (
+                      <p className="text-[10px] text-text-muted italic opacity-40 text-center py-8">No reading logs found</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Source Trace & Ledger Summary */}
+              <div className="grid gap-4 2xl:grid-cols-2">
+                <div className="rounded-3xl border border-border bg-surface-mutes/50 p-5">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary mb-4">Source Trace</p>
+                  <div className="p-4 rounded-2xl bg-surface-mutes/20 text-xs leading-relaxed text-text-muted/90">
+                    {sourceInboxItem?.content || sourceInboxItem?.rawInput || "Standalone entry context."}
+                  </div>
+                </div>
+                <div className="rounded-3xl border border-border bg-surface-mutes/50 p-5">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-brand-primary mb-4">Ledger Summary</p>
+                  <div className="space-y-2 max-h-48 overflow-y-auto no-scrollbar">
+                    {taskLedgerLogs.map(log => (
+                      <div key={log.id} className="p-2.5 rounded-xl bg-surface-mutes/50 border border-border flex justify-between items-center text-[10px]">
+                        <span className="font-black text-text-main uppercase tracking-tight truncate mr-4">{log.title}</span>
+                        <span className="text-text-muted shrink-0">{dayjs(log.completedAt).format("MMM D")}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Knowledge Nodes & Execution Timeline */}
+              <div className="grid gap-4 2xl:grid-cols-[0.8fr_1.2fr]">
+                <div className="space-y-3">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted mb-2">Connected Nodes</p>
+                  {linkedNotes.map(n => (
+                    <div key={n.id} className="p-3 rounded-xl bg-surface-base border border-brand-primary/20 flex items-center gap-3">
+                      <FiLink className="text-brand-primary" size={12} />
+                      <span className="text-xs font-bold text-text-main truncate">{n.title}</span>
+                    </div>
+                  ))}
+                  {!isCompleted && (
+                    <button onClick={() => setShowNotePrompt(true)} className="w-full p-4 rounded-2xl border border-dashed border-border text-[9px] font-black uppercase tracking-widest text-text-muted hover:text-brand-primary transition-all">
+                      Connect Library
+                    </button>
+                  )}
+                </div>
+
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-text-muted mb-4">Execution History</p>
+                  <div className="border-l border-border ml-2 pl-6 space-y-4">
+                    {task.activities?.slice(0, 5).map((a, i) => (
+                      <div key={i} className="relative">
+                        <div className="absolute -left-[29px] top-1 w-2 h-2 rounded-full bg-brand-primary shadow-[0_0_8px_rgba(99,102,241,0.5)]" />
+                        <p className="text-[10px] font-black text-text-main uppercase tracking-widest">{a.action}</p>
+                        <p className="text-[8px] text-text-muted uppercase mt-0.5">{dayjs(a.timestamp).format("MMM DD · HH:mm")}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Visual Context */}
+              <div className="pt-4">
+                <ImageGallery parentType="task" parentId={task.id} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
-
       {/* Footer Actions */}
-      <div className="glass border-t border-white/5 p-4 sm:p-5 xl:p-6">
+      <div className="glass border-t border-border p-4 sm:p-5 xl:p-6">
         <button
           onClick={handleMarkDone}
           disabled={isCompleted || isUpdating}
@@ -2159,7 +1829,7 @@ function FocusSummaryCard({
   value: string;
 }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+    <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
         {label}
       </p>
@@ -2247,7 +1917,7 @@ function FocusSessionModal({
         <ReadingMetric label="Signals" value={String(engagementCount)} />
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="rounded-2xl border border-border bg-surface-mutes/50 p-4">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-primary">
           Focus Validation
         </p>
@@ -2257,7 +1927,7 @@ function FocusSessionModal({
         </p>
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+      <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
         <p className="text-sm font-bold text-white">{task.title}</p>
         <p className="mt-2 text-xs leading-5 text-text-muted">
           End the session when you are done. It will be recorded in the task’s
@@ -2291,7 +1961,7 @@ function FocusSessionModal({
         <button
           type="button"
           onClick={onClose}
-          className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
+          className="inline-flex items-center gap-2 rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
         >
           Cancel
         </button>
@@ -2388,7 +2058,7 @@ function ReadingSessionModal({
         <ReadingMetric label="Signals" value={String(engagementCount)} />
       </div>
 
-      <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+      <div className="rounded-2xl border border-border bg-surface-mutes/50 p-4">
         <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-brand-primary">
           Smart Completion
         </p>
@@ -2404,25 +2074,25 @@ function ReadingSessionModal({
           value={sourceTitle}
           onChange={(event) => setSourceTitle(event.target.value)}
           placeholder="Source title"
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-main outline-none"
+          className="rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm text-text-main outline-none"
         />
         <input
           value={sourceUrl}
           onChange={(event) => setSourceUrl(event.target.value)}
           placeholder="Optional source link"
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-main outline-none"
+          className="rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm text-text-main outline-none"
         />
         <input
           value={lastPage}
           onChange={(event) => setLastPage(event.target.value)}
           placeholder="Last page / resume point"
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-main outline-none"
+          className="rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm text-text-main outline-none"
         />
         <input
           value={noteTitle}
           onChange={(event) => setNoteTitle(event.target.value)}
           placeholder="Insight note title"
-          className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-text-main outline-none"
+          className="rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm text-text-main outline-none"
         />
       </div>
 
@@ -2430,14 +2100,14 @@ function ReadingSessionModal({
         value={highlight}
         onChange={(event) => setHighlight(event.target.value)}
         placeholder="Highlight or quote to save..."
-        className="min-h-24 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-text-main outline-none"
+        className="min-h-24 w-full rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm leading-6 text-text-main outline-none"
       />
 
       <textarea
         value={takeaway}
         onChange={(event) => setTakeaway(event.target.value)}
         placeholder="What did you learn from this session?"
-        className="min-h-28 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm leading-6 text-text-main outline-none"
+        className="min-h-28 w-full rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-sm leading-6 text-text-main outline-none"
       />
 
       <div className="flex flex-wrap items-center gap-3">
@@ -2465,7 +2135,7 @@ function ReadingSessionModal({
         <button
           type="button"
           onClick={onClose}
-          className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
+          className="inline-flex items-center gap-2 rounded-2xl border border-border bg-surface-mutes/50 px-4 py-3 text-xs font-bold uppercase tracking-[0.18em] text-text-main transition hover:bg-white/10"
         >
           Cancel
         </button>
@@ -2483,7 +2153,7 @@ function ReadingSessionModal({
 
 function ReadingMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+    <div className="rounded-2xl border border-border bg-surface-mutes/20 p-4">
       <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-text-muted">
         {label}
       </p>
