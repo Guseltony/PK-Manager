@@ -1,5 +1,5 @@
 import { buildAuthCookies, setAuthCookies } from "../../libs/cookie.option.js";
-import { googleOAuthSignIn } from "../../services/auth.services.js";
+import { googleOAuthSignIn, googleNativeSignIn } from "../../services/auth.services.js";
 import { fetchUsrIpandAgent } from "../../utils/userAgent.ip.js";
 import { env } from "../../validators/env.schema.js";
 
@@ -84,6 +84,42 @@ export const authCodeExchange = async (req, res) => {
 
     if (!data) {
       return res.status(400).json({ error: "Error signing in with Google" });
+    }
+
+    const { refreshToken, accessToken, csrfToken, user } = data;
+
+    const cookies = await buildAuthCookies({
+      refreshToken,
+      accessToken,
+      csrfToken,
+    });
+
+    await setAuthCookies(res, cookies);
+
+    return res.status(200).json({
+      data: {
+        refreshToken,
+        accessToken,
+        csrfToken,
+        user,
+      },
+    });
+  } catch (error) {
+    return res.status(401).json({
+      error: error.message,
+    });
+  }
+};
+
+export const googleNativeAuth = async (req, res) => {
+  try {
+    const { userAgent, ip } = await fetchUsrIpandAgent(req);
+    const { idToken } = req.body;
+
+    const data = await googleNativeSignIn(idToken, userAgent, ip);
+
+    if (!data) {
+      return res.status(400).json({ error: "Error signing in with Google Native" });
     }
 
     const { refreshToken, accessToken, csrfToken, user } = data;

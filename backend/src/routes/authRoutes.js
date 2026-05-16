@@ -18,6 +18,7 @@ import { googleAuth } from "../controllers/auth/googleAuth.js";
 import {
   authCallback,
   authCodeExchange,
+  googleNativeAuth,
 } from "../controllers/auth/googleAuthCallback.js";
 import { validateRequest } from "../middlewares/zodValidation.js";
 
@@ -35,6 +36,7 @@ authRoute.post("/gmail", gmailReg);
 authRoute.get("/google", googleAuth);
 authRoute.get("/google/callback", authCallback);
 authRoute.post("/google/exchange", authCodeExchange);
+authRoute.post("/google/native", googleNativeAuth);
 
 authRoute.post("/login", validateRequest(loginSchema, "body"), login);
 
