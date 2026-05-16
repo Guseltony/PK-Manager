@@ -1,9 +1,10 @@
-﻿/* eslint-disable @next/next/no-page-custom-font */
+/* eslint-disable @next/next/no-page-custom-font */
 import type { Metadata } from "next";
 import Script from "next/script";
 
 import "./globals.css";
 import { Providers } from "./providers";
+import { ThemeProvider } from "../components/providers/ThemeProvider";
 
 export const viewport = {
   width: "device-width",
@@ -40,7 +41,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -50,7 +51,14 @@ export default async function RootLayout({
         />
       </head>
       <body className="font-sans antialiased bg-surface-base text-text-main min-h-dvh selection:bg-brand-primary/30 overscroll-none">
-        <Providers>{children}</Providers>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Providers>{children}</Providers>
+        </ThemeProvider>
         <Script
           src="https://accounts.google.com/gsi/client"
           strategy="afterInteractive"
