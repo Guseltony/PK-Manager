@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { FiDownload, FiX, FiSmartphone } from "react-icons/fi";
@@ -92,7 +92,7 @@ export default function InstallPrompt() {
         </div>
         <button
           onClick={() => setExpanded(false)}
-          className="text-text-muted hover:text-text-main bg-white/5 hover:bg-white/10 rounded-full p-1.5 transition-colors"
+          className="text-text-muted hover:text-text-main bg-surface-mutes/50 hover:bg-white/10 rounded-full p-1.5 transition-colors"
           aria-label="Close install prompt"
         >
           <FiX size={14} />

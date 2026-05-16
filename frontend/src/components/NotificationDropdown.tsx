@@ -90,10 +90,10 @@ const NotificationDropdown = () => {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute right-0 mt-3 w-80 md:w-96 overflow-hidden rounded-xl border border-white/10 bg-surface-base shadow-2xl z-50"
+            className="absolute right-0 mt-3 w-80 md:w-96 overflow-hidden rounded-xl border border-border bg-surface-base shadow-2xl z-50"
           >
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/5 bg-surface-soft/50 px-4 py-3">
+            <div className="flex items-center justify-between border-b border-border bg-surface-soft/50 px-4 py-3">
               <h3 className="font-semibold text-text-main">Notifications</h3>
               <div className="flex gap-2">
                 {unreadCount > 0 && (
@@ -131,13 +131,16 @@ const NotificationDropdown = () => {
             )}
 
             {/* List */}
-            <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-white/10">
+            <div className="max-h-[400px] overflow-y-auto scrollbar-thin scrollbar-thumb-surface-mutes">
               {notifications.length > 0 ? (
                 <div className="divide-y divide-white/5">
                   {notifications.map((notification) => (
                     <div
                       key={notification.id}
-                      onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
+                      onClick={() => {
+                        if (!notification.isRead) handleMarkAsRead(notification.id);
+                        setIsOpen(false);
+                      }}
                       className={`group relative flex flex-col gap-1 p-4 transition-colors hover:bg-surface-soft/30 cursor-pointer ${
                         !notification.isRead ? "bg-brand-primary/5" : ""
                       }`}
@@ -197,7 +200,7 @@ const NotificationDropdown = () => {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-white/5 bg-surface-soft/20 px-4 py-2 text-center">
+            <div className="border-t border-border bg-surface-soft/20 px-4 py-2 text-center">
               <button className="text-[11px] font-semibold text-text-muted hover:text-brand-primary transition-colors">
                 View All Notification History
               </button>
