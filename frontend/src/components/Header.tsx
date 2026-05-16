@@ -2,16 +2,13 @@
 
 import Link from "next/link";
 import { IoMdSettings } from "react-icons/io";
-import { FaRegUser } from "react-icons/fa";
-import SignOut from "../utils/SignOut";
 import { AuthResult } from "../libs/auth";
 import PwaInstallIcon from "./PwaInstallIcon";
 import NotificationDropdown from "./NotificationDropdown";
 import Image from "next/image";
+import UserDropdown from "./UserDropdown";
 
 const Header = ({ auth }: { auth: AuthResult }) => {
-  const { authenticated, user } = auth;
-
   return (
     <header className="sticky top-0 z-30 flex h-16 w-full items-center justify-between border-b border-white/5 bg-surface-base/80 px-4 md:px-6 backdrop-blur-md gap-4">
       <div className="flex items-center gap-3 lg:hidden">
@@ -43,30 +40,8 @@ const Header = ({ auth }: { auth: AuthResult }) => {
 
         <div className="h-6 w-px bg-white/5" />
 
-        {/* User Profile */}
-        {authenticated ? (
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="hidden sm:flex flex-col items-end">
-              <span className="text-sm font-semibold text-text-main leading-none">
-                {user?.name}
-              </span>
-              <span className="text-[10px] text-text-muted font-medium uppercase tracking-wider">
-                Free Plan
-              </span>
-            </div>
-            <Link
-              href="/profile"
-              className="relative h-9 w-9 overflow-hidden rounded-full ring-2 ring-white/5 bg-brand-primary/20 flex items-center justify-center flex-shrink-0 hover:ring-brand-primary/50 transition-all"
-            >
-              <FaRegUser className="text-brand-primary" size={16} />
-            </Link>
-            <SignOut />
-          </div>
-        ) : (
-          <div className="h-9 w-9 rounded-full bg-white/5 flex items-center justify-center">
-            <FaRegUser className="text-text-muted" size={16} />
-          </div>
-        )}
+        {/* User Profile Dropdown */}
+        <UserDropdown auth={auth} />
       </div>
     </header>
   );
