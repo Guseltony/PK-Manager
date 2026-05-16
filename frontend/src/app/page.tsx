@@ -20,6 +20,7 @@ import type { Metadata } from "next";
 import { auth } from "@/src/libs/auth";
 
 import LandingNav from "@/src/components/landing/LandingNav";
+import { MobileRedirect } from "@/src/components/MobileRedirect";
 import HeroSection from "@/src/components/landing/HeroSection";
 import FeaturesSection from "@/src/components/landing/FeaturesSection";
 import HowItWorksSection from "@/src/components/landing/HowItWorksSection";
@@ -63,6 +64,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-surface-base text-text-main">
+      <MobileRedirect />
       {/* Sticky navigation — client component for scroll effects */}
       <LandingNav isAuthenticated={isAuthenticated} />
 
