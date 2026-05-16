@@ -23,7 +23,7 @@ export default function LandingNav({ isAuthenticated }: LandingNavProps) {
     <header
       className={`fixed inset-x-0 top-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "border-b border-white/5 bg-surface-base/90 backdrop-blur-xl"
+          ? "border-b border-border bg-surface-base/90 backdrop-blur-xl"
           : "bg-transparent"
       }`}
     >
@@ -79,7 +79,7 @@ export default function LandingNav({ isAuthenticated }: LandingNavProps) {
         {/* Mobile toggle */}
         <button
           onClick={() => setMobileOpen((p) => !p)}
-          className="flex h-9 w-9 items-center justify-center rounded-lg text-text-muted hover:bg-white/5 hover:text-text-main md:hidden"
+          className="flex h-9 w-9 items-center justify-center rounded-lg text-text-muted hover:bg-surface-mutes/50 hover:text-text-main md:hidden"
         >
           {mobileOpen ? <FiX size={20} /> : <FiMenu size={20} />}
         </button>
@@ -87,7 +87,7 @@ export default function LandingNav({ isAuthenticated }: LandingNavProps) {
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="border-t border-white/5 bg-surface-base/95 px-6 py-4 md:hidden">
+        <div className="border-t border-border bg-surface-base/95 px-6 py-4 md:hidden">
           <nav className="flex flex-col gap-4">
             {["Features", "How It Works", "Who It's For"].map((item) => (
               <a
@@ -99,7 +99,7 @@ export default function LandingNav({ isAuthenticated }: LandingNavProps) {
                 {item}
               </a>
             ))}
-            <div className="border-t border-white/5 pt-4">
+            <div className="border-t border-border pt-4">
               <Link
                 href="/sign-in"
                 className="block w-full rounded-xl bg-brand-primary py-3 text-center text-sm font-bold text-white"

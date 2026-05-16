@@ -83,10 +83,10 @@ export default function HowItWorksSection() {
 
                 {/* Step circle */}
                 <div
-                  className={`relative mb-5 flex h-20 w-20 items-center justify-center rounded-2xl border border-white/5 ${bg}`}
+                  className={`relative mb-5 flex h-20 w-20 items-center justify-center rounded-2xl border border-border ${bg}`}
                 >
                   <Icon size={28} className={color} />
-                  <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-surface-base border border-white/10 text-[10px] font-bold text-text-muted">
+                  <span className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-surface-base border border-border text-[10px] font-bold text-text-muted">
                     {number.replace("0", "")}
                   </span>
                 </div>

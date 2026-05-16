@@ -3,7 +3,7 @@ import { FiZap, FiGithub, FiTwitter } from "react-icons/fi";
 
 export default function LandingFooter() {
   return (
-    <footer className="border-t border-white/5 bg-surface-soft px-6 py-12">
+    <footer className="border-t border-border bg-surface-soft px-6 py-12">
       <div className="mx-auto max-w-7xl">
         <div className="mb-8 flex flex-col gap-8 md:flex-row md:items-start md:justify-between">
           {/* Brand */}
@@ -62,7 +62,7 @@ export default function LandingFooter() {
         </div>
 
         {/* Bottom bar */}
-        <div className="flex flex-col items-center justify-between gap-4 border-t border-white/5 pt-8 sm:flex-row">
+        <div className="flex flex-col items-center justify-between gap-4 border-t border-border pt-8 sm:flex-row">
           <p className="text-xs text-text-muted/50">
             © {new Date().getFullYear()} PKManager. Built with 🧠 by Gusel-OS.
           </p>
