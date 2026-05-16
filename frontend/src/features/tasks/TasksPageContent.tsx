@@ -95,9 +95,9 @@ export default function TasksPageContent() {
   return (
     <div className="flex flex-col overflow-hidden bg-surface-base relative pb-16 md:pb-0">
       {/* Top Filter Tabs - Ledger Style */}
-      <div className="w-full bg-surface-soft border-b border-white/5 px-4 md:px-8 py-2 shrink-0 overflow-x-auto custom-scrollbar">
+      <div className="w-full bg-surface-soft border-b border-border px-4 md:px-8 py-2 shrink-0 overflow-x-auto custom-scrollbar">
         <div className="flex items-center gap-2 min-w-max">
-          <div className="flex bg-white/5 p-1 rounded-lg border border-white/5">
+          <div className="flex bg-surface-mutes/50 p-1 rounded-lg border border-border">
             {filters.map((f) => (
               <button
                 key={f.id}
@@ -105,7 +105,7 @@ export default function TasksPageContent() {
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-md text-[9px] font-bold transition-all ${
                   filter === f.id
                     ? "bg-brand-primary text-white shadow-lg shadow-brand-primary/20"
-                    : "text-text-muted hover:text-text-main hover:bg-white/5"
+                    : "text-text-muted hover:text-text-main hover:bg-surface-mutes/50"
                 }`}
               >
                 <f.icon
@@ -129,100 +129,105 @@ export default function TasksPageContent() {
       </div>
 
       <div className="flex flex-1 flex-col overflow-hidden relative">
-        {/* Main Engine: Execution Layer */}
-        <div className={mainContainerClass}>
-          <div className="px-3 py-2 md:px-8 md:py-3 border-b border-white/5 space-y-1 md:space-y-2 shrink-0">
-            <div className="relative group">
-              <div className="grid grid-cols-3 md:grid-cols-3 xl:grid-cols-6 gap-2">
-                <TaskOverviewCard
-                  label="Today"
-                  value={String(dueTodayCount)}
-                  icon={<FiClock size={10} className="md:size-3" />}
-                />
-                <TaskOverviewCard
-                  label="Carryover"
-                  value={String(carryoverCount)}
-                  icon={<FiCornerDownRight size={10} className="md:size-3" />}
-                  tone="warm"
-                />
-                <TaskOverviewCard
-                  label="Overdue"
-                  value={String(overdueCount)}
-                  icon={<FiAlertCircle size={10} className="md:size-3" />}
-                  tone="danger"
-                />
-                <TaskOverviewCard
-                  label="In Motion"
-                  value={String(inProgressCount)}
-                  icon={<FiTrendingUp size={10} className="md:size-3" />}
-                  tone="warm"
-                />
-                <TaskOverviewCard
-                  label="Blocked"
-                  value={String(blockedCount)}
-                  icon={<FiTarget size={10} className="md:size-3" />}
-                  tone="danger"
-                />
-                <TaskOverviewCard
-                  label="Focus"
-                  value={`${focusMinutesToday}m`}
-                  icon={<FiZap size={10} className="md:size-3" />}
-                  tone="brand"
-                />
+        {/* Main Task Perspective: Dashboard + List (Centralized) */}
+        {!selectedTaskId && (
+          <div className="flex-1 flex flex-col overflow-hidden w-full max-w-6xl mx-auto">
+            <div className="flex flex-col border-b border-border shrink-0 px-4 py-3 md:px-8 md:py-4 space-y-2 md:space-y-4">
+              <div className="relative group">
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-2 md:gap-3">
+                  <TaskOverviewCard
+                    label="Today"
+                    value={String(dueTodayCount)}
+                    icon={<FiClock size={10} className="md:size-3" />}
+                  />
+                  <TaskOverviewCard
+                    label="Carryover"
+                    value={String(carryoverCount)}
+                    icon={<FiCornerDownRight size={10} className="md:size-3" />}
+                    tone="warm"
+                  />
+                  <TaskOverviewCard
+                    label="Overdue"
+                    value={String(overdueCount)}
+                    icon={<FiAlertCircle size={10} className="md:size-3" />}
+                    tone="danger"
+                  />
+                  <TaskOverviewCard
+                    label="In Motion"
+                    value={String(inProgressCount)}
+                    icon={<FiTrendingUp size={10} className="md:size-3" />}
+                    tone="warm"
+                  />
+                  <TaskOverviewCard
+                    label="Blocked"
+                    value={String(blockedCount)}
+                    icon={<FiTarget size={10} className="md:size-3" />}
+                    tone="danger"
+                  />
+                  <TaskOverviewCard
+                    label="Focus"
+                    value={`${focusMinutesToday}m`}
+                    icon={<FiZap size={10} className="md:size-3" />}
+                    tone="brand"
+                  />
+                </div>
               </div>
-            </div>
-          </div>
 
-          <div className="flex items-center md:justify-between gap-2 px-4 md:px-8 ">
-            <div className="flex items-center gap-0.5 md:gap-1 rounded-xl border border-white/10 bg-white/5 p-0.5 overflow-x-auto custom-scrollbar max-w-[calc(100%-80px)] md:max-w-none">
-              {[
-                { id: "smart", label: "Smart" },
-                { id: "dream", label: "Dream" },
-                { id: "priority", label: "Priority" },
-                { id: "execution", label: "Execution" },
-              ].map((option) => (
-                <button
-                  key={option.id}
-                  type="button"
-                  onClick={() =>
-                    setGroupBy(
-                      option.id as "smart" | "dream" | "priority" | "execution",
-                    )
-                  }
-                  className={`rounded-lg px-2 py-1 md:px-2.5 text-[7px] md:text-[8px] font-black uppercase tracking-widest md:tracking-[0.18em] transition whitespace-nowrap ${
-                    groupBy === option.id
-                      ? "bg-brand-primary text-white"
-                      : "text-text-muted hover:text-text-main"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
+              <div className="flex items-center md:justify-between gap-2">
+                <div className="flex items-center gap-0.5 md:gap-1 rounded-xl border border-border bg-surface-mutes/50 p-0.5 overflow-x-auto custom-scrollbar max-w-[calc(100%-80px)] md:max-w-none">
+                  {[
+                    { id: "smart", label: "Smart" },
+                    { id: "dream", label: "Dream" },
+                    { id: "priority", label: "Priority" },
+                    { id: "execution", label: "Execution" },
+                  ].map((option) => (
+                    <button
+                      key={option.id}
+                      type="button"
+                      onClick={() =>
+                        setGroupBy(
+                          option.id as "smart" | "dream" | "priority" | "execution",
+                        )
+                      }
+                      className={`rounded-lg px-2 py-1 md:px-2.5 text-[7px] md:text-[8px] font-black uppercase tracking-widest md:tracking-[0.18em] transition whitespace-nowrap ${
+                        groupBy === option.id
+                          ? "bg-brand-primary text-white"
+                          : "text-text-muted hover:text-text-main"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                <div className="inline-flex items-center gap-1 md:gap-1.5 rounded-xl border border-border bg-surface-mutes/20 px-1.5 md:px-2.5 py-1 text-[7px] md:text-[8px] font-black uppercase tracking-widest md:tracking-[0.18em] text-text-main shrink-0">
+                  <FiLayers size={10} className="text-brand-primary" />
+                  <span>Execution view</span>
+                </div>
+              </div>
+              <TaskQuickAdd />
             </div>
-            <div className="inline-flex items-center gap-1 md:gap-1.5 rounded-xl border border-white/10 bg-black/20 px-1.5 md:px-2.5 py-1 text-[7px] md:text-[8px] font-black uppercase tracking-widest md:tracking-[0.18em] text-text-main shrink-0">
-              <FiLayers size={10} className="text-brand-primary" />
-              <span>Execution view</span>
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-8 py-4">
+              <TaskListView
+                activeFilter={filter}
+                groupBy={groupBy}
+                selectedTaskId={selectedTaskId}
+                onTaskSelect={setSelectedTaskId}
+              />
             </div>
           </div>
-          <TaskQuickAdd />
-        </div>
-        <div className="flex-1 overflow-y-auto custom-scrollbar px-4 md:px-8 py-2">
-          <TaskListView
-            activeFilter={filter}
-            groupBy={groupBy}
-            selectedTaskId={selectedTaskId}
-            onTaskSelect={setSelectedTaskId}
-          />
-        </div>
+        )}
+
+        {/* Deep Focus Perspective: Detail View (Centralized) */}
+        {selectedTaskId && (
+          <div className="flex-1 flex flex-col overflow-hidden bg-surface-base w-full max-w-5xl mx-auto px-4 md:px-0">
+            <TaskDetailView
+              taskId={selectedTaskId}
+              onClose={() => setSelectedTaskId(null)}
+            />
+          </div>
+        )}
       </div>
-
-      {/* Right Layer: Deep Context & Analytics */}
-      {selectedTaskId && (
-        <TaskDetailView
-          taskId={selectedTaskId}
-          onClose={() => setSelectedTaskId(null)}
-        />
-      )}
     </div>
   );
 }
@@ -245,10 +250,10 @@ function TaskOverviewCard({
         ? "border-rose-400/20 bg-rose-400/10 text-rose-300"
         : tone === "warm"
           ? "border-amber-400/20 bg-amber-400/10 text-amber-300"
-          : "border-white/10 bg-white/5 text-text-main";
+          : "border-border bg-surface-mutes/50 text-text-main";
 
   return (
-    <div className="rounded-2xl border border-white/5 bg-surface-soft/70 px-2 py-1.5 md:px-3 md:py-2">
+    <div className="rounded-2xl border border-border bg-surface-soft/70 px-2 py-1.5 md:px-3 md:py-2">
       <div className="flex items-center justify-between gap-1.5 md:gap-2">
         <div>
           <p className="text-[7px] md:text-[8px] font-black uppercase tracking-[0.1em] text-text-muted whitespace-nowrap">
