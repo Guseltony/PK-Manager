@@ -1,4 +1,4 @@
-import fs from "node:fs";
+﻿import fs from "node:fs";
 import path from "node:path";
 
 const root = path.resolve(process.cwd());
@@ -45,4 +45,5 @@ if (!fs.existsSync(indexPath)) {
 }
 
 console.log(`Capacitor webDir ready: ${path.relative(root, indexPath)}`);
+
 

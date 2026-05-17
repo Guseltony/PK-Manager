@@ -1,16 +1,20 @@
-// This file no longer uses "use server" because static exports (Android APK) don't support Server Actions.
+﻿// This file no longer uses "use server" because static exports (Android APK) don't support Server Actions.
 // These functions are now regular client-side functions that call the backend directly.
-
 
 import { AuthActionResult } from "@/src/type/type";
 import { loginSchema, registerSchema } from "./schema";
 import { BACKEND_URL } from "@/src/constants/constants";
+import { isNativeRuntime, setTokens } from "@/src/libs/nativeTokens";
 
+function getProxyUrl() {
+  return process.env.NODE_ENV === "development" ? "/local-api" : BACKEND_URL;
+}
 
+function nativeHeaders(): Record<string, string> {
+  return isNativeRuntime() ? { "x-client": "native" } : {};
+}
 
-export async function registerAction(
-  formData: FormData,
-): Promise<AuthActionResult> {
+export async function registerAction(formData: FormData): Promise<AuthActionResult> {
   const rawData = {
     firstName: formData.get("firstName"),
     lastName: formData.get("lastName"),
@@ -33,10 +37,13 @@ export async function registerAction(
   }
 
   try {
-    const proxyUrl = process.env.NODE_ENV === "development" ? "/local-api" : BACKEND_URL;
+    const proxyUrl = getProxyUrl();
     const res = await fetch(`${proxyUrl}/auth/register`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...nativeHeaders(),
+      },
       body: JSON.stringify({ name: `${firstName} ${lastName}`, email, password }),
       credentials: "include",
     });
@@ -45,14 +52,27 @@ export async function registerAction(
       const errorData = await res.json().catch(() => ({}));
       return {
         success: false,
-        message: errorData.message || errorData.error || "Registration failed. Please try again.",
+        message:
+          errorData.message ||
+          errorData.error ||
+          "Registration failed. Please try again.",
       };
     }
 
     const data = await res.json();
+    if (data?.data?.accessToken || data?.data?.refreshToken) {
+      setTokens({
+        accessToken: data.data.accessToken,
+        refreshToken: data.data.refreshToken,
+      });
+    }
+
     return { success: true, csrfToken: data.data?.csrfToken || data.csrfToken };
   } catch {
-    return { success: false, message: "Cannot connect to server. Please try again later." };
+    return {
+      success: false,
+      message: "Cannot connect to server. Please try again later.",
+    };
   }
 }
 
@@ -78,10 +98,13 @@ export async function loginAction(
   }
 
   try {
-    const proxyUrl = process.env.NODE_ENV === "development" ? "/local-api" : BACKEND_URL;
+    const proxyUrl = getProxyUrl();
     const res = await fetch(`${proxyUrl}/auth/login`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...nativeHeaders(),
+      },
       body: JSON.stringify({ email, password }),
       credentials: "include",
     });
@@ -95,18 +118,28 @@ export async function loginAction(
     }
 
     const data = await res.json();
+    if (data?.data?.accessToken || data?.data?.refreshToken) {
+      setTokens({
+        accessToken: data.data.accessToken,
+        refreshToken: data.data.refreshToken,
+      });
+    }
+
     return { success: true, csrfToken: data.data?.csrfToken || data.csrfToken };
   } catch {
-    return { success: false, message: "Cannot connect to server. Please try again later." };
+    return {
+      success: false,
+      message: "Cannot connect to server. Please try again later.",
+    };
   }
 }
 
 export async function logOutAction(): Promise<AuthActionResult> {
   try {
-    const proxyUrl = process.env.NODE_ENV === "development" ? "/local-api" : BACKEND_URL;
+    const proxyUrl = getProxyUrl();
     const res = await fetch(`${proxyUrl}/auth/logout`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...nativeHeaders() },
       credentials: "include",
     });
 
@@ -120,6 +153,10 @@ export async function logOutAction(): Promise<AuthActionResult> {
 
     return { success: true };
   } catch {
-    return { success: false, message: "Cannot connect to server. Please try again later." };
+    return {
+      success: false,
+      message: "Cannot connect to server. Please try again later.",
+    };
   }
 }
+

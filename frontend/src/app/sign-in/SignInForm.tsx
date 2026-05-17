@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -9,6 +9,7 @@ import { FcGoogle } from "react-icons/fc";
 import { loginSchema, registerSchema, type RegisterFormData, type LoginFormData } from "./schema";
 import { loginAction, registerAction } from "./actions";
 import { setManualCsrfToken } from "@/src/libs/api";
+import { setTokens } from "@/src/libs/nativeTokens";
 import Image from "next/image";
 import { SocialLogin } from "@capgo/capacitor-social-login";
 import { useIsMobile } from "@/src/hooks/useIsMobile";
@@ -133,21 +134,18 @@ export default function SignInForm() {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ idToken: googleResult.idToken }),
+              credentials: "include",
             });
-
-            if (response.ok) {
               const body = await response.json();
               if (body.data?.csrfToken) {
                 setManualCsrfToken(body.data.csrfToken);
               }
-              router.push("/dashboard");
-              return;
-            } else {
-              const errData = await response.json();
-              console.error("Backend Native Auth Error:", errData);
-              setServerError(errData.error || "Server failed to verify Google account");
-            }
-          } else if (googleResult.responseType === "offline") {
+              if (body.data?.accessToken || body.data?.refreshToken) {
+                setTokens({
+                  accessToken: body.data.accessToken,
+                  refreshToken: body.data.refreshToken,
+                });
+              }
              setServerError("Offline login mode not supported yet");
           } else {
             console.error("Unexpected Google login result:", googleResult);
@@ -347,7 +345,7 @@ export default function SignInForm() {
           {errors.password && <p className="text-xs text-red-400">{errors.password.message}</p>}
         </div>
 
-        {/* Terms Checkbox — Register only */}
+        {/* Terms Checkbox â€” Register only */}
         {!isLogin && (
           <div className="flex flex-col gap-1">
             <label className="flex cursor-pointer items-center gap-2.5 text-sm text-text-muted">
@@ -414,3 +412,5 @@ export default function SignInForm() {
     </div>
   );
 }
+
+

@@ -1,4 +1,4 @@
-import {
+﻿import {
   googleSignIn,
   loginUser,
   registerUser,
@@ -48,6 +48,7 @@ export const register = async (req, res) => {
           ...user,
           role: "user",
           csrfToken,
+          ...(req.headers["x-client"] === "native" ? { accessToken, refreshToken } : {}),
         },
       });
     }
@@ -98,6 +99,7 @@ export const gmailReg = async (req, res) => {
           ...user,
           role: "user",
           csrfToken,
+          ...(req.headers["x-client"] === "native" ? { accessToken, refreshToken } : {}),
         },
       });
     }
@@ -141,6 +143,7 @@ export const login = async (req, res) => {
         role: "user",
         session: user.session,
         csrfToken,
+        ...(req.headers["x-client"] === "native" ? { accessToken, refreshToken } : {}),
       },
     });
   } catch (error) {
@@ -179,3 +182,5 @@ export const logout = async (req, res) => {
 };
 
 // DON'T FORGET TO REMOVE THE TOKEN FROM RES AND THE VARIABLE
+
+

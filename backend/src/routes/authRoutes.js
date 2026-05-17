@@ -1,4 +1,4 @@
-// /register
+﻿// /register
 //   / login
 //   / logout
 // /me
@@ -12,7 +12,7 @@ import {
 } from "../controllers/authControllers.js";
 import { loginSchema, registerUserSchema } from "../validators/auth.schema.js";
 import { deleteAllUser } from "../services/admin.services.js";
-import { refresh } from "../controllers/auth/tokenRefresh.controller.js";
+import { refresh, refreshNative } from "../controllers/auth/tokenRefresh.controller.js";
 import { csrfMiddleware } from "../middlewares/csrfMiddleware.js";
 import { googleAuth } from "../controllers/auth/googleAuth.js";
 import {
@@ -41,9 +41,11 @@ authRoute.post("/google/native", googleNativeAuth);
 authRoute.post("/login", validateRequest(loginSchema, "body"), login);
 
 authRoute.post("/refresh", refresh);
+authRoute.post("/refresh-native", refreshNative);
 
 authRoute.post("/logout", csrfMiddleware, logout);
 
 authRoute.get("/", deleteAllUser);
 
 export { authRoute };
+

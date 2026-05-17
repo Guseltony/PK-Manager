@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "348593533185",
+    "project_id": "pkm-app-8aac6",
+    "storage_bucket": "pkm-app-8aac6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:348593533185:android:b82a5b826216830ce52b00",
+        "android_client_info": {
+          "package_name": "com.anthony.pkm"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIYRjDkFGIyiffjYN09MGoG4kbrOBtvZw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
