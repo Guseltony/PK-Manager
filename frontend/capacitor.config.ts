@@ -20,9 +20,6 @@ const config: CapacitorConfig = {
         webClientId: '1069048826472-1c3nmurr51nv8cq6di0smp99vs3gq6gg.apps.googleusercontent.com',
       },
     },
-    CapacitorHttp: {
-      enabled: true,
-    },
     CapacitorCookies: {
       enabled: true,
     },

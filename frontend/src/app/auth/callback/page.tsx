@@ -109,31 +109,13 @@ function AuthCallbackContent() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-surface-base">
-      <div className="relative mb-8">
-        <div className="absolute inset-0 -m-4 animate-ping rounded-full border-2 border-brand-primary/20 opacity-75" />
-        <div className="absolute inset-0 -m-8 animate-pulse rounded-full border-2 border-brand-primary/10 opacity-50" />
-        <div className="relative h-24 w-24 overflow-hidden rounded-2xl bg-surface-soft p-4 shadow-2xl ring-1 ring-white/10">
-           <Image
-            src="/icon.png"
-            alt="PKM Logo"
-            width={96}
-            height={96}
-            priority
-            className="h-full w-full object-contain"
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col items-center gap-2 text-center">
-        <h2 className="text-xl font-bold tracking-tight text-text-main">Authenticating</h2>
-        <div className="flex items-center gap-1">
-          <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand-primary [animation-delay:-0.3s]" />
-          <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand-primary [animation-delay:-0.15s]" />
-          <div className="h-1.5 w-1.5 animate-bounce rounded-full bg-brand-primary" />
-        </div>
-        <p className="mt-4 text-sm font-medium text-text-muted">{status}</p>
-      </div>
+    <div className="fixed inset-0 bg-surface-base flex items-center justify-center">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src="/pkmlogo.png"
+        alt="PK-Manager"
+        className="w-24 h-24 object-contain animate-pulse"
+      />
     </div>
   );
 }
