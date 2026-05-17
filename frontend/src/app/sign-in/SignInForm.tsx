@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -17,7 +17,6 @@ export default function SignInForm() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
   const loginForm = useForm<LoginFormData>({
@@ -31,7 +30,7 @@ export default function SignInForm() {
   });
 
   const activeForm = isLogin ? loginForm : registerForm;
-  const { formState: { errors } } = activeForm;
+  const { formState: { errors, isSubmitting } } = activeForm;
 
   const handleLogin = async (data: LoginFormData) => {
     setServerError(null);
@@ -112,10 +111,15 @@ export default function SignInForm() {
         const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
         console.log("Starting Native Google Login with Client ID:", googleClientId);
 
+        await SocialLogin.initialize({
+          google: {
+            webClientId: googleClientId || "",
+          },
+        });
+
         const result = await SocialLogin.login({
           provider: "google",
           options: {
-            // webClientId is handled via capacitor.config.ts
             scopes: ["email", "profile"],
           },
         });
@@ -181,13 +185,11 @@ export default function SignInForm() {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setServerError(null);
-    startTransition(() => {
-      if (isLogin) {
-        loginForm.handleSubmit(handleLogin)(e as React.BaseSyntheticEvent);
-      } else {
-        registerForm.handleSubmit(handleRegister)(e as React.BaseSyntheticEvent);
-      }
-    });
+    if (isLogin) {
+      loginForm.handleSubmit(handleLogin)(e as React.BaseSyntheticEvent);
+    } else {
+      registerForm.handleSubmit(handleRegister)(e as React.BaseSyntheticEvent);
+    }
   };
 
   const switchMode = () => {
@@ -366,10 +368,10 @@ export default function SignInForm() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={isPending}
+          disabled={isSubmitting}
           className="mt-1 w-full cursor-pointer rounded-xl bg-brand-primary py-3 text-sm font-bold text-white shadow-lg shadow-brand-primary/25 transition-all hover:bg-brand-primary/90 hover:shadow-brand-primary/40 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-70"
         >
-          {isPending ? (
+          {isSubmitting ? (
             <span className="flex items-center justify-center gap-2">
               <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

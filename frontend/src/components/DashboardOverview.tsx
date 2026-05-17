@@ -49,7 +49,7 @@ function NeonProgressRing({ progress, size = 60, strokeWidth = 6, color = "#10b9
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="rgba(255, 255, 255, 0.1)"
+          stroke="var(--border)"
           strokeWidth={strokeWidth}
           fill="transparent"
         />
@@ -99,10 +99,10 @@ function KnowledgeHeatmap({ notes }: { notes: Note[] }) {
       <p className="text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
         <FiTrendingUp className="text-brand-primary" /> 28-Day Knowledge Heatmap
       </p>
-      <div className="grid grid-cols-7 gap-2 bg-surface-base/50 p-4 rounded-2xl border border-white/5">
+      <div className="grid grid-cols-7 gap-2 bg-surface-base/50 p-4 rounded-2xl border border-border/50">
         {days.map((day, i) => {
           const count = counts[i];
-          const intensity = count === 0 ? "bg-white/5 border-white/5" : count / maxCount > 0.5 ? "bg-brand-primary border-brand-primary/50 shadow-[0_0_12px_rgba(99,102,241,0.5)] text-white" : "bg-brand-primary/40 border-brand-primary/30 text-white";
+          const intensity = count === 0 ? "bg-surface-base border-border/50" : count / maxCount > 0.5 ? "bg-brand-primary border-brand-primary/50 shadow-[0_0_12px_rgba(99,102,241,0.5)] text-white" : "bg-brand-primary/40 border-brand-primary/30 text-white";
           return (
             <div
               key={day.format("YYYY-MM-DD")}
@@ -125,7 +125,7 @@ function MiniConnectionGraph({ notes }: { notes: Note[] }) {
       <p className="text-xs font-semibold text-text-muted uppercase tracking-wider flex items-center gap-2">
         <FiShare2 className="text-brand-secondary" /> Second Brain Graph Preview
       </p>
-      <div className="h-40 bg-surface-base/50 rounded-2xl border border-white/5 p-4 relative overflow-hidden flex items-center justify-center">
+      <div className="h-40 bg-surface-base/50 rounded-2xl border border-border/50 p-4 relative overflow-hidden flex items-center justify-center">
         <div className="absolute w-12 h-12 rounded-full bg-brand-primary/20 border border-brand-primary/40 flex items-center justify-center text-brand-primary font-bold text-xs shadow-[0_0_15px_rgba(99,102,241,0.3)] z-10 animate-pulse">
           CORE
         </div>
@@ -137,7 +137,7 @@ function MiniConnectionGraph({ notes }: { notes: Note[] }) {
           return (
             <motion.div
               key={note.id}
-              className="absolute w-10 h-10 rounded-full bg-surface-soft border border-white/20 flex items-center justify-center text-[9px] text-text-main font-medium p-1 text-center shadow-lg hover:border-brand-secondary hover:scale-125 transition-all cursor-pointer z-20"
+              className="absolute w-10 h-10 rounded-full bg-surface-soft border border-border flex items-center justify-center text-[9px] text-text-main font-medium p-1 text-center shadow-lg hover:border-brand-secondary hover:scale-125 transition-all cursor-pointer z-20"
               style={{ x, y }}
               initial={{ opacity: 0, scale: 0 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -161,7 +161,7 @@ function MiniConnectionGraph({ notes }: { notes: Note[] }) {
                 y1="50%"
                 x2={x}
                 y2={y}
-                stroke="rgba(255,255,255,0.1)"
+                stroke="var(--border)"
                 strokeWidth="1.5"
                 strokeDasharray="3 3"
               />
@@ -200,7 +200,7 @@ function StatCard({
     <NextLink
       href={href}
       className={`block bg-surface-base/40 backdrop-blur-md border rounded-2xl p-4 md:p-5 transition-all group relative overflow-hidden hover:border-brand-primary/50 hover:shadow-[0_0_20px_rgba(99,102,241,0.15)] hover:-translate-y-1 ${
-        warning ? "border-amber-400/30 bg-amber-400/5" : "border-white/10"
+        warning ? "border-amber-400/30 bg-amber-400/5" : "border-border"
       }`}
     >
       <div className="flex items-center justify-between mb-3 relative z-10">
@@ -223,7 +223,7 @@ function StatCard({
         {sparkline.map((point, index) => (
           <span
             key={`${label}-spark-${index}`}
-            className={`block w-1.5 rounded-full transition-all duration-300 ${warning ? "bg-amber-400/60 group-hover:bg-amber-400" : "bg-white/20 group-hover:bg-brand-primary/60"}`}
+            className={`block w-1.5 rounded-full transition-all duration-300 ${warning ? "bg-amber-400/60 group-hover:bg-amber-400" : "bg-surface-soft group-hover:bg-brand-primary/60"}`}
             style={{ height: `${Math.max(8, point * 8)}px` }}
           />
         ))}
@@ -416,7 +416,7 @@ export default function DashboardOverview() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-surface-soft/40 border border-white/10 p-4 rounded-2xl backdrop-blur-xl shadow-lg"
+          className="bg-surface-soft/40 border border-border p-4 rounded-2xl backdrop-blur-xl shadow-lg"
         >
           <GlobalTagFilter />
         </motion.div>
@@ -428,7 +428,7 @@ export default function DashboardOverview() {
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="md:col-span-2 lg:col-span-2 bg-surface-soft/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 lg:p-8 relative overflow-hidden group hover:border-brand-primary/50 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] transition-all duration-500 flex flex-col justify-between"
+            className="md:col-span-2 lg:col-span-2 bg-surface-soft/60 backdrop-blur-xl border border-border rounded-3xl p-6 lg:p-8 relative overflow-hidden group hover:border-brand-primary/50 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] transition-all duration-500 flex flex-col justify-between"
           >
             <div className="absolute -right-20 -top-20 w-60 h-60 bg-brand-primary/20 rounded-full blur-3xl group-hover:bg-brand-primary/30 transition-all duration-500 pointer-events-none" />
             <div className="absolute -left-20 -bottom-20 w-60 h-60 bg-brand-secondary/20 rounded-full blur-3xl group-hover:bg-brand-secondary/30 transition-all duration-500 pointer-events-none" />
@@ -445,11 +445,11 @@ export default function DashboardOverview() {
               </p>
             </div>
 
-            <div className="relative z-10 flex flex-wrap gap-3 pt-4 border-t border-white/10">
+            <div className="relative z-10 flex flex-wrap gap-3 pt-4 border-t border-border">
               <NextLink href="/journal" className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary/90 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-brand-primary/25 transition-all active:scale-[0.98] text-sm">
                 <FiBookOpen /> Write Journal
               </NextLink>
-              <NextLink href="/tasks" className="flex items-center gap-2 bg-surface-mutes/80 hover:bg-white/10 border border-white/10 text-text-main font-bold px-5 py-2.5 rounded-xl transition-all active:scale-[0.98] text-sm">
+              <NextLink href="/tasks" className="flex items-center gap-2 bg-surface-mutes/80 hover:bg-surface-soft border border-border text-text-main font-bold px-5 py-2.5 rounded-xl transition-all active:scale-[0.98] text-sm">
                 <FiPlus strokeWidth={3} /> New Task
               </NextLink>
             </div>
@@ -460,7 +460,7 @@ export default function DashboardOverview() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.1 }}
-            className="bg-surface-soft/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 flex flex-col items-center justify-center relative group hover:border-brand-secondary/50 hover:shadow-[0_0_30px_rgba(14,165,233,0.15)] transition-all duration-500 text-center"
+            className="bg-surface-soft/60 backdrop-blur-xl border border-border rounded-3xl p-6 flex flex-col items-center justify-center relative group hover:border-brand-secondary/50 hover:shadow-[0_0_30px_rgba(14,165,233,0.15)] transition-all duration-500 text-center"
           >
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-secondary mb-4 flex items-center gap-1.5">
               <FiCpu className="animate-pulse" /> AI Insight Orb
@@ -491,25 +491,25 @@ export default function DashboardOverview() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.15 }}
-            className="bg-surface-soft/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 relative group hover:border-white/20 transition-all duration-500 flex flex-col justify-between"
+            className="bg-surface-soft/60 backdrop-blur-xl border border-border rounded-3xl p-6 relative group hover:border-border transition-all duration-500 flex flex-col justify-between"
           >
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-text-muted mb-3 flex items-center gap-1.5">
               <FiZap className="text-amber-400" /> Quick Action Hub
             </p>
             <div className="grid grid-cols-2 gap-3 my-auto">
-              <NextLink href="/notes?new=true" className="flex flex-col items-center justify-center gap-2 p-3 bg-surface-base/50 hover:bg-brand-primary/20 border border-white/5 hover:border-brand-primary/40 rounded-2xl transition-all group/btn">
+              <NextLink href="/notes?new=true" className="flex flex-col items-center justify-center gap-2 p-3 bg-surface-base/50 hover:bg-brand-primary/20 border border-border/50 hover:border-brand-primary/40 rounded-2xl transition-all group/btn">
                 <FiFileText className="text-brand-primary text-xl group-hover/btn:scale-110 transition-transform" />
                 <span className="text-xs font-semibold text-text-main">Note</span>
               </NextLink>
-              <NextLink href="/tasks" className="flex flex-col items-center justify-center gap-2 p-3 bg-surface-base/50 hover:bg-brand-secondary/20 border border-white/5 hover:border-brand-secondary/40 rounded-2xl transition-all group/btn">
+              <NextLink href="/tasks" className="flex flex-col items-center justify-center gap-2 p-3 bg-surface-base/50 hover:bg-brand-secondary/20 border border-border/50 hover:border-brand-secondary/40 rounded-2xl transition-all group/btn">
                 <FiCheckSquare className="text-brand-secondary text-xl group-hover/btn:scale-110 transition-transform" />
                 <span className="text-xs font-semibold text-text-main">Task</span>
               </NextLink>
-              <NextLink href="/journal" className="flex flex-col items-center justify-center gap-2 p-3 bg-surface-base/50 hover:bg-amber-500/20 border border-white/5 hover:border-amber-500/40 rounded-2xl transition-all group/btn">
+              <NextLink href="/journal" className="flex flex-col items-center justify-center gap-2 p-3 bg-surface-base/50 hover:bg-amber-500/20 border border-border/50 hover:border-amber-500/40 rounded-2xl transition-all group/btn">
                 <FiBookOpen className="text-amber-400 text-xl group-hover/btn:scale-110 transition-transform" />
                 <span className="text-xs font-semibold text-text-main">Journal</span>
               </NextLink>
-              <NextLink href="/dreams" className="flex flex-col items-center justify-center gap-2 p-3 bg-surface-base/50 hover:bg-emerald-500/20 border border-white/5 hover:border-emerald-500/40 rounded-2xl transition-all group/btn">
+              <NextLink href="/dreams" className="flex flex-col items-center justify-center gap-2 p-3 bg-surface-base/50 hover:bg-emerald-500/20 border border-border/50 hover:border-emerald-500/40 rounded-2xl transition-all group/btn">
                 <FiTarget className="text-emerald-400 text-xl group-hover/btn:scale-110 transition-transform" />
                 <span className="text-xs font-semibold text-text-main">Goal</span>
               </NextLink>
@@ -530,14 +530,14 @@ export default function DashboardOverview() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="md:col-span-2 lg:col-span-2 bg-surface-soft/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 lg:p-8 relative group hover:border-brand-primary/50 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] transition-all duration-500 flex flex-col justify-between"
+            className="md:col-span-2 lg:col-span-2 bg-surface-soft/60 backdrop-blur-xl border border-border rounded-3xl p-6 lg:p-8 relative group hover:border-brand-primary/50 hover:shadow-[0_0_30px_rgba(99,102,241,0.15)] transition-all duration-500 flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-6">
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-brand-primary flex items-center gap-2">
                   <FiZap /> Priority Stack
                 </p>
-                <span className="text-xs font-bold text-text-muted bg-surface-base px-3 py-1 rounded-full border border-white/5">
+                <span className="text-xs font-bold text-text-muted bg-surface-base px-3 py-1 rounded-full border border-border/50">
                   Top 3 Critical
                 </span>
               </div>
@@ -547,7 +547,7 @@ export default function DashboardOverview() {
                   spotlightTasks.map((task) => (
                     <div
                       key={task.id}
-                      className="flex items-center justify-between gap-4 rounded-2xl bg-surface-base/60 border border-white/10 p-4 text-sm text-text-main hover:border-brand-primary/40 transition-all group/task"
+                      className="flex items-center justify-between gap-4 rounded-2xl bg-surface-base/60 border border-border p-4 text-sm text-text-main hover:border-brand-primary/40 transition-all group/task"
                     >
                       <div className="flex items-center gap-3 overflow-hidden">
                         <div className={`w-3 h-3 rounded-full shrink-0 ${task.priority === 'urgent' ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : task.priority === 'high' ? 'bg-amber-500' : 'bg-brand-primary'}`} />
@@ -566,7 +566,7 @@ export default function DashboardOverview() {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 bg-surface-base/40 rounded-2xl border border-white/5">
+                  <div className="text-center py-8 bg-surface-base/40 rounded-2xl border border-border/50">
                     <p className="text-text-muted text-sm">No urgent tasks in your priority stack. 🎉</p>
                   </div>
                 )}
@@ -597,7 +597,7 @@ export default function DashboardOverview() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            className="md:col-span-2 lg:col-span-2 bg-surface-soft/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 lg:p-8 relative group hover:border-brand-secondary/50 hover:shadow-[0_0_30px_rgba(14,165,233,0.15)] transition-all duration-500 flex flex-col justify-between gap-6"
+            className="md:col-span-2 lg:col-span-2 bg-surface-soft/60 backdrop-blur-xl border border-border rounded-3xl p-6 lg:p-8 relative group hover:border-brand-secondary/50 hover:shadow-[0_0_30px_rgba(14,165,233,0.15)] transition-all duration-500 flex flex-col justify-between gap-6"
           >
             <KnowledgeHeatmap notes={filteredNotes} />
             <MiniConnectionGraph notes={filteredNotes} />
@@ -608,7 +608,7 @@ export default function DashboardOverview() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="md:col-span-2 lg:col-span-2 bg-surface-soft/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 lg:p-8 relative group hover:border-emerald-500/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] transition-all duration-500 flex flex-col justify-between"
+            className="md:col-span-2 lg:col-span-2 bg-surface-soft/60 backdrop-blur-xl border border-border rounded-3xl p-6 lg:p-8 relative group hover:border-emerald-500/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] transition-all duration-500 flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-6">
@@ -624,7 +624,7 @@ export default function DashboardOverview() {
                 {loadingDreams ? (
                   <p className="text-text-muted text-sm text-center py-8">Loading goals...</p>
                 ) : activeDreams.length === 0 ? (
-                  <div className="text-center py-8 bg-surface-base/40 rounded-2xl border border-white/5">
+                  <div className="text-center py-8 bg-surface-base/40 rounded-2xl border border-border/50">
                     <p className="text-text-muted text-sm mb-2">No active goals found.</p>
                     <NextLink href="/dreams" className="text-xs font-bold text-emerald-400 hover:underline">Create a Dream</NextLink>
                   </div>
@@ -634,7 +634,7 @@ export default function DashboardOverview() {
                     const done = dream.milestones?.filter((m) => m.completed).length || 0;
                     const pct = total > 0 ? Math.round((done / total) * 100) : 0;
                     return (
-                      <NextLink href={`/dreams/${dream.id}`} key={dream.id} className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-surface-base/60 border border-white/10 hover:border-emerald-500/40 transition-all group/goal">
+                      <NextLink href={`/dreams/${dream.id}`} key={dream.id} className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-surface-base/60 border border-border hover:border-emerald-500/40 transition-all group/goal">
                         <div className="overflow-hidden pr-2">
                           <h4 className="text-sm font-bold text-text-main group-hover/goal:text-emerald-400 transition-colors truncate">{dream.title}</h4>
                           <p className="text-xs text-text-muted mt-1">{done} of {total} milestones completed</p>
@@ -653,7 +653,7 @@ export default function DashboardOverview() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            className="md:col-span-2 lg:col-span-2 bg-surface-soft/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 lg:p-8 relative group hover:border-amber-500/50 hover:shadow-[0_0_30px_rgba(245,158,11,0.15)] transition-all duration-500 flex flex-col justify-between"
+            className="md:col-span-2 lg:col-span-2 bg-surface-soft/60 backdrop-blur-xl border border-border rounded-3xl p-6 lg:p-8 relative group hover:border-amber-500/50 hover:shadow-[0_0_30px_rgba(245,158,11,0.15)] transition-all duration-500 flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-6">
@@ -666,14 +666,14 @@ export default function DashboardOverview() {
               </div>
 
               {todayEntry?.content ? (
-                <div className="bg-surface-base/60 border border-white/10 rounded-2xl p-5 relative group/journal hover:border-amber-500/40 transition-all">
+                <div className="bg-surface-base/60 border border-border rounded-2xl p-5 relative group/journal hover:border-amber-500/40 transition-all">
                   <p className="text-sm text-text-main line-clamp-4 leading-relaxed italic">&ldquo;{todayEntry.content}&rdquo;</p>
                   <NextLink href="/journal" className="mt-4 inline-flex items-center gap-2 text-xs font-bold text-amber-400 hover:underline">
                     Continue writing <FiChevronRight size={14} />
                   </NextLink>
                 </div>
               ) : (
-                <div className="text-center py-10 bg-surface-base/40 rounded-2xl border border-white/5">
+                <div className="text-center py-10 bg-surface-base/40 rounded-2xl border border-border/50">
                   <p className="text-text-muted text-sm mb-4">Take a moment to reflect on your day.</p>
                   <NextLink href="/journal" className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 font-bold px-5 py-2.5 rounded-xl text-xs transition-all shadow-sm">
                     <FiBookOpen /> Start Writing
@@ -688,9 +688,9 @@ export default function DashboardOverview() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
-            className="md:col-span-3 lg:col-span-4 bg-surface-soft/60 backdrop-blur-xl border border-white/10 rounded-3xl p-6 lg:p-8 relative group hover:border-white/20 transition-all duration-500"
+            className="md:col-span-3 lg:col-span-4 bg-surface-soft/60 backdrop-blur-xl border border-border rounded-3xl p-6 lg:p-8 relative group hover:border-border transition-all duration-500"
           >
-            <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-4">
+            <div className="flex items-center justify-between mb-6 border-b border-border pb-4">
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-text-muted flex items-center gap-2">
                 <FiActivity className="text-brand-primary" /> Recent Activity Feed
               </p>
@@ -704,10 +704,10 @@ export default function DashboardOverview() {
                   <NextLink
                     key={item.id}
                     href={item.href}
-                    className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-surface-base/50 border border-white/5 hover:border-white/20 hover:bg-white/5 transition-all group/feed"
+                    className="flex items-center justify-between gap-4 p-4 rounded-2xl bg-surface-base/50 border border-border/50 hover:border-border hover:bg-surface-base transition-all group/feed"
                   >
                     <div className="flex items-center gap-3 overflow-hidden">
-                      <div className={`w-10 h-10 rounded-xl bg-surface-soft flex items-center justify-center shrink-0 border border-white/5 group-hover/feed:border-white/20 transition-colors`}>
+                      <div className={`w-10 h-10 rounded-xl bg-surface-soft flex items-center justify-center shrink-0 border border-border/50 group-hover/feed:border-border transition-colors`}>
                         <Icon className={`text-lg ${item.color}`} />
                       </div>
                       <div className="overflow-hidden">
@@ -715,7 +715,7 @@ export default function DashboardOverview() {
                         <p className="text-[11px] text-text-muted mt-0.5">{item.meta}</p>
                       </div>
                     </div>
-                    <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-text-muted bg-surface-soft px-2.5 py-1 rounded-lg border border-white/5">
+                    <span className="shrink-0 text-[10px] font-bold uppercase tracking-wider text-text-muted bg-surface-soft px-2.5 py-1 rounded-lg border border-border/50">
                       {dayjs(item.createdAt).fromNow(true)}
                     </span>
                   </NextLink>

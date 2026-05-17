@@ -44,10 +44,12 @@ export default function LandingPageClient({ isAuthenticated }: LandingPageClient
   if (isNative || !shouldRender || isAuthenticated || user) {
     return (
       <div className="fixed inset-0 bg-surface-base flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
-          <p className="text-text-muted animate-pulse font-medium">Initializing PK-Manager...</p>
-        </div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/pkmlogo.png"
+          alt="PK-Manager"
+          className="w-24 h-24 object-contain animate-pulse"
+        />
       </div>
     );
   }
