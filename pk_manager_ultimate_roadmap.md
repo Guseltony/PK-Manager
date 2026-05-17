@@ -1,226 +1,343 @@
-# THE ULTIMATE PK-MANAGER FULLSTACK MASTERY SYSTEM
+﻿# PK-Manager Fullstack Mastery Textbook (Codebase-First)
 
-> [!IMPORTANT]
-> **Role Context:** I am acting as your Senior Staff Engineer and Technical Mentor. This is not a tutorial; it is a brutal, real-world engineering curriculum designed to transform you into an elite Fullstack Architect. 
-> 
-> **Source of Truth:** The **PK-Manager** codebase. Every concept taught here maps directly to the code you have written or need to refactor.
+This is a PK-Manager-only curriculum. Every chapter maps to real code in this repo. The goal is: you can explain it, refactor it, and rebuild it without copying.
 
----
+## How To Use This Textbook
 
-# PART 1: COMPLETE SKILL MAP & DEEP ANALYSIS
+Study loop per chapter:
 
-We are breaking down the PK-Manager monolith into specific engineering domains. For each domain, we will explore concepts, actual codebase references, learning paths, exercises, and rebuild challenges.
-
-## 1. FRONTEND ENGINEERING (Next.js & React Mastery)
-
-### A. Concept Breakdown
-- **Beginner:** Component State & Props. *Mistake:* Prop drilling 5 levels deep instead of using Zustand.
-- **Intermediate:** Custom Hooks & Lifecycle. *Concept:* Encapsulating logic (e.g., `useVoiceCapture`). *Why it matters:* Keeps UI components clean.
-- **Advanced:** React Server Components (RSC) vs Client Boundaries. *Concept:* Decoupling data fetching from interactivity. *Senior Practice:* Fetching data in `layout.tsx` or `page.tsx` on the server, passing initial data to a Client Component that uses Zustand.
-- **Senior/Staff:** Memoization, Render Optimization, and AST Manipulation. *Concept:* Preventing the entire `NoteEditor.tsx` from re-rendering on every keystroke. 
-
-### B. Codebase References
-- **Exact Folders:** `frontend/src/features/`, `frontend/src/components/`, `frontend/src/store/`.
-- **Important Pattern:** Feature-based modularity in `src/features/notes/`.
-- **Bad Implementation / Needs Refactor:** `frontend/src/features/notes/NoteEditor.tsx` is dangerously large (1000+ lines). It mixes UI, API calls, rich-text syncing, and native mobile scrolling logic.
-- **Good Pattern:** `src/store/useNotesStore.ts` using Zustand for lightweight global state without Context API re-render issues.
-
-### C. Deep Learning Path
-1. **Prerequisite:** Advanced React Hooks (`useMemo`, `useCallback`, `useRef` for DOM manipulation).
-2. **Core Focus:** Next.js App Router caching mechanisms and Server Actions.
-3. **Senior Critical:** Render Profiling using React DevTools to measure component update times in `NoteEditor.tsx`.
-
-### D. Practical Exercises
-- **Mini:** Create a custom hook `useDebounceSave` to handle auto-saving logic cleanly.
-- **Medium:** Refactor `NotificationDropdown.tsx` to use a virtualized list (e.g., `react-window`) to handle 500+ notifications smoothly.
-- **Architecture Redesign:** Break `NoteEditor.tsx` into smaller chunks: `EditorHeader.tsx`, `RichTextArea.tsx`, `MarkdownArea.tsx`, `MetadataPanel.tsx`.
-
-### E. Rebuild Challenges
-- **Challenge:** Rebuild the `Tags` filtering system from scratch without looking at the original `TagNotes.tsx`. Use URL Search Params (`?tag=idea`) instead of local state to make the filtered views shareable and SSR-compatible.
+1. Read the Prisma models involved (backend `prisma/schema.prisma`).
+2. Read the backend route -> controller -> service chain.
+3. Read the frontend page -> feature module -> hooks -> store chain.
+4. Write a “rebuild from scratch” version of one sub-feature.
+5. Add tests + observability.
 
 ---
 
-## 2. BACKEND ENGINEERING & API DESIGN
+# PART 0: Orientation (Read First)
 
-### A. Concept Breakdown
-- **Beginner:** Express Routing. *Mistake:* Putting business logic directly inside the route definition.
-- **Intermediate:** Controller-Service Pattern. *Why it matters:* Decouples HTTP logic (req/res) from business logic, making services unit-testable.
-- **Advanced:** Middleware Chains & Global Error Handling. *Senior Practice:* Catching all async errors in a wrapper so the app never crashes from unhandled promise rejections.
-- **Senior/Staff:** Idempotency and Transactional Integrity. *Concept:* Ensuring network retries don't process a financial ledger entry twice.
+## Chapter 0.1: Repo Tour + Mental Model
 
-### B. Codebase References
-- **Exact Folders:** `backend/src/routes/`, `backend/src/controllers/`, `backend/src/services/`.
-- **Exact Implementations:** `src/services/task.service.js` and `src/services/ledger.service.js`.
-- **Areas Needing Refactor:** Inconsistent error responses. Some controllers might use `res.status(500).json()`, while others use custom Error classes. 
+Frontend:
+- `frontend/src/app/` (Next.js App Router pages)
+- `frontend/src/features/` (feature modules: notes/tasks/dreams/inbox/etc)
+- `frontend/src/hooks/` (React Query + feature hooks)
+- `frontend/src/store/` (Zustand stores)
+- `frontend/src/libs/` (`api.ts`, auth helpers, native tokens)
+- `frontend/next.config.ts`, `frontend/capacitor.config.ts` (build/runtime strategy)
 
-### C. Deep Learning Path
-1. **Prerequisite:** Node.js Event Loop mechanics (understanding blocking vs non-blocking I/O).
-2. **Core Focus:** Structuring Express apps for scale (Dependency Injection concepts).
-3. **Senior Critical:** Designing RESTful APIs that handle pagination, filtering, and sorting natively.
+Backend:
+- `backend/prisma/schema.prisma` (data model source of truth)
+- `backend/src/server.js` (Express bootstrap, CORS, sockets)
+- `backend/src/routes/` (HTTP routing)
+- `backend/src/controllers/` (HTTP handlers)
+- `backend/src/services/` (business logic)
+- `backend/src/middlewares/` (auth/csrf/validation)
+- `backend/src/validators/` (Zod schemas)
 
-### D. Practical Exercises
-- **Medium Project:** Implement an `AsyncHandler` wrapper for all controllers.
-- **Major Project:** Implement Cursor-based Pagination for the `/api/notes` endpoint to handle millions of records efficiently.
-
-### E. Rebuild Challenges
-- **Challenge:** Rebuild the `ledger.service.js` using strict Double-Entry Bookkeeping rules. If an entry is added to chaos, it must balance against a master ledger account. Do it entirely from scratch.
-
----
-
-## 3. DATABASE ENGINEERING (Prisma & PostgreSQL)
-
-### A. Concept Breakdown
-- **Beginner:** CRUD Operations via Prisma.
-- **Intermediate:** Relational Modeling (1:M, M:N). *Where it appears:* Notes to Tags relationship.
-- **Advanced:** Query Optimization & Indexing. *Mistake:* Searching text without an index.
-- **Senior/Staff:** Database Transactions & Connection Pooling. *Why it matters:* High concurrency will exhaust connections; transactions prevent orphan data.
-
-### B. Codebase References
-- **Exact File:** `backend/prisma/schema.prisma`.
-- **Bad Implementation:** Missing `@index` decorators on foreign keys (like `userId` or `dreamId`), which will cause slow Full Table Scans as the database grows.
-- **Important Pattern:** Using `createdAt` and `updatedAt` for audit trails.
-
-### C. Deep Learning Path
-1. **Prerequisite:** SQL Fundamentals (JOINs, GROUP BY).
-2. **Core Focus:** Prisma migrations pipeline and seed scripts.
-3. **Senior Critical:** Query execution plans (`EXPLAIN ANALYZE` in PostgreSQL).
-
-### D. Practical Exercises
-- **Refactor:** Add indexes to the Prisma schema for every field that is used in a `where` or `orderBy` clause.
-- **Architecture:** Implement Soft Deletes (adding a `deletedAt` field and modifying Prisma middleware to filter them out) instead of hard deleting notes.
+Exercises:
+- Draw the full request path for: `create task`, `create note`, `google auth`, `refresh token`, `register device token`.
 
 ---
 
-## 4. REAL-TIME SYSTEMS (WebSockets)
+# PART 1: Data Model & Persistence (The Spine)
 
-### A. Concept Breakdown
-- **Beginner:** Emitting and listening to events.
-- **Intermediate:** Socket Rooms and Namespaces. *Why it matters:* Ensuring User A doesn't get User B's notifications.
-- **Advanced:** Handling Disconnects and State Reconciliation. *Senior Practice:* When a client reconnects, fetching missed events instead of assuming they are synced.
-- **Senior/Staff:** Scaling WebSockets across multiple Node instances using a Redis Pub/Sub adapter.
+## Chapter 1.1: Prisma Schema as the Product Spec
 
-### B. Codebase References
-- **Exact Folders:** `frontend/src/components/providers/SocketProvider.tsx`, `backend/src/server.js`, `backend/src/services/notificationService.js`.
+Study:
+- `backend/prisma/schema.prisma`
 
-### C. Deep Learning Path
-1. **Mastery:** Understand the WebSocket protocol handshake.
-2. **Critical:** Memory leak prevention (always removing event listeners on component unmount in React).
+Topics:
+- Modeling relations (1:M, M:N), onDelete behavior
+- Indexing strategy (what should be indexed and why)
+- Enums (`TaskStatus`, `TaskRecurrence`, etc)
 
-### E. Rebuild Challenges
-- **Challenge:** Rip out Socket.io and rebuild the real-time notification feed using **Server-Sent Events (SSE)**. Compare the performance and implementation differences.
+Exercises:
+- Identify the entities that form the core loop: Notes, Tasks, Dreams, Inbox, Ledger, Focus.
+- Propose 3 indexes that would reduce N+1 or slow dashboard queries.
 
----
+## Chapter 1.2: Migrations + Safety
 
-## 5. AI & MODERN ENGINEERING (The Intelligence Layer)
+Study:
+- `backend/prisma/migrations/*`
 
-### A. Concept Breakdown
-- **Intermediate:** Prompt Engineering & Context Injection. *Where:* `GroqAgentprompt.md`, `groq.service.js`.
-- **Advanced:** Retrieval-Augmented Generation (RAG). *Concept:* Feeding specific notes to the LLM to ground its answers.
-- **Senior/Staff:** Vector Embeddings & Agentic Workflows. *Concept:* Giving the AI tools to execute functions (e.g., automatically generating a sub-task list and saving it to the DB).
-
-### B. Codebase References
-- **Exact Files:** `backend/src/services/ai.service.js`, `frontend/src/features/insights/`.
-
-### D. Practical Exercises
-- **Major Project:** Implement `pgvector` in your PostgreSQL database to store semantic embeddings of all Notes. Build a feature to find "Related Notes" mathematically, rather than by exact tag matching.
+Exercises:
+- Add a safe migration (new nullable column + backfill script) and deploy it.
 
 ---
 
-## 6. GAME ENGINEERING CONCEPTS (Applied to PK-Manager)
+# PART 2: Backend Architecture (Express, Security, Services)
 
-While Playza contains explicit games, PK-Manager relies heavily on **Gamification** and **Game Loop Concepts**:
-- **Game State Management:** The `Scorecard` and `Habits` systems mirror RPG character stats.
-- **Delta/Time Systems:** The `FocusMode` timer must act like a reliable game tick, persisting accurately even if the browser tabs out.
-- **Economy & Physics:** The `Chaos Ledger` acts as an in-game economy. Balancing entry fees, rewards, and "house edge" relies on game design math.
+## Chapter 2.1: Server Bootstrap & Middleware Pipeline
 
----
+Study:
+- `backend/src/server.js`
+- `backend/src/middlewares/authMiddleware.js`
+- `backend/src/middlewares/csrfMiddleware.js`
+- `backend/src/middlewares/zodValidation.js`
 
-# PART 2: THE ROADMAP TO ELITE
+Topics:
+- CORS + cookies + WebView edge cases
+- Auth vs CSRF responsibilities
+- Global error handling patterns
 
-Here is your timeline for mastering the PK-Manager stack and evolving into an Industry-Ready Senior Engineer.
+Exercises:
+- Add request-id logging and structured log format.
 
-## THE 30-DAY SPRINT: "BECOME DANGEROUS" (STABILITY & CLEAN CODE)
+## Chapter 2.2: Auth System (Web + APK)
 
-*Focus: Eliminating Technical Debt and mastering the existing architecture.*
+Study:
+- `backend/src/routes/authRoutes.js`
+- `backend/src/controllers/authControllers.js`
+- `backend/src/controllers/auth/tokenRefresh.controller.js`
+- `backend/src/controllers/auth/googleAuthCallback.js`
+- `backend/src/services/auth.services.js`
+- `backend/src/services/refresh.service.js`
+- `backend/src/services/session.service.js`
+- `backend/src/utils/cookie.utils.js`
 
-- **Week 1: The Backend Cleanup**
-  - **Daily Focus:** Study Express middleware patterns.
-  - **Deliverable:** Implement a global `AsyncHandler` and standard API response formatter. Refactor all controllers to use it.
-  - **Rebuild Target:** Rebuild `authRoutes.js` to handle edge cases cleanly.
-- **Week 2: Database Hardening**
-  - **Daily Focus:** PostgreSQL indexing and Prisma relations.
-  - **Deliverable:** Add indexes to `schema.prisma`. Optimize the "fetch all notes" query to include pagination.
-- **Week 3: Frontend Refactoring (The God Component)**
-  - **Daily Focus:** React render profiling.
-  - **Deliverable:** Break `NoteEditor.tsx` into 4 distinct components using compound component patterns.
-- **Week 4: Mobile & Capacitor**
-  - **Daily Focus:** PWA optimization and Native bridging.
-  - **Deliverable:** Implement native Haptic Feedback (vibration) when a task is completed on mobile using Capacitor plugins.
+Topics:
+- Access/Refresh token rotation
+- OAuth code exchange vs native token verification
+- Why WebView breaks cookie assumptions
 
-## THE 90-DAY ASCENT: "SYSTEMS ARCHITECT" (REAL-TIME & QUEUES)
+Rebuild challenge:
+- Rebuild auth as a separate module with a single exported router and a typed service interface.
 
-*Focus: Scaling systems to handle heavy loads and background processing.*
+## Chapter 2.3: API Design Quality
 
-- **Months 2-3 Focus Areas:**
-  - Introduce **Redis** to the backend.
-  - Implement a **Background Job Queue** (e.g., BullMQ) for processing AI insights and sending scheduled notifications, rather than blocking the main Node.js thread.
-  - **Rebuild Target:** Rebuild the `Inbox` processing system to be fully asynchronous and event-driven via queues.
+Study:
+- `backend/src/routes/*`
+- `backend/src/controllers/*`
+- `backend/src/services/*`
 
-## THE 6-MONTH MILESTONE: "THE AI INTEGRATOR"
+Topics:
+- Consistent error formats
+- Pagination and filtering patterns
+- Validation via Zod per route
 
-*Focus: Vector search and autonomous systems.*
-
-- **Months 4-6 Focus Areas:**
-  - Implement full RAG architecture. Convert all text notes to embeddings upon saving.
-  - Create an AI Agent that runs nightly (cron job via BullMQ) to analyze the day's tasks, journal entries, and ledger, providing a morning "Executive Summary" notification.
-  - **Industry Readiness Check:** At this stage, you have built a complex, AI-driven SaaS capable of handling real users. You are ready for Senior Engineering interviews.
-
-## THE 1-YEAR MASTERY: "THE ELITE ENGINEER"
-
-*Focus: Infrastructure, Distributed Systems, and Microservices.*
-
-- **Months 7-12 Focus Areas:**
-  - **Docker & CI/CD:** Containerize the Node.js backend and Postgres DB. Write GitHub Actions to automatically lint, build, and deploy to AWS/DigitalOcean on push.
-  - **Microservices:** Extract the AI logic (`groq.service.js`) into a separate Python/FastAPI microservice. Understand inter-service communication (gRPC or REST).
-  - **Observability:** Integrate Prometheus/Grafana or Datadog for server metrics, and Sentry for frontend error tracking.
+Exercise:
+- Add cursor pagination to one listing endpoint (notes or tasks).
 
 ---
 
-# PART 3: INDUSTRY READINESS PREPARATION
+# PART 3: Frontend Architecture (Next.js App Router, State, Data)
 
-By deeply executing this roadmap on PK-Manager, you are preparing for:
-- **Startup Engineering:** You are building an end-to-end B2B/B2C SaaS capable of rapid feature iteration.
-- **Senior Interviews:** When asked about "System Design," you can speak to breaking down God Components, mitigating N+1 database queries, indexing for scale, and offloading heavy tasks to Redis queues—all based on actual work you did.
-- **Remote Jobs:** Elite communication through code. Documenting your APIs (Swagger/OpenAPI) and enforcing strict linting prepares you for asynchronous remote teams.
+## Chapter 3.1: App Router Boundaries
+
+Study:
+- `frontend/src/app/layout.tsx`
+- `frontend/src/app/(dashboard)/layout.tsx`
+- any `frontend/src/app/(dashboard)/**/page.tsx`
+
+Topics:
+- Server vs client components
+- Auth gating strategy (server-side + client-side fallback)
+
+## Chapter 3.2: API Client & Cross-Platform Auth
+
+Study:
+- `frontend/src/libs/api.ts`
+- `frontend/src/libs/auth.ts`
+- `frontend/src/libs/nativeTokens.ts`
+- `frontend/src/proxy.ts`
+
+Topics:
+- Cookie-based auth (web)
+- Bearer fallback + refresh-native (APK)
+
+Exercise:
+- Add a single “auth debug panel” (dev-only) that shows: isNative, has cookies, has tokens.
+
+## Chapter 3.3: React Query + Hooks Layer
+
+Study:
+- `frontend/src/hooks/useTasks.ts`
+- `frontend/src/hooks/useNotes.ts`
+- `frontend/src/hooks/useInbox.ts`
+- `frontend/src/hooks/useUser.ts`
+
+Topics:
+- Query keys, invalidation, optimistic updates
+
+Exercise:
+- Add optimistic update to one mutation (e.g., inbox capture).
+
+## Chapter 3.4: Zustand Stores
+
+Study:
+- `frontend/src/store/*`
+
+Exercise:
+- Remove any accidental double-sources of truth (React Query state vs store state).
 
 ---
 
-# PART 4: FINAL ENGINEERING AUDIT
+# PART 4: PK-Manager Feature Chapters (The Product)
 
-### 1. Your Strongest Areas
-- **Feature Velocity & Product Vision:** You move incredibly fast from concept (prompts) to full-stack implementation (Notes, Tasks, Dreams, Ledger).
-- **UI/UX Aesthetics:** The application design feels premium, utilizing dark modes, complex grids, and responsive components effectively.
+## Chapter 4.1: Notes Engine
 
-### 2. Your Weakest Areas (Dangerous Gaps)
-- **Automated Testing:** There is zero evidence of Jest, Cypress, or Playwright. **A Senior Engineer writes tests.** A massive monolith without tests is a ticking time bomb.
-- **Error Handling & Observability:** Relying on `console.log`. Production systems need structured logging (Winston/Pino) and error tracking (Sentry).
-- **Performance Profiling:** Assuming code is fast vs proving it is fast. Missing indexes in Prisma.
+Study:
+- `frontend/src/app/(dashboard)/notes/*`
+- `frontend/src/features/notes/*`
+- `backend/src/routes/notesRoutes.js`
+- `backend/src/controllers/noteControllers.js`
+- `backend/src/services/note.service.js`
+- `backend/src/validators/note.schema.js`
 
-### 3. Missing Industry-Critical Skills
-- Docker & Containerization.
-- CI/CD Pipelines.
-- Background Job Processing (Redis/BullMQ).
+Exercises:
+- Implement note version rollback using `NoteVersion` table.
 
-### 4. Current Level Assessment
-You are currently operating at a **Strong Mid-Level Engineer** capacity. You build features rapidly and solve complex UI/API challenges. 
+## Chapter 4.2: Tasks Engine (Recurrence + Dependencies)
 
-### 5. Path to Senior/Staff
-To cross the threshold to Senior, you must shift your mindset from **"Does it work?"** to **"Will it break? How will it scale? Is it maintainable by others?"**
+Study:
+- `frontend/src/app/(dashboard)/tasks/*`
+- `frontend/src/features/tasks/*`
+- `frontend/src/types/task.ts`
+- `backend/src/routes/tasksRoutes.js`
+- `backend/src/controllers/taskControllers.js`
+- `backend/src/services/task.service.js`
+- `backend/src/validators/task.schema.js`
 
-1. Stop building new features for 30 days.
-2. Write tests.
-3. Refactor God Components.
-4. Add monitoring.
-5. Once stable, move to the 90-day AI & Architecture sprint.
+Exercises:
+- Define “Today tasks” semantics precisely (dueDate, recurrence, reschedules) and write tests for it.
 
-**The code is your textbook. Class is in session.**
+## Chapter 4.3: Dreams & Roadmaps
+
+Study:
+- `frontend/src/app/(dashboard)/dreams/*`
+- `frontend/src/features/dreams/*`
+- `backend/src/routes/dreamRoutes.js`
+- `backend/src/controllers/dreamControllers.js`
+- `backend/src/services/dream.service.js`
+
+Exercises:
+- Auto-generate roadmap graph from Dream -> Milestones -> Tasks -> Notes.
+
+## Chapter 4.4: Inbox & Capture System
+
+Study:
+- `frontend/src/app/(dashboard)/inbox/*`
+- `frontend/src/features/inbox/*`
+- `backend/src/routes/inboxRoutes.js`
+- `backend/src/controllers/inboxControllers.js`
+- `backend/src/services/inbox.service.js`
+
+Exercises:
+- Add “capture provenance” for every routed entity and expose it in UI.
+
+## Chapter 4.5: Focus System
+
+Study:
+- `frontend/src/app/(dashboard)/focus/*`
+- `frontend/src/hooks/useFocus.ts`
+- `backend/src/routes/focusRoutes.js`
+- `backend/src/services/focus.service.js`
+
+Exercises:
+- Add “active engagement” tracking rules that can’t be gamed.
+
+## Chapter 4.6: Ledger / Scorecard / Chaos
+
+Study:
+- `frontend/src/app/(dashboard)/ledger/*`, `scorecard/*`, `chaos/*`
+- `backend/src/routes/ledgerRoutes.js`, `scorecardRoutes.js`, `chaosRoutes.js`
+- `backend/src/services/ledger.service.js`
+
+Exercises:
+- Implement double-entry ledger with audit logs.
+
+## Chapter 4.7: Knowledge Graph + Insights
+
+Study:
+- `frontend/src/app/(dashboard)/knowledge/*`, `insights/*`
+- `backend/src/routes/knowledgeRoutes.js`, `insightsRoutes.js`, `aiRoutes.js`
+- `backend/src/services/knowledgeGraph.service.js`, `insightsEngine.service.js`, `ai.service.js`
+
+Exercises:
+- Build a “why this recommendation” explanation view.
+
+---
+
+# PART 5: Real-Time + Push Notifications
+
+## Chapter 5.1: Socket Notifications
+
+Study:
+- `backend/src/libs/socket.js`
+- `backend/src/services/notificationService.js`
+- `frontend/src/components/providers/SocketProvider.tsx`
+
+## Chapter 5.2: Mobile Push (FCM)
+
+Study:
+- `backend/src/libs/firebase.js`
+- `backend/src/routes/notificationRoutes.js`
+- `frontend/src/components/providers/PushNotificationProvider.tsx`
+- Android config: `frontend/android/app/google-services.json`
+
+Exercises:
+- Add a “Send test notification” admin-only endpoint.
+
+---
+
+# PART 6: Deployment, Build, Mobile Packaging
+
+Study:
+- `frontend/next.config.ts`
+- `frontend/capacitor.config.ts`
+- `APK_BUILD_AND_DISTRIBUTION_GUIDE.md`
+
+Topics:
+- Static export constraints
+- Frontend URL vs backend URL vs capacitor server url
+
+Exercises:
+- Add a build-time sanity check that CAPACITOR_SERVER_URL is set for Android builds.
+
+---
+
+# PART 7: Testing & Professional Engineering
+
+## Chapter 7.1: Tests
+
+Targets:
+- Backend: unit tests for task recurrence + auth refresh
+- Frontend: E2E smoke tests for sign-in and “create note/task”
+
+Suggested tools:
+- Backend: Vitest/Jest + Supertest
+- Frontend: Playwright
+
+## Chapter 7.2: Observability
+
+Targets:
+- Request IDs
+- Structured logs
+- Error tracking
+
+---
+
+# Roadmaps (PK-Manager Only)
+
+## 30-Day “Become Dangerous” (Stability)
+- Week 1: Auth, cookies, refresh, CSRF, WebView constraints
+- Week 2: Tasks recurrence correctness + tests
+- Week 3: Notes editor refactor + performance profiling
+- Week 4: Inbox routing + audit trail
+
+## 90-Day “Ship Like a Senior”
+- Add tests + CI checks
+- Background jobs for AI/insights
+- Push notifications end-to-end
+
+## 6-Month “Architect”
+- Modularize backend into bounded contexts
+- Introduce queue + caching
+- Improve data model + indexing
+
+## 1-Year “Staff Engineer”
+- Multi-tenant workspaces
+- Robust permissions (RBAC/ABAC)
+- Observability + SLOs
+
