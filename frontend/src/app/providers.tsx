@@ -41,6 +41,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       // This helps avoid a race condition right after login
       const hasCsrf = document.cookie.split("; ").some((c) => c.startsWith("csrf="));
       if (hasCsrf) {
+        if (typeof window !== "undefined" && window.location.pathname === "/") {
+          window.location.href = "/dashboard";
+        }
         return;
       }
 
@@ -63,7 +66,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
             window.location.href = "/dashboard";
           }
         }
-      } catch (err) {
+      } catch {
         // Silent fail on home page - user just stays logged out
         console.log("No active session found.");
       }

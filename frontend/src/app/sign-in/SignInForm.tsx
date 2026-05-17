@@ -109,9 +109,13 @@ export default function SignInForm() {
   const handleGoogleAuth = async () => {
     if (isNative) {
       try {
+        const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+        console.log("Starting Native Google Login with Client ID:", googleClientId);
+
         const result = await SocialLogin.login({
           provider: "google",
           options: {
+            // webClientId is handled via capacitor.config.ts
             scopes: ["email", "profile"],
           },
         });
@@ -119,6 +123,7 @@ export default function SignInForm() {
         if (result.provider === "google") {
           const googleResult = result.result;
           if (googleResult.responseType === "online" && googleResult.idToken) {
+            console.log("Native Google login successful, verifying with backend...");
             // Send to backend for native verification
             const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/google/native`, {
               method: "POST",
@@ -135,15 +140,21 @@ export default function SignInForm() {
               return;
             } else {
               const errData = await response.json();
-              setServerError(errData.error || "Native Google Sign-in failed");
+              console.error("Backend Native Auth Error:", errData);
+              setServerError(errData.error || "Server failed to verify Google account");
             }
           } else if (googleResult.responseType === "offline") {
              setServerError("Offline login mode not supported yet");
+          } else {
+            console.error("Unexpected Google login result:", googleResult);
+            setServerError("Google login returned invalid response");
           }
         }
-      } catch (err) {
-        console.error("Native Google Login Error:", err);
-        setServerError("Native Google Login failed");
+      } catch (err: unknown) {
+        console.error("Native Google Login Plugin Error:", err);
+        // Stringify the error so the user can see full details on mobile screen
+        const errorDetail = typeof err === 'object' ? JSON.stringify(err) : String(err);
+        setServerError(`Native Google Login failed: ${errorDetail}`);
       }
       return;
     }

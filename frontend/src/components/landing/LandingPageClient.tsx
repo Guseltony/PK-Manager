@@ -1,0 +1,69 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useIsMobile } from "@/src/hooks/useIsMobile";
+import { useUser } from "@/src/hooks/useUser";
+import LandingNav from "@/src/components/landing/LandingNav";
+import HeroSection from "@/src/components/landing/HeroSection";
+import FeaturesSection from "@/src/components/landing/FeaturesSection";
+import HowItWorksSection from "@/src/components/landing/HowItWorksSection";
+import WhoIsItForSection from "@/src/components/landing/WhoIsItForSection";
+import TestimonialsSection from "@/src/components/landing/TestimonialsSection";
+import CTASection from "@/src/components/landing/CTASection";
+import LandingFooter from "@/src/components/landing/LandingFooter";
+
+interface LandingPageClientProps {
+  isAuthenticated: boolean;
+}
+
+export default function LandingPageClient({ isAuthenticated }: LandingPageClientProps) {
+  const router = useRouter();
+  const { isNative } = useIsMobile();
+  const [shouldRender, setShouldRender] = useState(false);
+  const { data: user, isLoading } = useUser();
+
+  useEffect(() => {
+    if (isNative) {
+      const onboardingCompleted = localStorage.getItem("pkm_onboarding_completed");
+      if (!onboardingCompleted) {
+        router.replace("/welcome");
+      } else {
+        router.replace("/sign-in");
+      }
+    } else {
+      if (isAuthenticated || user) {
+        router.replace("/dashboard");
+      } else if (!isLoading) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setShouldRender(true);
+      }
+    }
+  }, [isNative, router, isAuthenticated, user, isLoading]);
+
+  if (isNative || !shouldRender || isAuthenticated || user) {
+    return (
+      <div className="fixed inset-0 bg-surface-base flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-text-muted animate-pulse font-medium">Initializing PK-Manager...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-surface-base text-text-main">
+      <LandingNav isAuthenticated={isAuthenticated} />
+      <main>
+        <HeroSection isAuthenticated={isAuthenticated} />
+        <FeaturesSection />
+        <HowItWorksSection />
+        <WhoIsItForSection />
+        <TestimonialsSection />
+        <CTASection isAuthenticated={isAuthenticated} />
+      </main>
+      <LandingFooter />
+    </div>
+  );
+}
