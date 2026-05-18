@@ -6,6 +6,7 @@ export const createDreamSchema = z.object({
   category: z.string().trim().optional(),
   priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
   targetDate: z.string().optional().nullable(),
+  parentDreamId: z.string().uuid().optional().nullable(),
 });
 
 export const updateDreamSchema = z.object({
@@ -15,6 +16,7 @@ export const updateDreamSchema = z.object({
   category: z.string().trim().optional(),
   priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
   targetDate: z.string().optional().nullable(),
+  parentDreamId: z.string().uuid().optional().nullable(),
 });
 
 export const createMilestoneSchema = z.object({
@@ -22,4 +24,8 @@ export const createMilestoneSchema = z.object({
   description: z.string().trim().optional(),
   weight: z.number().optional(),
   targetDate: z.string().optional().nullable(),
+});
+
+export const setDreamParentSchema = z.object({
+  parentDreamId: z.string().uuid().nullable(),
 });

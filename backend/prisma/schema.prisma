@@ -394,6 +394,10 @@ model Dream {
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentDreamId String?
+  parent Dream? @relation("DreamTree", fields: [parentDreamId], references: [id], onDelete: SetNull)
+  children Dream[] @relation("DreamTree")
+
 
   tasks      Task[]
   projects   Project[]
@@ -408,6 +412,7 @@ model Dream {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([userId, parentDreamId])
 }
 
 model Project {

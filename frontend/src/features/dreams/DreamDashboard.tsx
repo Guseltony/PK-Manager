@@ -1,6 +1,7 @@
 "use client";
 
-import { useDreams } from "../../hooks/useDreams";
+import { useDreams, useDreamTree } from "../../hooks/useDreams";
+import Link from "next/link";
 import { 
   FiTarget, 
   FiActivity, 
@@ -118,6 +119,38 @@ export default function DreamDashboard() {
           <CreateDreamModal onClose={() => setShowCreate(false)} />
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+
+function DreamHierarchy({ nodes, depth = 0 }: { nodes: any[]; depth?: number }) {
+  return (
+    <div className="space-y-2">
+      {nodes.map((node) => (
+        <div key={node.id}>
+          <Link
+            href={`/dreams?dream=${node.id}`}
+            className="flex items-center justify-between rounded-xl border border-border bg-surface-mutes/20 hover:bg-surface-mutes/40 transition-colors px-3 py-2"
+            style={{ marginLeft: depth * 12 }}
+          >
+            <div className="min-w-0">
+              <p className="text-sm font-bold text-text-main truncate">{node.title}</p>
+              <p className="text-[11px] text-text-muted truncate">
+                {(node._count?.children ?? node.children?.length ?? 0) > 0
+                  ? `${node._count?.children ?? node.children.length} sub-dream(s)`
+                  : "No sub-dreams"}
+              </p>
+            </div>
+            <span className="text-[11px] font-black text-text-main">{Math.round(node.progress ?? 0)}%</span>
+          </Link>
+          {node.children?.length ? (
+            <div className="mt-2">
+              <DreamHierarchy nodes={node.children} depth={depth + 1} />
+            </div>
+          ) : null}
+        </div>
+      ))}
     </div>
   );
 }

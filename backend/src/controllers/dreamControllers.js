@@ -2,6 +2,8 @@ import {
   dreamCreation,
   getUserDreams,
   getDream,
+  getDreamTree,
+  setDreamParent,
   updateDream,
   addMilestone,
   toggleMilestone,
@@ -17,6 +19,18 @@ export const createNewDream = async (req, res) => {
   }
 };
 
+export const createChildDream = async (req, res) => {
+  try {
+    const dream = await dreamCreation(
+      { ...req.body, parentDreamId: req.params.id },
+      req.user.id,
+    );
+    res.status(201).json({ data: dream });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 export const allUserDreams = async (req, res) => {
   try {
     console.log("DEBUG: allUserDreams user:", req.user?.id);
@@ -24,6 +38,15 @@ export const allUserDreams = async (req, res) => {
     res.status(200).json({ data: dreams });
   } catch (error) {
     console.error("DEBUG: allUserDreams error:", error);
+    res.status(400).json({ error: error.message });
+  }
+};
+
+export const dreamTree = async (req, res) => {
+  try {
+    const dreams = await getDreamTree(req.user.id);
+    res.status(200).json({ data: dreams });
+  } catch (error) {
     res.status(400).json({ error: error.message });
   }
 };
@@ -47,6 +70,19 @@ export const updateExistingDream = async (req, res) => {
   }
 };
 
+export const updateDreamParent = async (req, res) => {
+  try {
+    const updated = await setDreamParent(
+      req.params.id,
+      req.user.id,
+      req.body.parentDreamId,
+    );
+    res.status(200).json({ data: updated });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
 export const createMilestone = async (req, res) => {
   try {
     const milestone = await addMilestone(req.params.id, req.user.id, req.body);
@@ -58,7 +94,11 @@ export const createMilestone = async (req, res) => {
 
 export const toggleMilestoneStatus = async (req, res) => {
   try {
-    const milestone = await toggleMilestone(req.params.milestoneId, req.params.id, req.user.id);
+    const milestone = await toggleMilestone(
+      req.params.milestoneId,
+      req.params.id,
+      req.user.id,
+    );
     res.status(200).json({ data: milestone });
   } catch (error) {
     res.status(400).json({ error: error.message });

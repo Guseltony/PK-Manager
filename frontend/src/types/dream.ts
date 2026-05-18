@@ -44,6 +44,11 @@ export interface DreamNote {
 }
 
 export interface Dream {
+  parentDreamId?: string | null;
+  parent?: { id: string; title: string; parentDreamId?: string | null } | null;
+  children?: Dream[];
+  _count?: { children?: number; tasks?: number; milestones?: number };
+
   id: string;
   title: string;
   description?: string;

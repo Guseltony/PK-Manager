@@ -1,9 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import api from "../libs/api";
-import { 
-  Dream, 
-  Milestone, 
-} from "../types/dream";
+import type { Dream, Milestone } from "../types/dream";
 
 const EMPTY_ARRAY: unknown[] = [];
 
@@ -20,7 +17,10 @@ export function useDreams() {
         return response.data.data;
       } catch (err) {
         const error = err as { response?: { data?: unknown }; message?: string };
-        console.error("DEBUG: Fetching dreams error:", error.response?.data || error.message);
+        console.error(
+          "DEBUG: Fetching dreams error:",
+          error.response?.data || error.message,
+        );
         throw err;
       }
     },
@@ -33,6 +33,7 @@ export function useDreams() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dreams"] });
+      queryClient.invalidateQueries({ queryKey: ["dreamTree"] });
     },
   });
 
@@ -41,7 +42,24 @@ export function useDreams() {
     isLoading,
     error,
     createDream: createDreamMutation.mutate,
+    createDreamAsync: createDreamMutation.mutateAsync,
     isCreating: createDreamMutation.isPending,
+  };
+}
+
+export function useDreamTree() {
+  const { data, isLoading, error } = useQuery<Dream[]>({
+    queryKey: ["dreamTree"],
+    queryFn: async () => {
+      const response = await api.get<{ data: Dream[] }>("/dream/tree");
+      return response.data.data;
+    },
+  });
+
+  return {
+    dreamTree: data || (EMPTY_ARRAY as Dream[]),
+    isLoading,
+    error,
   };
 }
 
@@ -65,6 +83,20 @@ export function useDream(id: string | null) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dreams"] });
+      queryClient.invalidateQueries({ queryKey: ["dreamTree"] });
+      queryClient.invalidateQueries({ queryKey: ["dream", id] });
+    },
+  });
+
+  const createChildDreamMutation = useMutation({
+    mutationFn: async (child: Partial<Dream>) => {
+      if (!id) throw new Error("Dream id is required");
+      const { data } = await api.post<{ data: Dream }>(`/dream/${id}/children`, child);
+      return data.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["dreams"] });
+      queryClient.invalidateQueries({ queryKey: ["dreamTree"] });
       queryClient.invalidateQueries({ queryKey: ["dream", id] });
     },
   });
@@ -113,6 +145,7 @@ export function useDream(id: string | null) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dream", id] });
       queryClient.invalidateQueries({ queryKey: ["dreams"] });
+      queryClient.invalidateQueries({ queryKey: ["dreamTree"] });
     },
   });
 
@@ -126,12 +159,7 @@ export function useDream(id: string | null) {
     },
   });
 
-  const deleteMilestoneMutation = useMutation<
-    string,
-    Error,
-    string,
-    { previousDream?: Dream }
-  >({
+  const deleteMilestoneMutation = useMutation<string, Error, string, { previousDream?: Dream }>({
     mutationFn: async (milestoneId: string) => {
       await api.delete(`/dream/${id}/milestones/${milestoneId}`);
       return milestoneId;
@@ -159,6 +187,7 @@ export function useDream(id: string | null) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["dream", id] });
       queryClient.invalidateQueries({ queryKey: ["dreams"] });
+      queryClient.invalidateQueries({ queryKey: ["dreamTree"] });
     },
   });
 
@@ -167,11 +196,18 @@ export function useDream(id: string | null) {
     isLoading,
     error,
     updateDream: updateMutation.mutate,
+    updateDreamAsync: updateMutation.mutateAsync,
+
+    createChildDream: createChildDreamMutation.mutate,
+    createChildDreamAsync: createChildDreamMutation.mutateAsync,
+    isCreatingChildDream: createChildDreamMutation.isPending,
+
     addMilestone: addMilestoneMutation.mutate,
     addMilestoneAsync: addMilestoneMutation.mutateAsync,
     toggleMilestone: toggleMilestoneMutation.mutate,
     deleteMilestone: deleteMilestoneMutation.mutate,
     deleteMilestoneAsync: deleteMilestoneMutation.mutateAsync,
+
     isUpdating: updateMutation.isPending,
     isAddingMilestone: addMilestoneMutation.isPending,
     isDeletingMilestone: deleteMilestoneMutation.isPending,
