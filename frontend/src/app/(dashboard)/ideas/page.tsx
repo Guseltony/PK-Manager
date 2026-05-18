@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FiSend,
@@ -37,6 +37,16 @@ import { useSearchParams } from "next/navigation";
 dayjs.extend(relativeTime);
 
 export default function IdeasPage() {
+  // Next.js static export (output: 'export') requires `useSearchParams()` usage
+  // to be wrapped in a Suspense boundary, otherwise prerender can fail.
+  return (
+    <Suspense fallback={null}>
+      <IdeasPageInner />
+    </Suspense>
+  );
+}
+
+function IdeasPageInner() {
   const searchParams = useSearchParams();
   const {
     ideas,
@@ -750,3 +760,4 @@ function getSpeechRecognition(): SpeechRecognitionConstructor | null {
     null
   );
 }
+

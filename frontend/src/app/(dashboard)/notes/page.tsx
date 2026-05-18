@@ -1,12 +1,22 @@
-"use client";
+﻿"use client";
 
 import NoteList from "@/src/features/notes/NoteList";
 import NoteEditor from "@/src/features/notes/NoteEditor";
 import { useNotesStore } from "@/src/store/notesStore";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 
 export default function NotesPage() {
+  // Next.js static export (output: 'export') requires `useSearchParams()` usage
+  // to be wrapped in a Suspense boundary, otherwise prerender can fail.
+  return (
+    <Suspense fallback={null}>
+      <NotesPageInner />
+    </Suspense>
+  );
+}
+
+function NotesPageInner() {
   const { selectedNoteId, isCreating } = useNotesStore();
   const searchParams = useSearchParams();
 
@@ -33,3 +43,4 @@ export default function NotesPage() {
     </div>
   );
 }
+

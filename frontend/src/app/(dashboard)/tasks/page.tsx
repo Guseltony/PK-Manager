@@ -1,3 +1,4 @@
+﻿import { Suspense } from "react";
 import TasksPageContent from "@/src/features/tasks/TasksPageContent";
 
 export const metadata = {
@@ -6,5 +7,9 @@ export const metadata = {
 };
 
 export default function TasksPage() {
-  return <TasksPageContent />;
+  return (
+    <Suspense fallback={null}>
+      <TasksPageContent />
+    </Suspense>
+  );
 }
