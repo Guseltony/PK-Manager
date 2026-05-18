@@ -1,4 +1,4 @@
-﻿package com.anthony.pkm;
+package com.anthony.pkm;
 
 import android.content.Intent;
 import android.util.Log;
