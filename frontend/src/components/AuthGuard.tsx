@@ -1,41 +1,48 @@
-"use client";
+﻿"use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import api from "@/src/libs/api";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+  const runningRef = useRef(false);
 
   useEffect(() => {
+    let disposed = false;
+
     const checkAuth = async () => {
-      // Small delay to ensure cookies set by the OAuth exchange
-      // have been registered in the browser before we call /user/get.
-      await new Promise((r) => setTimeout(r, 150));
+      if (runningRef.current) return;
+      runningRef.current = true;
+
       try {
-        const res = await api.get("/user/get");
-        if (!res.data) {
-          router.push("/sign-in");
-        } else {
-          setLoading(false);
+        if (pathname?.startsWith("/sign-in") || pathname?.startsWith("/welcome")) {
+          runningRef.current = false;
+          return;
         }
-      } catch (err) {
-        console.error("Auth check failed:", err);
-        router.push("/sign-in");
+
+        await api.get("/user/get");
+      } catch {
+        if (disposed) return;
+        router.replace("/sign-in");
+      } finally {
+        runningRef.current = false;
       }
     };
 
-    checkAuth();
-  }, [router]);
+    void checkAuth();
 
-  if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-surface-base">
-        <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-primary border-t-transparent" />
-      </div>
-    );
-  }
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void checkAuth();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      disposed = true;
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [router, pathname]);
 
   return <>{children}</>;
 }

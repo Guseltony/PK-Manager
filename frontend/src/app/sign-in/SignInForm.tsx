@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -18,8 +18,13 @@ export default function SignInForm() {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
-  const router = useRouter();
 
+  useEffect(() => {
+    if (!serverError) return;
+    const t = window.setTimeout(() => setServerError(null), 10000);
+    return () => window.clearTimeout(t);
+  }, [serverError]);
+  const router = useRouter();
   const loginForm = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     mode: "onBlur",
@@ -412,5 +417,6 @@ export default function SignInForm() {
     </div>
   );
 }
+
 
 

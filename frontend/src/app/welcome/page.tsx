@@ -1,18 +1,36 @@
-"use client";
+﻿"use client";
 
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import Image from "next/image";
 import { FiArrowRight, FiShield, FiZap, FiTarget } from "react-icons/fi";
+import api from "@/src/libs/api";
 
 export default function WelcomePage() {
   const router = useRouter();
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        await api.get("/user/get");
+        if (mounted) router.replace("/dashboard");
+      } catch {
+        // not logged in
+      }
+    })();
+
+    return () => {
+      mounted = false;
+    };
+  }, [router]);
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-between bg-surface-base px-6 py-12 text-text-main overflow-hidden">
       {/* Background Glows */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[300px] bg-brand-primary/10 blur-[100px] rounded-full" />
-      
+
       <div className="relative z-10 flex flex-1 flex-col items-center justify-center text-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
@@ -42,7 +60,7 @@ export default function WelcomePage() {
             <span className="text-brand-primary">Execute Your Ideas.</span>
           </h1>
           <p className="mt-6 text-lg leading-relaxed text-text-muted max-w-sm mx-auto">
-            The connected workspace for builders. Notes, tasks, and goals — all in one place.
+            The connected workspace for builders. Notes, tasks, and goals - all in one place.
           </p>
         </motion.div>
 
@@ -56,8 +74,11 @@ export default function WelcomePage() {
             { icon: <FiShield />, label: "Secure" },
             { icon: <FiZap />, label: "Fast" },
             { icon: <FiTarget />, label: "Focused" },
-          ].map((item, i) => (
-            <div key={item.label} className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-surface-soft/50 p-4 backdrop-blur-sm">
+          ].map((item) => (
+            <div
+              key={item.label}
+              className="flex flex-col items-center gap-2 rounded-2xl border border-border bg-surface-soft/50 p-4 backdrop-blur-sm"
+            >
               <div className="text-brand-primary">{item.icon}</div>
               <span className="text-xs font-medium text-text-muted">{item.label}</span>
             </div>
@@ -77,7 +98,7 @@ export default function WelcomePage() {
         >
           Get Started <FiArrowRight />
         </button>
-        
+
         <p className="text-center text-sm text-text-muted">
           New here? Build your foundation today.
         </p>
@@ -85,3 +106,4 @@ export default function WelcomePage() {
     </div>
   );
 }
+
