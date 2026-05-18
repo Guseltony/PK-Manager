@@ -21,7 +21,6 @@ import {
   FiClock,
   FiLink2,
   FiMaximize2,
-  FiMove,
   FiGitBranch,
   FiMinimize2,
   FiInfo,
@@ -31,7 +30,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import MilestoneList from "./MilestoneList";
 import { AiDreamIntelligence } from "../../types/ai";
-import type { MilestoneArchitectureMap } from "../../types/dream";
+import type { Dream, MilestoneArchitectureMap } from "../../types/dream";
 import type { Task } from "../../types/task";
 import { FiImage } from "react-icons/fi";
 import { ImageGallery } from "../../components/ImageGallery";
@@ -64,11 +63,25 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
     isDeletingMilestone,
   } = useDream(id);
   const [activeTab, setActiveTab] = useState("execution");
-  const [intelligence, setIntelligence] = useState<AiDreamIntelligence | null>(null);
+  const [intelligence, setIntelligence] = useState<AiDreamIntelligence | null>(
+    null,
+  );
   const [showTaskPrompt, setShowTaskPrompt] = useState(false);
   const [showRoadmapNodePrompt, setShowRoadmapNodePrompt] = useState(false);
   const [showCreateSubDream, setShowCreateSubDream] = useState(false);
-  const [subDreamForm, setSubDreamForm] = useState({ title: "", description: "", category: "", priority: "medium", targetDate: "" });
+  const [subDreamForm, setSubDreamForm] = useState<{
+    title: string;
+    description: string;
+    category: string;
+    priority: Dream["priority"];
+    targetDate: string;
+  }>({
+    title: "",
+    description: "",
+    category: "",
+    priority: "medium",
+    targetDate: "",
+  });
   const [subDreamError, setSubDreamError] = useState<string | null>(null);
   const [showRoadmapNodeInspector, setShowRoadmapNodeInspector] =
     useState(false);
@@ -129,15 +142,24 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
     try {
       await createChildDreamAsync({
         title: subDreamForm.title.trim(),
-        description: subDreamForm.description.trim() ? subDreamForm.description.trim() : undefined,
-        category: subDreamForm.category.trim() ? subDreamForm.category.trim() : undefined,
-        priority: subDreamForm.priority as any,
+        description: subDreamForm.description.trim()
+          ? subDreamForm.description.trim()
+          : undefined,
+        category: subDreamForm.category.trim()
+          ? subDreamForm.category.trim()
+          : undefined,
+        priority: subDreamForm.priority,
         targetDate: subDreamForm.targetDate || undefined,
       });
       setShowCreateSubDream(false);
     } catch (err) {
-      const e = err as any;
-      setSubDreamError(e?.response?.data?.error || e?.message || "Failed to create sub-dream");
+      const e = err as {
+        response?: { data?: { error?: string } };
+        message?: string;
+      };
+      setSubDreamError(
+        e?.response?.data?.error || e?.message || "Failed to create sub-dream",
+      );
     }
   };
 
@@ -249,7 +271,6 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
 
   if (!dream) return <NotFoundState />;
 
-
   const handleCreateDreamTask = async (title: string) => {
     await createTaskAsync({
       title,
@@ -276,7 +297,10 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
     });
   };
 
-  const handleAddRoadmapNode = (payload: { title: string; details: string }) => {
+  const handleAddRoadmapNode = (payload: {
+    title: string;
+    details: string;
+  }) => {
     const customCount = roadmapNodes.filter((n) => n.type === "custom").length;
     setRoadmapNodes((current) => [
       ...current,
@@ -627,14 +651,16 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
               </div>
               {dream.parent ? (
                 <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-bold text-text-muted">
-                  <Link href={`/dreams?dream=${dream.parent.id}`} className="hover:text-brand-primary transition-colors">
+                  <Link
+                    href={`/dreams?dream=${dream.parent.id}`}
+                    className="hover:text-brand-primary transition-colors"
+                  >
                     {dream.parent.title}
                   </Link>
                   <span className="opacity-40">/</span>
                   <span className="text-text-main">{dream.title}</span>
                 </div>
               ) : null}
-
               <h1 className="text-5xl font-display font-black text-text-main mb-4 tracking-tighter">
                 {dream.title}
               </h1>
@@ -642,7 +668,6 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                 {dream.description ||
                   "No description provided for this mission."}
               </p>
-
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <button
                   type="button"
@@ -653,10 +678,11 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                   Add sub-dream
                 </button>
               </div>
-
               {dream.children?.length ? (
                 <div className="mt-6">
-                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-text-muted mb-3">Sub-dreams</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-text-muted mb-3">
+                    Sub-dreams
+                  </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {dream.children.map((child) => (
                       <Link
@@ -664,7 +690,9 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                         href={`/dreams?dream=${child.id}`}
                         className="rounded-2xl border border-border bg-surface-mutes/20 hover:bg-surface-mutes/40 transition-colors px-4 py-3"
                       >
-                        <p className="text-sm font-bold text-text-main line-clamp-1">{child.title}</p>
+                        <p className="text-sm font-bold text-text-main line-clamp-1">
+                          {child.title}
+                        </p>
                         <p className="text-[11px] text-text-muted line-clamp-2 mt-1">
                           {child.description || "Sub-dream"}
                         </p>
@@ -672,7 +700,8 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                     ))}
                   </div>
                 </div>
-              ) : null}\r\n            </div>
+              ) : null}{" "}
+            </div>
 
             {/* System Intelligence Indicators */}
             <div className="grid gap-3 pt-4 sm:grid-cols-2 xl:flex xl:flex-wrap">
@@ -869,7 +898,8 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                           Execution rule
                         </p>
                         <p className="mt-1 text-xs leading-5 text-text-muted">
-                          Execution can stand alone. Tasks can exist before they are attached to a milestone.
+                          Execution can stand alone. Tasks can exist before they
+                          are attached to a milestone.
                         </p>
                       </div>
                       {intelligence.suggestedTasks?.length ? (
@@ -919,7 +949,7 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                         ) : null}
                       </div>
                       {intelligence.suggestedMilestones?.length ? (
-                      <div className="mt-4 space-y-2">
+                        <div className="mt-4 space-y-2">
                           {intelligence.suggestedMilestones.map(
                             (milestone, index) => (
                               <div
@@ -1032,7 +1062,9 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                     Milestone rule
                   </p>
                   <p className="mt-2 text-sm text-text-muted">
-                    Milestones can be loose checkpoints or strict gates. Use the architecture modal on each milestone to decide what must be complete before it can close.
+                    Milestones can be loose checkpoints or strict gates. Use the
+                    architecture modal on each milestone to decide what must be
+                    complete before it can close.
                   </p>
                 </div>
                 <MilestoneList
@@ -1099,7 +1131,8 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                     Knowledge rule
                   </p>
                   <p className="mt-2 text-sm text-text-muted">
-                    Knowledge can stand alone. Notes may support the dream generally, or be attached later to milestones and execution.
+                    Knowledge can stand alone. Notes may support the dream
+                    generally, or be attached later to milestones and execution.
                   </p>
                 </div>
                 {dream.notes && dream.notes.length > 0 ? (
@@ -1110,7 +1143,10 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
                         href={`/notes/${note.id}`}
                         className="rounded-3xl bg-surface-mutes/50 border border-border p-4 sm:p-6 hover:border-brand-primary/20 transition-all group"
                       >
-                        <FiBook className="text-brand-primary mb-3 sm:mb-4" size={22} />
+                        <FiBook
+                          className="text-brand-primary mb-3 sm:mb-4"
+                          size={22}
+                        />
                         <h4 className="mb-2 line-clamp-2 text-sm font-bold text-text-main sm:text-base">
                           {note.title}
                         </h4>
@@ -1603,20 +1639,28 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
           ) : null}
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Title</label>
+            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
+              Title
+            </label>
             <input
               value={subDreamForm.title}
-              onChange={(e) => setSubDreamForm((p) => ({ ...p, title: e.target.value }))}
+              onChange={(e) =>
+                setSubDreamForm((p) => ({ ...p, title: e.target.value }))
+              }
               className="w-full rounded-xl border border-border bg-surface-mutes/40 px-4 py-3 text-sm text-text-main outline-none focus:border-brand-primary/50"
               placeholder="Sub-dream title"
             />
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Description</label>
+            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
+              Description
+            </label>
             <textarea
               value={subDreamForm.description}
-              onChange={(e) => setSubDreamForm((p) => ({ ...p, description: e.target.value }))}
+              onChange={(e) =>
+                setSubDreamForm((p) => ({ ...p, description: e.target.value }))
+              }
               className="w-full rounded-xl border border-border bg-surface-mutes/40 px-4 py-3 text-sm text-text-main outline-none focus:border-brand-primary/50 resize-none"
               rows={3}
               placeholder="What does success look like?"
@@ -1625,19 +1669,30 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Category</label>
+              <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
+                Category
+              </label>
               <input
                 value={subDreamForm.category}
-                onChange={(e) => setSubDreamForm((p) => ({ ...p, category: e.target.value }))}
+                onChange={(e) =>
+                  setSubDreamForm((p) => ({ ...p, category: e.target.value }))
+                }
                 className="w-full rounded-xl border border-border bg-surface-mutes/40 px-4 py-3 text-sm text-text-main outline-none focus:border-brand-primary/50"
                 placeholder="Career, Health..."
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Priority</label>
+              <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
+                Priority
+              </label>
               <select
                 value={subDreamForm.priority}
-                onChange={(e) => setSubDreamForm((p) => ({ ...p, priority: e.target.value }))}
+                onChange={(e) =>
+                  setSubDreamForm((p) => ({
+                    ...p,
+                    priority: e.target.value as Dream["priority"],
+                  }))
+                }
                 className="w-full rounded-xl border border-border bg-surface-mutes/40 px-4 py-3 text-sm text-text-main outline-none focus:border-brand-primary/50"
               >
                 <option value="low">low</option>
@@ -1649,11 +1704,15 @@ export default function DreamDetailView({ id }: DreamDetailViewProps) {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">Target Date</label>
+            <label className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em]">
+              Target Date
+            </label>
             <input
               type="date"
               value={subDreamForm.targetDate}
-              onChange={(e) => setSubDreamForm((p) => ({ ...p, targetDate: e.target.value }))}
+              onChange={(e) =>
+                setSubDreamForm((p) => ({ ...p, targetDate: e.target.value }))
+              }
               className="w-full rounded-xl border border-border bg-surface-mutes/40 px-4 py-3 text-sm text-text-main outline-none focus:border-brand-primary/50"
             />
           </div>
