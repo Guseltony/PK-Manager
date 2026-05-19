@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useIsMobile } from "@/src/hooks/useIsMobile";
+import { getAccessToken } from "@/src/libs/nativeTokens";
 import { useUser } from "@/src/hooks/useUser";
 import LandingNav from "@/src/components/landing/LandingNav";
 import HeroSection from "@/src/components/landing/HeroSection";
@@ -17,7 +18,9 @@ interface LandingPageClientProps {
   isAuthenticated: boolean;
 }
 
-export default function LandingPageClient({ isAuthenticated }: LandingPageClientProps) {
+export default function LandingPageClient({
+  isAuthenticated,
+}: LandingPageClientProps) {
   const router = useRouter();
   const { isNative } = useIsMobile();
   const [shouldRender, setShouldRender] = useState(false);
@@ -25,19 +28,30 @@ export default function LandingPageClient({ isAuthenticated }: LandingPageClient
 
   useEffect(() => {
     if (isNative) {
-      const onboardingCompleted = localStorage.getItem("pkm_onboarding_completed");
+      const token = getAccessToken();
+      if (token) {
+        router.replace("/dashboard");
+        return;
+      }
+
+      const onboardingCompleted = localStorage.getItem(
+        "pkm_onboarding_completed",
+      );
       if (!onboardingCompleted) {
         router.replace("/welcome");
       } else {
         router.replace("/sign-in");
       }
-    } else {
-      if (isAuthenticated || user) {
-        router.replace("/dashboard");
-      } else if (!isLoading) {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setShouldRender(true);
-      }
+      return;
+    }
+
+    if (isAuthenticated || user) {
+      router.replace("/dashboard");
+      return;
+    }
+
+    if (!isLoading) {
+      setShouldRender(true);
     }
   }, [isNative, router, isAuthenticated, user, isLoading]);
 

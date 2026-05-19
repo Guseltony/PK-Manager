@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -161,6 +161,10 @@ export default function SignInForm() {
         console.error("Native Google Login Plugin Error:", err);
         // Stringify the error so the user can see full details on mobile screen
         const errorDetail = typeof err === 'object' ? JSON.stringify(err) : String(err);
+        if (String(errorDetail).includes("USER_CANCELED")) {
+          // User dismissed the account picker or Google rejected the flow; don't show an error banner.
+          return;
+        }
         setServerError(`Native Google Login failed: ${errorDetail}`);
       }
       return;
@@ -350,7 +354,7 @@ export default function SignInForm() {
           {errors.password && <p className="text-xs text-red-400">{errors.password.message}</p>}
         </div>
 
-        {/* Terms Checkbox â€” Register only */}
+        {/* Terms Checkbox — Register only */}
         {!isLogin && (
           <div className="flex flex-col gap-1">
             <label className="flex cursor-pointer items-center gap-2.5 text-sm text-text-muted">
